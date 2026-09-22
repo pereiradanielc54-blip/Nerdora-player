@@ -1,0 +1,212 @@
+name: Gerar APK Nerdora Player
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  ANDROID_HOME: /usr/local/lib/android/sdk
+  ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+
+jobs:
+  build:
+    name: Compilar Nerdora Player
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Encontrar pacote mais recente
+        id: archive
+        shell: bash
+        run: |
+          ARCHIVE=$(find . -maxdepth 2 -type f -name 'NerdoraPlayer-*.tar.gz' | sort -V | tail -n 1)
+
+          if [ -z "$ARCHIVE" ]; then
+            echo "ERRO: nenhum NerdoraPlayer-*.tar.gz foi encontrado."
+            find . -maxdepth 2 -type f -print
+            exit 1
+          fi
+
+          echo "archive=$ARCHIVE" >> "$GITHUB_OUTPUT"
+          echo "Pacote selecionado: $ARCHIVE"
+
+      - name: Validar pacote
+        shell: bash
+        run: |
+          ARCHIVE="${{ steps.archive.outputs.archive }}"
+
+          echo "=== Informações do pacote ==="
+          ls -lh "$ARCHIVE"
+          file "$ARCHIVE"
+          sha256sum "$ARCHIVE"
+          echo "Tamanho em bytes: $(wc -c < "$ARCHIVE")"
+
+          if grep -aq '^version https://git-lfs.github.com/spec/v1' "$ARCHIVE"; then
+            echo "ERRO: o arquivo ainda é um ponteiro do Git LFS."
+            exit 1
+          fi
+
+          SIZE=$(wc -c < "$ARCHIVE")
+          if [ "$SIZE" -lt 1000000 ]; then
+            echo "ERRO: pacote pequeno demais ($SIZE bytes)."
+            exit 1
+          fi
+
+          gzip -t "$ARCHIVE" || {
+            echo "ERRO: TAR.GZ corrompido."
+            exit 1
+          }
+
+          echo "Pacote TAR.GZ válido."
+
+      - name: Extrair projeto
+        shell: bash
+        run: |
+          rm -rf extracted_project
+          mkdir -p extracted_project
+          tar -xzf "${{ steps.archive.outputs.archive }}" -C extracted_project
+
+          echo "Arquivos principais extraídos:"
+          find extracted_project -maxdepth 2 -type f -print | sort | head -80
+
+      - name: Encontrar projeto Android
+        id: android
+        shell: bash
+        run: |
+          SETTINGS=$(find extracted_project \( -name 'settings.gradle.kts' -o -name 'settings.gradle' \) | head -n 1)
+
+          if [ -z "$SETTINGS" ]; then
+            echo "ERRO: settings.gradle(.kts) não encontrado."
+            exit 1
+          fi
+
+          PROJECT_DIR=$(dirname "$SETTINGS")
+          echo "project_dir=$PROJECT_DIR" >> "$GITHUB_OUTPUT"
+          echo "Raiz Android: $PROJECT_DIR"
+
+      - name: Identificar versão
+        id: version
+        working-directory: ${{ steps.android.outputs.project_dir }}
+        shell: bash
+        run: |
+          VERSION=$(grep -E 'versionName\s*=' app/build.gradle.kts | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
+          if [ -z "$VERSION" ]; then
+            VERSION="dev"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Versão detectada: $VERSION"
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configurar Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Usar SDK Android do GitHub
+        shell: bash
+        run: |
+          if [ ! -d "$ANDROID_HOME" ]; then
+            echo "ERRO: SDK Android não encontrado em $ANDROID_HOME"
+            exit 1
+          fi
+
+          SDKMANAGER=$(find "$ANDROID_HOME" -type f -name sdkmanager | head -n 1)
+
+          if [ -z "$SDKMANAGER" ]; then
+            echo "ERRO: sdkmanager não encontrado."
+            exit 1
+          fi
+
+          yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
+          "$SDKMANAGER" 'platforms;android-35' 'build-tools;35.0.0' 'platform-tools'
+
+      - name: Validar Nerdora Player
+        working-directory: ${{ steps.android.outputs.project_dir }}
+        shell: bash
+        run: |
+          grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts || {
+            echo "ERRO: rootProject não é NerdoraPlayer."
+            exit 1
+          }
+
+          grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts || {
+            echo "ERRO: applicationId incorreto."
+            exit 1
+          }
+
+          echo "Projeto NerdoraPlayer validado."
+
+      - name: Compilar e salvar log completo
+        id: compile
+        working-directory: ${{ steps.android.outputs.project_dir }}
+        shell: bash
+        run: |
+          set +e
+          gradle --no-daemon :app:assembleDebug --console=plain 2>&1 | tee "$GITHUB_WORKSPACE/nerdora-player-build.log"
+          STATUS=${PIPESTATUS[0]}
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Mostrar erro real da compilação
+        if: steps.compile.outputs.status != '0'
+        shell: bash
+        run: |
+          echo '## Erro real do Nerdora Player' >> "$GITHUB_STEP_SUMMARY"
+          echo '```text' >> "$GITHUB_STEP_SUMMARY"
+          grep -Ei -B 4 -A 12 \
+            '(^e: |error:|unresolved reference|cannot access|compilation error|execution failed for task|what went wrong|a failure occurred|exception is:|caused by:)' \
+            nerdora-player-build.log | head -n 240 | tee nerdora-player-errors.txt >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+          echo '========== ERRO REAL =========='
+          cat nerdora-player-errors.txt 2>/dev/null || tail -n 180 nerdora-player-build.log
+          echo '================================'
+          exit 1
+
+      - name: Preparar APK
+        if: steps.compile.outputs.status == '0'
+        shell: bash
+        run: |
+          PROJECT="${{ steps.android.outputs.project_dir }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          APK=$(find "$PROJECT/app/build/outputs/apk" -type f -name '*.apk' | head -n 1)
+
+          if [ -z "$APK" ]; then
+            echo "ERRO: compilação terminou sem localizar um APK."
+            exit 1
+          fi
+
+          mkdir -p final-apk
+          cp "$APK" "final-apk/Nerdora-Player-v${VERSION}.apk"
+          ls -lh final-apk/
+
+      - name: Publicar APK
+        if: steps.compile.outputs.status == '0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nerdora-Player-v${{ steps.version.outputs.version }}
+          path: final-apk/Nerdora-Player-v${{ steps.version.outputs.version }}.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publicar log de erro
+        if: steps.compile.outputs.status != '0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nerdora-Player-LOG-ERRO
+          path: |
+            nerdora-player-build.log
+            nerdora-player-errors.txt
+          if-no-files-found: warn
+          retention-days: 7
