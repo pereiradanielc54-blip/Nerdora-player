@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#090b12"/>
   <meta name="description" content="Crônicas de Nerdora — RPG narrativo multiplayer com Mestre Máquina."/>
   <title>Crônicas de Nerdora — Web Alpha 0.2</title>
-  <link rel="stylesheet" href="./styles-v027.css"/>
+  <link rel="stylesheet" href="./styles-v028.css"/>
 </head>
 <body data-theme="derenfall">
-  <div class="ambient"></div><div class="noise"></div>
+  <div class="ambient"></div><div class="noise"></div><div class="tabletop-grain" aria-hidden="true"></div><div class="corner-runes rune-a" aria-hidden="true">✦</div><div class="corner-runes rune-b" aria-hidden="true">✧</div>
 
   <section id="introScreen" class="screen active intro-screen">
     <div class="kingdom-bg" aria-hidden="true">
@@ -25,7 +25,7 @@
       <div class="intro-copy">
         <div class="brand-lockup">
           <div class="brand-rune">N</div>
-          <div><p class="eyebrow">NERDORA APRESENTA</p><span class="edition-chip">WEB ALPHA 0.2.7</span></div>
+          <div><p class="eyebrow">NERDORA APRESENTA</p><span class="edition-chip">WEB ALPHA 0.2.8</span></div>
         </div>
 
         <h1>Crônicas de <span>Nerdora</span></h1>
@@ -133,7 +133,7 @@
         <div id="charStep3" class="char-step">
           <div class="step-title"><div><h3>Habilidades iniciais</h3><p>Escolha <strong>2 habilidades</strong> de nível 1. Uma habilidade aprendida sai da lista disponível; as não escolhidas continuam acessíveis no futuro.</p></div><div class="points-orb skill"><small>PONTOS</small><strong id="skillPoints">2</strong></div></div>
           <div id="skillClassHint" class="advice-card"></div>
-          <h4>Disponíveis agora</h4><div id="availableSkills" class="skill-grid"></div>
+          <div class="skill-deck-title"><span>BARALHO DE TÉCNICAS</span><small>Escolha suas primeiras cartas de habilidade</small></div><h4>Disponíveis agora</h4><div id="availableSkills" class="skill-grid"></div>
           <h4>Aprendidas</h4><div id="learnedSkills" class="skill-grid compact"></div>
           <details class="future-skills"><summary>Ver habilidades que serão liberadas nos próximos níveis</summary><div id="lockedSkills" class="skill-grid compact"></div></details>
           <div class="nav-actions"><button id="backStatsBtn" class="btn secondary">← Atributos</button><button id="finishCharacterBtn" class="btn primary">Concluir personagem</button></div>
@@ -145,7 +145,8 @@
   <section id="lobbyScreen" class="screen lobby-screen">
     <header class="setup-head"><div><p class="eyebrow">SALA DE ESPERA</p><h2 id="lobbyCampaign">O Vilarejo Sem Amanhã</h2></div><div class="room-badge"><span>SALA</span><strong id="lobbyCode">—</strong><button id="copyLobbyBtn">⧉</button></div></header>
     <main class="lobby-shell">
-      <section class="lobby-scene">
+      <section class="lobby-scene tabletop-lobby">
+        <div class="lobby-candles" aria-hidden="true"><i></i><i></i><i></i></div><div class="table-compass" aria-hidden="true">✦</div>
         <div class="lobby-emblem">⚔</div>
         <p class="eyebrow">A COMPANHIA SE REÚNE</p>
         <h3>Antes da primeira página ser escrita...</h3>
@@ -182,6 +183,11 @@
 
       <section class="panel story-panel">
         <div class="scene-head"><div><p class="eyebrow">CENA ATUAL</p><h3 id="locationName">—</h3></div><div class="world-clock"><span id="worldDay">Dia 1</span><strong id="worldTime">—</strong></div></div>
+        <div class="scene-banner" aria-hidden="true">
+          <div class="scene-sigil">✦</div>
+          <div class="scene-landscape"><span></span><i></i><b></b></div>
+          <div class="scene-banner-label">MESA DE AVENTURA</div>
+        </div>
         <div id="storyLog" class="story-log" aria-live="polite"></div>
 
         <div id="dicePrompt" class="dice-prompt hidden">
@@ -189,7 +195,7 @@
           <button id="interactiveDie" class="d20" aria-label="Rolar D20"><span>20</span></button>
         </div>
 
-        <div id="quickActions" class="quick-actions"></div>
+        <div class="action-tray-label"><span>✧</span> Possibilidades imediatas <span>✧</span></div><div id="quickActions" class="quick-actions"></div>
         <div class="action-box">
           <textarea id="actionInput" rows="2" placeholder="Diga livremente o que seu personagem faz..."></textarea>
           <div class="action-tools"><button id="speechBtn" class="tool-btn">🎤 Ditar</button><button id="freeRollBtn" class="tool-btn">🎲 D20 livre</button><button id="sendActionBtn" class="btn primary">Agir</button></div>
@@ -220,7 +226,7 @@
 
       <aside class="panel info-panel">
         <div class="tabs"><button class="tab active" data-tab="journal">Diário</button><button class="tab" data-tab="map">Mapa</button><button class="tab" data-tab="character">Personagem</button><button class="tab" data-tab="chat">Chat</button></div>
-        <div id="tab-journal" class="tab-content active">
+        <div id="tab-journal" class="tab-content active"><div class="journal-ribbon">REGISTRO DA COMPANHIA</div>
           <div class="objective-card"><span>OBJETIVO ATUAL</span><strong id="objectiveText"></strong></div>
           <h4>Evidências guardadas</h4><div id="evidenceList" class="clue-list evidence-list"></div>
           <h4>Conclusões ligadas</h4><div id="clueList" class="clue-list"></div>
@@ -240,7 +246,7 @@
             <div><p class="eyebrow">MAPA DA CAMPANHA</p><strong id="mapTitle">Região</strong></div>
             <span id="mapProgress" class="map-progress">0 locais</span>
           </div>
-          <div id="campaignMap" class="campaign-map"></div>
+          <div class="map-scroll-edge top"></div><div id="campaignMap" class="campaign-map"></div><div class="map-scroll-edge bottom"></div>
           <div class="map-legend"><span><i class="lg current"></i> Atual</span><span><i class="lg visited"></i> Visitado</span><span><i class="lg open"></i> Acessível</span></div>
           <p id="mapPathHint" class="map-path-hint">Descubra pistas para abrir novas rotas.</p>
         </div>
@@ -271,6 +277,6 @@
   });
 </script>
 <div id="bootError" hidden style="position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;background:#26151b;border:1px solid #78404d;color:#ffe6eb;padding:10px 14px;border-radius:12px;font:12px system-ui;max-width:min(90vw,520px);text-align:center"></div>
-<script type="module" src="./app-v027.js"></script>
+<script type="module" src="./app-v028.js"></script>
 </body>
 </html>
