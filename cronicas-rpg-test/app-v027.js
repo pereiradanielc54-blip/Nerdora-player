@@ -557,6 +557,193 @@ function rememberCampaignEnding(title){
   mergeFacts(masterMemoryProfile,[fact]);dbPut("player_memory",masterMemoryProfile).catch(function(){});renderMasterMemory();
 }
 
+const NPC_CATALOG={
+  derenfall:{
+    colecionador:{name:"O Colecionador",role:"Entidade da Fenda",locations:["Salão das Memórias"]}
+  },
+  vidro:{
+    maeryn:{name:"Rainha Maeryn",role:"Soberana de Asterfall",locations:["Salão dos Juramentos","Palácio Real"]},
+    ilyan:{name:"Ilyan Voss",role:"Arquivista Real",locations:["Arquivos Reais"]},
+    cassian:{name:"Cassian Dorel",role:"Representante de uma Casa nobre",locations:["Distrito das Casas","Mercado Alto"]},
+    sera:{name:"Sera Valen",role:"Escriba clandestina",locations:["Bairro dos Escribas","Porto Seco"]}
+  },
+  coro:{
+    borik:{name:"Borik Khar",role:"Capataz da mina",locations:["Acampamento de Khar-Dor","Galeria Principal"]},
+    sella:{name:"Sella",role:"Curandeira do acampamento",locations:["Enfermaria","Acampamento de Khar-Dor"]},
+    yara:{name:"Yara",role:"Mineira que antecipa o canto",locations:["Alojamentos dos Mineiros","Enfermaria"]},
+    dorran:{name:"Dorran",role:"Mestre da Forja",locations:["Forja"]}
+  }
+};
+
+const DIRECTOR_WORLD_EVENTS={
+  derenfall:[
+    {id:"deren_beat_5",beat:5,text:"Uma vela que permanecia acesa numa janela distante se apaga. Segundos depois, outra acende em uma casa que vocês juravam estar vazia.",pressure:1},
+    {id:"deren_beat_10",beat:10,text:"O sino toca uma vez sem que ninguém esteja na torre. Desta vez, o eco vem de dois pontos diferentes da vila.",pressure:1},
+    {id:"deren_beat_15",beat:15,text:"Perto do portão surge uma pegada fresca voltada para dentro da vila. Não havia ninguém ali quando vocês chegaram.",pressure:1}
+  ],
+  vidro:[
+    {id:"vidro_beat_4",beat:4,text:"Antes que a investigação esfrie, um novo rumor atravessa Arken: uma das Casas nobres afirma possuir uma cópia anterior do juramento real. A cidade começa a tomar partido.",pressure:1,npc:"cassian"},
+    {id:"vidro_beat_8",beat:8,text:"Os Arquivos Reais suspendem o acesso público. Um funcionário desapareceu durante a troca de turno e alguém removeu três caixas do catálogo.",pressure:1,npc:"ilyan"},
+    {id:"vidro_beat_12",beat:12,text:"A Coroa convoca uma reunião extraordinária para a noite. As Casas agora negociam como se a sucessão pudesse mudar antes do amanhecer.",pressure:1,npc:"maeryn"}
+  ],
+  coro:[
+    {id:"coro_beat_4",beat:4,text:"Mesmo acordados, dois mineiros começam a murmurar a melodia do sono. A enfermaria percebe que o fenômeno já não depende de inconsciência.",pressure:1,npc:"sella"},
+    {id:"coro_beat_8",beat:8,text:"Um desabamento fecha uma galeria antiga e revela uma parede de pedra que não aparece em nenhum mapa da mina.",pressure:1,npc:"borik"},
+    {id:"coro_beat_12",beat:12,text:"O clã recebe ordem para retomar parte da produção apesar dos desaparecimentos. A ameaça agora também é política e econômica.",pressure:1,npc:"dorran"}
+  ]
+};
+
+function ensureDirectorState(){
+  if(!state)return;
+  if(!state.npcRelations)state.npcRelations={};
+  if(!state.director)state.director={beats:0,stagnation:0,tension:1,restNeed:0,lastStyle:null,styleStreak:0,lastInterventionBeat:-99,worldBeat:0,personalHookUsed:false};
+}
+function discoverNpc(id){
+  ensureDirectorState();
+  const cat=NPC_CATALOG[state?.campaignId]||{},def=cat[id];
+  if(!def||state.npcRelations[id])return state.npcRelations[id]||null;
+  state.npcRelations[id]={id:id,name:def.name,role:def.role,trust:0,respect:0,fear:0,suspicion:0,metAt:state.location,notes:[]};
+  return state.npcRelations[id];
+}
+function discoverNpcsForLocation(location){
+  const cat=NPC_CATALOG[state?.campaignId]||{};
+  Object.entries(cat).forEach(function(entry){
+    const id=entry[0],def=entry[1];
+    if((def.locations||[]).includes(location))discoverNpc(id);
+  });
+}
+function relationshipLabel(rel){
+  if(!rel)return"Neutro";
+  if(rel.fear>=4&&rel.trust<1)return"Teme você";
+  if(rel.trust>=4&&rel.suspicion<2)return"Confia em você";
+  if(rel.suspicion>=4)return"Desconfia de você";
+  if(rel.respect>=4)return"Respeita você";
+  if(rel.trust<=-3)return"Hostil";
+  if(rel.trust>=2)return"Receptivo";
+  if(rel.suspicion>=2)return"Cauteloso";
+  return"Neutro";
+}
+function adjustNpcRelation(id,changes,note){
+  const rel=discoverNpc(id);if(!rel)return;
+  Object.entries(changes||{}).forEach(function(entry){
+    const k=entry[0],v=entry[1];rel[k]=Math.max(-6,Math.min(6,(rel[k]||0)+v));
+  });
+  if(note){rel.notes.unshift(note);rel.notes=rel.notes.slice(0,5)}
+}
+function npcIdsAtLocation(){
+  const cat=NPC_CATALOG[state?.campaignId]||{};
+  return Object.entries(cat).filter(function(entry){return (entry[1].locations||[]).includes(state.location)}).map(function(entry){return entry[0]});
+}
+function applyNpcInteraction(actor,text){
+  if(!state)return;
+  const n=norm(text),cat=NPC_CATALOG[state.campaignId]||{};
+  let targets=Object.keys(cat).filter(function(id){return n.includes(norm(cat[id].name))});
+  if(!targets.length&&/(falar|convers|pergunt|negoci|amea|ajud|curar|proteger|engan|mentir|atac)/.test(n))targets=npcIdsAtLocation();
+  targets.forEach(function(id){
+    discoverNpc(id);
+    if(/ajud|curar|proteger|salvar|defender/.test(n))adjustNpcRelation(id,{trust:2,respect:1},"Recebeu ajuda direta do grupo.");
+    else if(/amea|intimid|atac|ferir|matar/.test(n))adjustNpcRelation(id,{trust:-2,fear:2,suspicion:1},"Foi ameaçado ou atacado pelo grupo.");
+    else if(/engan|mentir|fingir/.test(n))adjustNpcRelation(id,{suspicion:2,trust:-1},"Percebeu ou suspeita de manipulação.");
+    else if(/negoci|acordo|ouvir|respeit/.test(n))adjustNpcRelation(id,{trust:1,respect:1},"O grupo tratou seus interesses como relevantes.");
+    else if(/falar|convers|pergunt/.test(n))adjustNpcRelation(id,{trust:1},"Teve uma conversa direta com o grupo.");
+  });
+}
+function renderNpcRelations(){
+  if(!ui.npcRelationList)return;
+  ensureDirectorState();
+  const rels=Object.values(state.npcRelations||{});
+  ui.npcRelationList.innerHTML=rels.length?rels.map(function(rel){
+    return "<div class='npc-relation'><div><strong>"+esc(rel.name)+"</strong><small>"+esc(rel.role)+"</small></div><span>"+esc(relationshipLabel(rel))+"</span></div>";
+  }).join(""):"<p class='muted'>Nenhuma relação relevante ainda.</p>";
+}
+function directorSignature(){
+  if(!state)return"";
+  ensureDirectorState();
+  return [
+    state.location,
+    (state.clues||[]).length,
+    (state.rawEvidence||[]).length,
+    (state.completedActions||[]).length,
+    (state.routeFlags||[]).length,
+    state.pressure||0,
+    state.pendingRoll?.id||"",
+    state.ending||"",
+    Object.values(state.npcRelations||{}).map(function(r){return [r.id,r.trust,r.respect,r.fear,r.suspicion].join(":")}).join("|")
+  ].join(";");
+}
+function directorBeforeAction(actor,text){
+  ensureDirectorState();
+  const d=state.director,style=actionStyle(text);
+  d.beats=(d.beats||0)+1;d.restNeed=(d.restNeed||0)+1;
+  if(d.lastStyle===style)d.styleStreak=(d.styleStreak||0)+1;else{d.lastStyle=style;d.styleStreak=1}
+  if(style==="combat"||style==="risk")d.tension=Math.min(10,(d.tension||0)+2);
+  else if(style==="stealth"||style==="magic")d.tension=Math.min(10,(d.tension||0)+1);
+  else if(style==="support")d.tension=Math.max(0,(d.tension||0)-1);
+  applyNpcInteraction(actor,text);
+}
+function fireDirectorWorldEvents(){
+  ensureDirectorState();
+  const events=DIRECTOR_WORLD_EVENTS[state.campaignId]||[],d=state.director;
+  events.forEach(function(ev){
+    const key="director:"+ev.id;
+    if((d.beats||0)>=ev.beat&&!state.eventFired.includes(key)){
+      state.eventFired.push(key);
+      if(ev.pressure)state.pressure=Math.min(5,(state.pressure||0)+ev.pressure);
+      if(ev.npc)discoverNpc(ev.npc);
+      addStory("system","O mundo continua",ev.text);
+    }
+  });
+}
+function directorPersonalPrompt(){
+  if(!player||!state||state.director.personalHookUsed)return"";
+  const parts=[];
+  if(player.personalGoal)parts.push("seu objetivo de "+player.personalGoal);
+  if(player.importantPerson)parts.push("a pessoa importante para você: "+player.importantPerson);
+  if(player.fear)parts.push("o medo que você definiu: "+player.fear);
+  if(!parts.length)return"";
+  state.director.personalHookUsed=true;
+  return " Se quiser, esta pausa também é um bom momento para seu personagem falar sobre "+parts[0]+".";
+}
+function resolveRestScene(actor){
+  ensureDirectorState();
+  const d=state.director;
+  addStory("master","Mestre Máquina","A companhia encontra alguns minutos de segurança relativa. O mundo não para, mas a tensão da cena diminui e vocês podem conversar, comparar pistas, reorganizar equipamentos ou simplesmente observar o ambiente."+directorPersonalPrompt());
+  d.restNeed=0;d.tension=Math.max(0,(d.tension||0)-3);d.stagnation=0;
+  advanceTime(12);
+}
+function directorIntervention(actor,text){
+  ensureDirectorState();
+  const d=state.director;if((d.beats||0)-(d.lastInterventionBeat||-99)<2)return false;
+  d.lastInterventionBeat=d.beats||0;d.stagnation=0;
+  if(state.campaignId==="derenfall"){
+    const options=currentDerenActions();
+    if(options.length){
+      const a=options[0];
+      addStory("system","Diretor Narrativo","A cena muda antes de ficar parada: um detalhe do ambiente chama atenção para outra possibilidade — "+a.label+". Isso é uma oportunidade, não uma obrigação.");
+      return true;
+    }
+  }
+  const exits=connectedLocations(state.location||"");
+  if(exits.length){
+    addStory("system","Diretor Narrativo","Enquanto vocês reconsideram a situação, algo muda no ambiente e torna "+exits[0]+" uma alternativa mais atraente. O grupo continua livre para permanecer aqui.");
+    return true;
+  }
+  state.pressure=Math.min(5,(state.pressure||0)+1);
+  addStory("system","Diretor Narrativo","A situação não permanece congelada. Uma consequência externa avança o relógio da história e cria uma nova condição para agir.");
+  return true;
+}
+function directorAfterResolution(actor,text,beforeSignature){
+  ensureDirectorState();
+  const d=state.director,after=directorSignature();
+  if(after===beforeSignature)d.stagnation=(d.stagnation||0)+1;else d.stagnation=0;
+  fireDirectorWorldEvents();
+  if((d.stagnation||0)>=2&&!state.pendingRoll)directorIntervention(actor,text);
+}
+function canFailForwardAction(a){
+  if(!a)return false;
+  return !/^hall_(seal|attack|break|negotiate|offer)$/.test(a.id);
+}
+
 const DEREN_ACTIONS=[
 {id:"road_tracks",location:"Estrada de Derenfall",label:"Procurar rastros na lama",stat:"PER",df:10,keywords:["rastro","lama"],once:true},
 {id:"road_marker",location:"Estrada de Derenfall",label:"Examinar os marcos da estrada",stat:"INT",df:11,keywords:["marco","estrada"],once:true},
@@ -877,6 +1064,7 @@ function moveTo(dest,text=null){
   if(state.campaignId==="derenfall"&&dest==="Praça de Derenfall")unlockDerenSurface();
   addStory("master","Mestre Máquina",text||(state.campaignId==="derenfall"?derenfallArrival(dest):"A companhia segue para "+dest+". O lugar muda as pessoas, informações e riscos disponíveis."));
   triggerLocationEvent(dest);
+  discoverNpcsForLocation(dest);
   if(state.campaignId==="derenfall")updateDerenObjective();
 }
 
@@ -921,6 +1109,7 @@ function unlockLocations(){
 }
 function ensureStateShapeBase(){
   if(!state)return;
+  ensureDirectorState();
   if(!Array.isArray(state.completedActions))state.completedActions=[];
   if(!Array.isArray(state.rawEvidence))state.rawEvidence=[];
   if(!state.failedActions)state.failedActions={};
@@ -1039,6 +1228,14 @@ function resolveDerenActionRoll(actor,r,actionId){
   const a=DEREN_ACTIONS.find(function(x){return x.id===actionId});if(!a)return;
   if(!r.success){
     state.failedActions[a.id]=(state.failedActions[a.id]||0)+1;
+    const failures=state.failedActions[a.id];
+    if(failures>=2&&canFailForwardAction(a)){
+      addStory("master","Mestre Máquina","A tentativa ainda cobra um preço, mas não bloqueia a aventura. Depois de insistir e gastar mais tempo, vocês conseguem a informação ou acesso necessário — com uma consequência: o mundo teve tempo para reagir.",r.formula);
+      state.pressure=Math.min(5,(state.pressure||0)+1);
+      advanceTime(8);completeAction(a.id);
+      applyDerenActionSuccess(actor,a,{...r,success:true,compromised:true,formula:r.formula+" • progresso com custo"});
+      updateDerenObjective();return;
+    }
     addStory("master","Mestre Máquina",actionFailureNarrative(a),r.formula);advanceTime(4);return;
   }
   completeAction(a.id);applyDerenActionSuccess(actor,a,r);updateDerenObjective();
@@ -1187,21 +1384,29 @@ function inferDestination(campaignId,text){
 function processIntent(actor,text){
   if(!state||state.ended)return;
   if(state.pendingRoll){toast("Há um teste aguardando o D20 antes da próxima ação.");return}
+  ensureStateShape();
+  const beforeSignature=directorSignature();
+  directorBeforeAction(actor,text);
   observePlayerAction(actor,text).catch(function(){});
   const repeatCount=registerRepetition(actor,text);
   addStory("player",actor.name,text);
+  if(/fazer uma pausa|descansar um pouco|conversar com a companhia/.test(norm(text))){
+    resolveRestScene(actor);directorAfterResolution(actor,text,beforeSignature);
+    saveHostState();renderState();broadcastState();return;
+  }
   if(repeatCount>=3){
-    triggerAdaptiveRecovery(actor,text);
+    triggerAdaptiveRecovery(actor,text);directorAfterResolution(actor,text,beforeSignature);
     saveHostState();renderState();broadcastState();return;
   }
   if(state.campaignId==="derenfall")resolveDerenfall(actor,text);else resolveGenericCampaign(actor,text);
+  directorAfterResolution(actor,text,beforeSignature);
   saveHostState();renderState();broadcastState();
 }
 function resolveRollContext(actor,r,ctx){
   if(!ctx)return;
   if(ctx.kind==="deren_action"){resolveDerenActionRoll(actor,r,ctx.actionId);return;}
   if(ctx.kind==="generic"){
-    addStory("master","Mestre Máquina",r.success?"A tentativa funciona. O resultado altera a cena a favor da companhia, respeitando o método descrito.":"A tentativa não alcança o objetivo completo. Em vez de bloquear a aventura, surge um custo, atraso ou nova pressão.",r.formula);advanceTime(5);return;
+    if(r.success){addStory("master","Mestre Máquina","A tentativa funciona. O resultado altera a cena a favor da companhia, respeitando o método descrito.",r.formula);advanceTime(5)}else{state.pressure=Math.min(5,(state.pressure||0)+1);addStory("master","Mestre Máquina","A tentativa não funciona como planejado, mas a cena avança: vocês conseguem uma informação parcial ou mudança de posição, enquanto o custo aparece como tempo perdido, exposição ou pressão adicional.",r.formula);advanceTime(8)}return;
   }
   if(ctx.kind==="deren_fenda"){
     addStory("master","Mestre Máquina",r.success?"Seguindo ecos que repetem nomes incompletos, vocês atravessam uma porta suspensa e alcançam um salão atravessado por fios de luz. Uma criatura feita de máscaras se ergue no centro.\n\n— Vocês ainda carregam seus nomes — ela diz. — Que desperdício.":"As ruas se repetem e tentam separar o grupo usando vozes conhecidas. Vocês permanecem juntos, mas chegam ao centro da anomalia depois de perder a noção de distância.",r.formula);
@@ -1266,7 +1471,7 @@ function renderState(){
   const wt=worldTime();ui.worldDay.textContent="Dia "+wt.day;ui.worldTime.textContent=wt.time;
   const labels=state.campaignId==="vidro"?["Cerimônia","Rumores","Pressão","Alianças","Crise","Ruptura"]:state.campaignId==="coro"?["Sussurros","Canção","Contágio","Descida","Convergência","Assimilação"]:["Silêncio","Ecos","Substituições","Vazamento","Ancoragem","Propagação"];
   ui.mysteryLabel.textContent=labels[state.pressure]||labels[0];ui.mysteryBar.style.width=(8+state.pressure*18)+"%";
-  renderStory();renderClues();renderQuickActions();renderCampaignMap();renderDicePrompt();renderSheet();renderMasterMemory();checkLastRoll();
+  discoverNpcsForLocation(state.location);renderStory();renderClues();renderQuickActions();renderCampaignMap();renderDicePrompt();renderSheet();renderNpcRelations();renderMasterMemory();checkLastRoll();
 }
 function renderStory(){
   for(const e of state.story){
@@ -1308,6 +1513,7 @@ function renderQuickActions(){
       if(!list.some(function(x){return norm(x.label).includes(norm(dest))}))list.push({label:"Ir para "+dest,type:"travel",dest:dest});
     });
   }
+  if((state.director?.restNeed||0)>=5)list.push({label:"Fazer uma pausa com a companhia",type:"action"});
   ui.quickActions.innerHTML="";
   list.forEach(function(item){
     const b=document.createElement("button");b.textContent=item.label;
