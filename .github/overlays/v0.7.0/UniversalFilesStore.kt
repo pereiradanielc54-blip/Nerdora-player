@@ -83,6 +83,11 @@ object UniversalFilesStore {
         prefs(context).edit().putString(TRASH_MAP, obj.toString()).apply()
     }
 
+    private fun trashObject(context: Context): JSONObject =
+        runCatching {
+            JSONObject(prefs(context).getString(TRASH_MAP, "{}") ?: "{}")
+        }.getOrElse { JSONObject() }
+
     fun trashEntries(context: Context): Map<String, String> {
         val obj = trashObject(context)
         return buildMap {
