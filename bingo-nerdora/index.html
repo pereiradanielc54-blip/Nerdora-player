@@ -22,11 +22,13 @@
     <div class="actions"><button id="create" class="primary">Criar sala</button><button id="openJoin">Entrar em sala</button></div>
     <div id="joinBox" class="join hidden"><label>CÓDIGO DA SALA</label><div class="actions"><input id="roomInput" maxlength="6" placeholder="ABC123"><button id="join" class="green">Entrar</button></div></div>
   </div>
-  <div class="panel how">
-    <div class="eyebrow">CARTELA 5×5</div>
-    <h2>B • I • N • G • O</h2>
-    <div class="mini"><span>7</span><span>22</span><span>38</span><span>49</span><span>67</span><span>3</span><span>29</span><span>41</span><span>58</span><span>72</span><span>11</span><span>19</span><span>★</span><span>52</span><span>64</span><span>14</span><span>26</span><span>35</span><span>60</span><span>74</span><span>5</span><span>17</span><span>44</span><span>47</span><span>69</span></div>
-    <p class="note">B 1–15 · I 16–30 · N 31–45 · G 46–60 · O 61–75. O centro é livre.</p>
+  <div class="panel how welcomeArt">
+    <div class="welcomeOverlay">
+      <div class="eyebrow">BEM-VINDO AO BINGO NERDORA</div>
+      <h2>Nerdora & Nyan</h2>
+      <p>Entre na praça neon, reúna seus amigos e dispute a partida com os mascotes da Nerdora acompanhando a sala.</p>
+      <div class="welcomeChips"><span>🎧 Nerdora</span><span>🐾 Nyan</span><span>75 bolas</span></div>
+    </div>
   </div>
 </section>
 
@@ -36,12 +38,13 @@
     <div class="actions small"><button id="copyCode">Copiar código</button><button id="copyLink">Copiar convite</button></div>
     <h3>Jogadores</h3><div id="players"></div>
     <h3>Conexão</h3><div id="status" class="status">Preparando...</div>
+    <div class="nyanCompanion"><div class="nyanThumb" aria-hidden="true"></div><div><strong>Nyan está na sala</strong><small>Ele acompanha cada chamada.</small></div></div>
     <button id="leave" class="danger wide">Sair da sala</button>
   </aside>
 
   <main class="panel main">
     <div class="gameHead"><div><div class="eyebrow">SUA CARTELA</div><h2 id="title">Aguardando sorteio</h2><span id="count" class="muted">0 de 75 bolas</span></div><div id="last" class="ball">—</div></div>
-    <div class="letters"><b>B</b><b>I</b><b>N</b><b>G</b><b>O</b></div>
+    <div class="letters"><b class="letterB">B</b><b class="letterI">I</b><b class="letterN">N</b><b class="letterG">G</b><b class="letterO">O</b></div>
     <div id="card" class="card"></div>
     <div id="shadowWrap" class="opponentShadow hidden" aria-label="Cartela do outro jogador">
       <span id="shadowTitle">Outro jogador</span>
