@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.8.0
+name: Nerdora Player - Build v0.9.0
 
 on:
   workflow_dispatch:
@@ -197,6 +197,40 @@ jobs:
           test -f extracted_project/app/src/main/java/com/nerdora/player/ui/AccountScreen.kt
           echo "v0.8.0: conta, navegação Voltar e índices persistentes aplicados."
 
+      - name: Aplicar Visual Refresh v0.9.0
+        shell: bash
+        run: |
+          rm -rf /tmp/nerdora-v090
+          mkdir -p /tmp/nerdora-v090
+          cat \
+            .github/overlays/v0.9.0/payload.part00.b64 \
+            .github/overlays/v0.9.0/payload.part01.b64 \
+            .github/overlays/v0.9.0/payload.part02.b64 \
+            .github/overlays/v0.9.0/payload.part03.b64 \
+            | base64 -d > /tmp/nerdora-v090/payload.tar.gz
+          gzip -t /tmp/nerdora-v090/payload.tar.gz
+          tar -tzf /tmp/nerdora-v090/payload.tar.gz >/dev/null
+          tar -xzf /tmp/nerdora-v090/payload.tar.gz -C /tmp/nerdora-v090
+
+          cp /tmp/nerdora-v090/VideoPlayer.kt extracted_project/app/src/main/java/com/nerdora/player/ui/VideoPlayer.kt
+          cp /tmp/nerdora-v090/NerdoraTheme.kt extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraTheme.kt
+          cp /tmp/nerdora-v090/SettingsScreen.kt extracted_project/app/src/main/java/com/nerdora/player/ui/SettingsScreen.kt
+          python3 /tmp/nerdora-v090/apply_v090.py
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 60/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.0"/' extracted_project/app/build.gradle.kts
+
+          grep -q 'versionName = "0.9.0"' extracted_project/app/build.gradle.kts
+          grep -q 'formatDuration(position)' extracted_project/app/src/main/java/com/nerdora/player/ui/VideoPlayer.kt
+          grep -q 'SmallVideoAction' extracted_project/app/src/main/java/com/nerdora/player/ui/VideoPlayer.kt
+          grep -q '"CYBER"' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraTheme.kt
+          grep -q '"SAKURA"' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraTheme.kt
+          grep -q '"EMERALD"' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraTheme.kt
+          grep -q '"AURORA"' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraTheme.kt
+          grep -q 'categoryFor(file.name, mime).label' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'settings.useWideViewPort = true' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          echo "Visual Refresh v0.9.0 aplicado."
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
@@ -245,7 +279,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.8.0"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.0"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -254,7 +288,10 @@ jobs:
           grep -q 'readXlsx' app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           grep -q 'AppScreen.ACCOUNT' app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
           grep -q 'UniversalFileIndexCache' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
-          echo "Nerdora Player v0.8.0 validado."
+          grep -q 'SmallVideoAction' app/src/main/java/com/nerdora/player/ui/VideoPlayer.kt
+          grep -q '"CYBER"' app/src/main/java/com/nerdora/player/ui/NerdoraTheme.kt
+          grep -q 'settings.useWideViewPort = true' app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          echo "Nerdora Player v0.9.0 validado."
 
       - name: Compilar APK
         id: build
@@ -288,7 +325,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.8.0
+      - name: Publicar Release pública v0.9.0
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -297,8 +334,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Conta, Navegação e Cache"
-          NOTES="Nerdora Player v0.8.0: login local com e-mail e senha protegida por hash, navegação Voltar com histórico e saída somente na tela inicial, biblioteca de mídia carregada do índice persistente sem revarrer a cada abertura, Universal Files com índice salvo e reindexação somente no primeiro uso ou quando o usuário toca em Atualizar, além das melhorias de documentos, PDF, Word, Excel, PowerPoint e gerenciamento de arquivos da v0.7."
+          TITLE="Nerdora Player v${VERSION} — Visual Refresh"
+          NOTES="Nerdora Player v0.9.0: player de vídeo redesenhado com tempo acima da barra de progresso e controles compactos na parte inferior; ajuste de tela, velocidade, legenda, rotação, cast, PiP e bloqueio sem painel separado; área de arquivos com cartões e metadados mais legíveis; visualização de Word, Excel e PowerPoint refinada; quatro novos temas completos Cyber, Sakura, Emerald e Aurora, além de Nerdora e AMOLED. Mantém login, navegação Voltar e índices persistentes da v0.8."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
