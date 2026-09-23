@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.6.x
+name: Nerdora Player - Build v0.6.1
 
 on:
   workflow_dispatch:
@@ -72,6 +72,18 @@ jobs:
           sed -i 's/private fun formatDate(timestamp: Long)/private fun formatFileDate(timestamp: Long)/' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           echo "Hotfixes Kotlin da v0.6.0 aplicados."
 
+      - name: Aplicar integração Android para documentos v0.6.1
+        shell: bash
+        run: |
+          cp .github/overlays/v0.6.1/DocumentOpenActivity.kt extracted_project/app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
+          python3 -c 'from pathlib import Path; p=Path("extracted_project/app/src/main/AndroidManifest.xml"); t=p.read_text(encoding="utf-8"); a=Path(".github/overlays/v0.6.1/document-activity.xml").read_text(encoding="utf-8"); m="    </application>"; assert m in t, "Fechamento de application não encontrado"; p.write_text(t if "android:name=\".DocumentOpenActivity\"" in t else t.replace(m, a+"\\n"+m, 1), encoding="utf-8")'
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 31/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.6.1"/' extracted_project/app/build.gradle.kts
+          grep -q 'android:name=".DocumentOpenActivity"' extracted_project/app/src/main/AndroidManifest.xml
+          grep -q 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' extracted_project/app/src/main/AndroidManifest.xml
+          grep -q 'versionName = "0.6.1"' extracted_project/app/build.gradle.kts
+          echo "Associação de DOCX/XLSX/PPTX/PDF e documentos de texto aplicada."
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
@@ -120,9 +132,11 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.6.0"' app/build.gradle.kts
+          grep -q 'versionName = "0.6.1"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
-          echo "Nerdora Player v0.6.0 validado."
+          test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
+          grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
+          echo "Nerdora Player v0.6.1 validado."
 
       - name: Compilar APK
         id: build
