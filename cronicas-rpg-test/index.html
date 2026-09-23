@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#090b12"/>
   <meta name="description" content="Crônicas de Nerdora — RPG narrativo multiplayer com Mestre Máquina."/>
   <title>Crônicas de Nerdora — Web Alpha 0.2</title>
-  <link rel="stylesheet" href="./styles-v032.css"/>
+  <link rel="stylesheet" href="./styles-v033.css"/>
 </head>
 <body data-theme="derenfall">
   <div class="ambient"></div><div class="noise"></div><div class="tabletop-grain" aria-hidden="true"></div><div class="corner-runes rune-a" aria-hidden="true">✦</div><div class="corner-runes rune-b" aria-hidden="true">✧</div>
@@ -25,7 +25,7 @@
       <div class="intro-copy">
         <div class="brand-lockup">
           <div class="brand-rune">N</div>
-          <div><p class="eyebrow">NERDORA APRESENTA</p><span class="edition-chip">WEB ALPHA 0.3.2</span></div>
+          <div><p class="eyebrow">NERDORA APRESENTA</p><span class="edition-chip">WEB ALPHA 0.3.3</span></div>
         </div>
 
         <h1>Crônicas de <span>Nerdora</span></h1>
@@ -155,7 +155,17 @@
       </section>
       <aside class="setup-card lobby-controls">
         <h3>Preparativos</h3>
-        <div class="voice-card"><div><strong>Voz da mesa</strong><small id="lobbyVoiceStatus">Microfone desligado</small></div><button id="lobbyVoiceBtn" class="icon-btn">🎙️</button></div>
+        <div class="voice-card voice-pro">
+          <div class="voice-main"><div><strong>Voz da mesa</strong><small id="lobbyVoiceStatus">Microfone desligado</small></div><button id="lobbyVoiceBtn" class="icon-btn">🎙️</button></div>
+          <div id="lobbyVoiceTechStatus" class="voice-tech-status"><span>Eco: —</span><span>Ruído: —</span><span>Ganho: —</span></div>
+          <div class="voice-controls">
+            <div class="voice-mode"><button class="voice-mode-btn active" data-voice-mode="open">Aberto</button><button class="voice-mode-btn" data-voice-mode="ptt">PTT</button></div>
+            <button class="voice-mute-btn" type="button">🔇 Silenciar</button>
+          </div>
+          <button class="ptt-hold hidden" type="button">Segure para falar</button>
+          <label class="voice-output">Saída da mesa <input class="voice-master-slider" type="range" min="0" max="100" value="100"/></label>
+          <button class="voice-disconnect hidden" type="button">Encerrar microfone</button>
+        </div>
         <button id="readyBtn" class="btn secondary full">Estou pronto</button>
         <button id="startCampaignBtn" class="btn primary full" disabled>Iniciar campanha</button>
         <p id="lobbyRule" class="fineprint">O modo online precisa de pelo menos 2 jogadores.</p>
@@ -173,7 +183,17 @@
       <aside class="panel party-panel">
         <div class="panel-title"><span>Companhia</span><span id="connectionStatus" class="status-dot">offline</span></div>
         <div id="partyList" class="party-list"></div>
-        <div class="voice-card"><div><strong>Voz da mesa</strong><small id="voiceStatus">Microfone desligado</small></div><button id="voiceBtn" class="icon-btn">🎙️</button></div>
+        <div class="voice-card voice-pro">
+          <div class="voice-main"><div><strong>Voz da mesa</strong><small id="voiceStatus">Microfone desligado</small></div><button id="voiceBtn" class="icon-btn">🎙️</button></div>
+          <div id="voiceTechStatus" class="voice-tech-status"><span>Eco: —</span><span>Ruído: —</span><span>Ganho: —</span></div>
+          <div class="voice-controls">
+            <div class="voice-mode"><button class="voice-mode-btn active" data-voice-mode="open">Aberto</button><button class="voice-mode-btn" data-voice-mode="ptt">PTT</button></div>
+            <button class="voice-mute-btn" type="button">🔇 Silenciar</button>
+          </div>
+          <button class="ptt-hold hidden" type="button">Segure para falar</button>
+          <label class="voice-output">Saída da mesa <input class="voice-master-slider" type="range" min="0" max="100" value="100"/></label>
+          <button class="voice-disconnect hidden" type="button">Encerrar microfone</button>
+        </div>
         <div class="char-card">
           <div class="avatar" id="selfAvatar">N</div><div class="char-meta"><strong id="selfName">Aventureiro</strong><span id="selfClass">Classe</span></div>
           <div class="bars"><div><span>HP</span><i><b id="hpBar"></b></i><em id="hpText"></em></div><div><span>MP</span><i><b id="mpBar"></b></i><em id="mpText"></em></div></div>
@@ -280,6 +300,6 @@
   });
 </script>
 <div id="bootError" hidden style="position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;background:#26151b;border:1px solid #78404d;color:#ffe6eb;padding:10px 14px;border-radius:12px;font:12px system-ui;max-width:min(90vw,520px);text-align:center"></div>
-<script type="module" src="./app-v032.js"></script>
+<script type="module" src="./app-v033.js"></script>
 </body>
 </html>
