@@ -681,6 +681,12 @@ function directorBeforeAction(actor,text){
   else if(style==="support")d.tension=Math.max(0,(d.tension||0)-1);
   applyNpcInteraction(actor,text);
 }
+function recordWorldEvent(title,text,kind="world",location=null){
+  ensureDirectorState();
+  if(!Array.isArray(state.worldEventLog))state.worldEventLog=[];
+  state.worldEventLog.unshift({id:uid(),title:title,text:text,kind:kind,location:location||state.location,at:Date.now()});
+  state.worldEventLog=state.worldEventLog.slice(0,12);
+}
 function fireDirectorWorldEvents(){
   ensureDirectorState();
   const events=DIRECTOR_WORLD_EVENTS[state.campaignId]||[],d=state.director;
@@ -690,7 +696,7 @@ function fireDirectorWorldEvents(){
       state.eventFired.push(key);
       if(ev.pressure)state.pressure=Math.min(5,(state.pressure||0)+ev.pressure);
       if(ev.npc)discoverNpc(ev.npc);
-      addStory("system","O mundo continua",ev.text);
+      recordWorldEvent("O mundo continua",ev.text,"world",state.location);addStory("system","O mundo continua",ev.text);
     }
   });
 }
@@ -1030,7 +1036,7 @@ function createInitialState(campaignId){
   else if(map)unlocked=Object.values(map.nodes).map(function(n){return n.name});
   return {version:"0.3",campaignId:campaignId,campaign:c.title,location:c.location,worldMinutes:18*60+40,day:1,pressure:0,
     clues:[],rawEvidence:[],objective:c.objective,ended:false,ending:null,pendingRoll:null,lastRoll:null,completedActions:[],failedActions:{},
-    routeFlags:[],eventFired:[],unlockedLocations:unlocked,visitedLocations:visited,npcRelations:{},director:{beats:0,stagnation:0,tension:1,restNeed:0,lastStyle:null,styleStreak:0,lastInterventionBeat:-99,worldBeat:0,personalHookUsed:false},
+    routeFlags:[],eventFired:[],worldEventLog:[],unlockedLocations:unlocked,visitedLocations:visited,npcRelations:{},director:{beats:0,stagnation:0,tension:1,restNeed:0,lastStyle:null,styleStreak:0,lastInterventionBeat:-99,worldBeat:0,personalHookUsed:false},
     story:c.opening.map(function(text,i){return {id:uid(),type:i===0?"system":"master",who:i===0?"Prólogo":"Mestre Máquina",text:text,ts:Date.now()+i}})
   };
 }
@@ -1041,6 +1047,7 @@ function ensureStateShape(){
   if(!state.failedActions)state.failedActions={};
   if(!Array.isArray(state.routeFlags))state.routeFlags=[];
   if(!Array.isArray(state.eventFired))state.eventFired=[];
+  if(!Array.isArray(state.worldEventLog))state.worldEventLog=[];
   if(!Array.isArray(state.unlockedLocations))state.unlockedLocations=[state.location];
   if(!Array.isArray(state.visitedLocations))state.visitedLocations=[state.location];
   if(!state.npcRelations)state.npcRelations={};
@@ -1220,7 +1227,7 @@ function triggerLocationEvent(dest){
     "Fenda Memorial":"Aqui a chuva cai para cima em alguns trechos, e ruas conhecidas terminam em lembranças que não pertencem a vocês.",
     "Salão das Memórias":"O Colecionador não avança. Ele observa a companhia como alguém avaliando quais histórias valem ser guardadas."
   };
-  if(events[dest])addStory("system","Evento do local",events[dest]);
+  if(events[dest]){recordWorldEvent("Evento do local",events[dest],"location",dest);addStory("system","Evento do local",events[dest]);}
 }
 function triggerDerenPressureEvent(level){
   if(!state||state.campaignId!=="derenfall")return;
@@ -1232,7 +1239,7 @@ function triggerDerenPressureEvent(level){
     4:"Objetos ligados a memórias fortes começam a emitir um brilho violeta discreto. A Fenda está procurando novas âncoras.",
     5:"Ao longe, além do portão, um viajante para na estrada e pergunta qual é o próprio nome. O problema começou a se espalhar."
   };
-  if(events[level])addStory("system","O mundo avança",events[level]);
+  if(events[level]){recordWorldEvent("O mundo avança",events[level],"pressure",state.location);addStory("system","O mundo avança",events[level]);}
 }
 function updateDerenObjective(){
   if(!state||state.campaignId!=="derenfall"||state.ended)return;
