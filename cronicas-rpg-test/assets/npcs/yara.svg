@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 260">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#19130f"/><stop offset="1" stop-color="#080708"/></linearGradient>
+    <radialGradient id="glow"><stop stop-color="#d19a55" stop-opacity=".45"/><stop offset="1" stop-color="#d19a55" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="220" height="260" rx="20" fill="url(#bg)"/>
+  <circle cx="110" cy="84" r="76" fill="url(#glow)"/>
+  <path d="M52 234 C58 170 78 145 110 145 C143 145 165 171 171 234Z" fill="#2b211c" stroke="#d19a55" stroke-opacity=".48"/>
+  <circle cx="110" cy="98" r="48" fill="#b68b70"/>
+  <path d="M64 99 C65 43 86 30 111 31 C146 31 160 57 156 103 C145 80 124 68 93 70 C79 72 70 83 64 99Z" fill="#171317"/>
+  <path d="M80 116 C93 128 127 129 141 115 C135 144 87 147 80 116Z" fill="#7b5144" opacity=".45"/>
+  <circle cx="94" cy="99" r="4" fill="#0c0b0c"/><circle cx="128" cy="99" r="4" fill="#0c0b0c"/>
+  <path d="M99 121 Q111 127 124 121" fill="none" stroke="#5e3d36" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="110" cy="205" r="24" fill="#d19a55" opacity=".16"/>
+  <text x="110" y="214" text-anchor="middle" font-family="Georgia,serif" font-size="28" font-weight="700" fill="#d19a55">♫</text>
+  <text x="110" y="242" text-anchor="middle" font-family="Georgia,serif" font-size="12" font-weight="700" fill="#ead8b7">Yara</text>
+  <text x="110" y="255" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" fill="#9b8c75">Mineira</text>
+</svg>
