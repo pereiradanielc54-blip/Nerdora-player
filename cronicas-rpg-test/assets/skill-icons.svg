@@ -1,0 +1,361 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none"><symbol id="war_preciso" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#d6a85d" stroke-width="1.4"/>
+      <path d="M16 4 L18 20 L16 28 L14 20 Z" fill="none" stroke="#d6a85d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="8" r="1.7" fill="#d6a85d" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#d6a85d" opacity=".8">1</text>
+    </symbol><symbol id="war_aparar" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#d6a85d" stroke-width="1.4"/>
+      <path d="M5 16 H27" fill="none" stroke="#d6a85d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="13" cy="23" r="1.7" fill="#d6a85d" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#d6a85d" opacity=".8">2</text>
+    </symbol><symbol id="war_investida" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#d6a85d" stroke-width="1.4"/>
+      <path d="M8 7 L24 25" fill="none" stroke="#d6a85d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="18" cy="18" r="1.7" fill="#d6a85d" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#d6a85d" opacity=".8">3</text>
+    </symbol><symbol id="war_guardiao" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#d6a85d" stroke-width="1.4"/>
+      <path d="M16 4 L18 20 L16 28 L14 20 Z" fill="none" stroke="#d6a85d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="23" cy="13" r="1.7" fill="#d6a85d" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#d6a85d" opacity=".8">4</text>
+    </symbol><symbol id="war_provocar" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#d6a85d" stroke-width="1.4"/>
+      <path d="M5 16 H27" fill="none" stroke="#d6a85d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="8" r="1.7" fill="#d6a85d" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#d6a85d" opacity=".8">5</text>
+    </symbol><symbol id="war_avanco" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#d6a85d" stroke-width="1.4"/>
+      <path d="M8 7 L24 25" fill="none" stroke="#d6a85d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="13" cy="23" r="1.7" fill="#d6a85d" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#d6a85d" opacity=".8">6</text>
+    </symbol><symbol id="war_quebra" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#d6a85d" stroke-width="1.4"/>
+      <path d="M16 4 L18 20 L16 28 L14 20 Z" fill="none" stroke="#d6a85d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="18" cy="18" r="1.7" fill="#d6a85d" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#d6a85d" opacity=".8">7</text>
+    </symbol><symbol id="war_folego" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#d6a85d" stroke-width="1.4"/>
+      <path d="M5 16 H27" fill="none" stroke="#d6a85d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="23" cy="13" r="1.7" fill="#d6a85d" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#d6a85d" opacity=".8">8</text>
+    </symbol><symbol id="war_interpor" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#d6a85d" stroke-width="1.4"/>
+      <path d="M8 7 L24 25" fill="none" stroke="#d6a85d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="8" r="1.7" fill="#d6a85d" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#d6a85d" opacity=".8">9</text>
+    </symbol><symbol id="war_circular" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#d6a85d" stroke-width="1.4"/>
+      <path d="M16 4 L18 20 L16 28 L14 20 Z" fill="none" stroke="#d6a85d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="13" cy="23" r="1.7" fill="#d6a85d" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#d6a85d" opacity=".8">A</text>
+    </symbol><symbol id="war_desarmar" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#d6a85d" stroke-width="1.4"/>
+      <path d="M5 16 H27" fill="none" stroke="#d6a85d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="18" cy="18" r="1.7" fill="#d6a85d" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#d6a85d" opacity=".8">B</text>
+    </symbol><symbol id="war_heroico" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#d6a85d" stroke-width="1.4"/>
+      <path d="M8 7 L24 25" fill="none" stroke="#d6a85d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="23" cy="13" r="1.7" fill="#d6a85d" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#d6a85d" opacity=".8">C</text>
+    </symbol><symbol id="mag_rajada" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#8f7de0" stroke-width="1.4"/>
+      <path d="M16 3 L20 12 L29 16 L20 20 L16 29 L12 20 L3 16 L12 12 Z" fill="none" stroke="#8f7de0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="8" r="1.7" fill="#8f7de0" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#8f7de0" opacity=".8">1</text>
+    </symbol><symbol id="mag_barreira" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#8f7de0" stroke-width="1.4"/>
+      <path d="M8 24 Q16 5 24 24" fill="none" stroke="#8f7de0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="13" cy="23" r="1.7" fill="#8f7de0" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#8f7de0" opacity=".8">2</text>
+    </symbol><symbol id="mag_luz" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#8f7de0" stroke-width="1.4"/>
+      <path d="M7 11 Q16 20 25 11" fill="none" stroke="#8f7de0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="18" cy="18" r="1.7" fill="#8f7de0" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#8f7de0" opacity=".8">3</text>
+    </symbol><symbol id="mag_sonda" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#8f7de0" stroke-width="1.4"/>
+      <path d="M16 3 L20 12 L29 16 L20 20 L16 29 L12 20 L3 16 L12 12 Z" fill="none" stroke="#8f7de0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="23" cy="13" r="1.7" fill="#8f7de0" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#8f7de0" opacity=".8">4</text>
+    </symbol><symbol id="mag_passo" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#8f7de0" stroke-width="1.4"/>
+      <path d="M8 24 Q16 5 24 24" fill="none" stroke="#8f7de0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="8" r="1.7" fill="#8f7de0" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#8f7de0" opacity=".8">5</text>
+    </symbol><symbol id="mag_leitura" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#8f7de0" stroke-width="1.4"/>
+      <path d="M7 11 Q16 20 25 11" fill="none" stroke="#8f7de0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="13" cy="23" r="1.7" fill="#8f7de0" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#8f7de0" opacity=".8">6</text>
+    </symbol><symbol id="mag_selo" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#8f7de0" stroke-width="1.4"/>
+      <path d="M16 3 L20 12 L29 16 L20 20 L16 29 L12 20 L3 16 L12 12 Z" fill="none" stroke="#8f7de0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="18" cy="18" r="1.7" fill="#8f7de0" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#8f7de0" opacity=".8">7</text>
+    </symbol><symbol id="mag_contra" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#8f7de0" stroke-width="1.4"/>
+      <path d="M8 24 Q16 5 24 24" fill="none" stroke="#8f7de0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="23" cy="13" r="1.7" fill="#8f7de0" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#8f7de0" opacity=".8">8</text>
+    </symbol><symbol id="mag_lento" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#8f7de0" stroke-width="1.4"/>
+      <path d="M7 11 Q16 20 25 11" fill="none" stroke="#8f7de0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="8" r="1.7" fill="#8f7de0" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#8f7de0" opacity=".8">9</text>
+    </symbol><symbol id="mag_forma" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#8f7de0" stroke-width="1.4"/>
+      <path d="M16 3 L20 12 L29 16 L20 20 L16 29 L12 20 L3 16 L12 12 Z" fill="none" stroke="#8f7de0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="13" cy="23" r="1.7" fill="#8f7de0" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#8f7de0" opacity=".8">A</text>
+    </symbol><symbol id="mag_eco" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#8f7de0" stroke-width="1.4"/>
+      <path d="M8 24 Q16 5 24 24" fill="none" stroke="#8f7de0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="18" cy="18" r="1.7" fill="#8f7de0" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#8f7de0" opacity=".8">B</text>
+    </symbol><symbol id="mag_conv" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#8f7de0" stroke-width="1.4"/>
+      <path d="M7 11 Q16 20 25 11" fill="none" stroke="#8f7de0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="23" cy="13" r="1.7" fill="#8f7de0" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#8f7de0" opacity=".8">C</text>
+    </symbol><symbol id="ass_sombra" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#a879b8" stroke-width="1.4"/>
+      <path d="M6 25 L25 6" fill="none" stroke="#a879b8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="8" r="1.7" fill="#a879b8" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#a879b8" opacity=".8">1</text>
+    </symbol><symbol id="ass_evasao" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#a879b8" stroke-width="1.4"/>
+      <path d="M8 8 L24 24" fill="none" stroke="#a879b8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="13" cy="23" r="1.7" fill="#a879b8" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#a879b8" opacity=".8">2</text>
+    </symbol><symbol id="ass_fio" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#a879b8" stroke-width="1.4"/>
+      <path d="M5 18 Q16 4 27 18" fill="none" stroke="#a879b8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="18" cy="18" r="1.7" fill="#a879b8" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#a879b8" opacity=".8">3</text>
+    </symbol><symbol id="ass_passos" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#a879b8" stroke-width="1.4"/>
+      <path d="M6 25 L25 6" fill="none" stroke="#a879b8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="23" cy="13" r="1.7" fill="#a879b8" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#a879b8" opacity=".8">4</text>
+    </symbol><symbol id="ass_finta" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#a879b8" stroke-width="1.4"/>
+      <path d="M8 8 L24 24" fill="none" stroke="#a879b8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="8" r="1.7" fill="#a879b8" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#a879b8" opacity=".8">5</text>
+    </symbol><symbol id="ass_marca" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#a879b8" stroke-width="1.4"/>
+      <path d="M5 18 Q16 4 27 18" fill="none" stroke="#a879b8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="13" cy="23" r="1.7" fill="#a879b8" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#a879b8" opacity=".8">6</text>
+    </symbol><symbol id="ass_fantasma" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#a879b8" stroke-width="1.4"/>
+      <path d="M6 25 L25 6" fill="none" stroke="#a879b8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="18" cy="18" r="1.7" fill="#a879b8" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#a879b8" opacity=".8">7</text>
+    </symbol><symbol id="ass_veneno" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#a879b8" stroke-width="1.4"/>
+      <path d="M8 8 L24 24" fill="none" stroke="#a879b8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="23" cy="13" r="1.7" fill="#a879b8" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#a879b8" opacity=".8">8</text>
+    </symbol><symbol id="ass_silenciar" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#a879b8" stroke-width="1.4"/>
+      <path d="M5 18 Q16 4 27 18" fill="none" stroke="#a879b8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="8" r="1.7" fill="#a879b8" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#a879b8" opacity=".8">9</text>
+    </symbol><symbol id="ass_contra" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#a879b8" stroke-width="1.4"/>
+      <path d="M6 25 L25 6" fill="none" stroke="#a879b8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="13" cy="23" r="1.7" fill="#a879b8" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#a879b8" opacity=".8">A</text>
+    </symbol><symbol id="ass_exec" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#a879b8" stroke-width="1.4"/>
+      <path d="M8 8 L24 24" fill="none" stroke="#a879b8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="18" cy="18" r="1.7" fill="#a879b8" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#a879b8" opacity=".8">B</text>
+    </symbol><symbol id="ass_sumir" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#a879b8" stroke-width="1.4"/>
+      <path d="M5 18 Q16 4 27 18" fill="none" stroke="#a879b8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="23" cy="13" r="1.7" fill="#a879b8" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#a879b8" opacity=".8">C</text>
+    </symbol><symbol id="cur_cura" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#78b58c" stroke-width="1.4"/>
+      <path d="M16 5 V27" fill="none" stroke="#78b58c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="8" r="1.7" fill="#78b58c" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#78b58c" opacity=".8">1</text>
+    </symbol><symbol id="cur_purificar" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#78b58c" stroke-width="1.4"/>
+      <path d="M5 16 H27" fill="none" stroke="#78b58c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="13" cy="23" r="1.7" fill="#78b58c" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#78b58c" opacity=".8">2</text>
+    </symbol><symbol id="cur_vinculo" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#78b58c" stroke-width="1.4"/>
+      <path d="M9 9 Q16 4 23 9 Q27 16 16 26 Q5 16 9 9" fill="none" stroke="#78b58c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="18" cy="18" r="1.7" fill="#78b58c" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#78b58c" opacity=".8">3</text>
+    </symbol><symbol id="cur_bencao" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#78b58c" stroke-width="1.4"/>
+      <path d="M16 5 V27" fill="none" stroke="#78b58c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="23" cy="13" r="1.7" fill="#78b58c" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#78b58c" opacity=".8">4</text>
+    </symbol><symbol id="cur_escudo" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#78b58c" stroke-width="1.4"/>
+      <path d="M5 16 H27" fill="none" stroke="#78b58c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="8" r="1.7" fill="#78b58c" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#78b58c" opacity=".8">5</text>
+    </symbol><symbol id="cur_estab" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#78b58c" stroke-width="1.4"/>
+      <path d="M9 9 Q16 4 23 9 Q27 16 16 26 Q5 16 9 9" fill="none" stroke="#78b58c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="13" cy="23" r="1.7" fill="#78b58c" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#78b58c" opacity=".8">6</text>
+    </symbol><symbol id="cur_dor" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#78b58c" stroke-width="1.4"/>
+      <path d="M16 5 V27" fill="none" stroke="#78b58c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="18" cy="18" r="1.7" fill="#78b58c" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#78b58c" opacity=".8">7</text>
+    </symbol><symbol id="cur_sopro" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#78b58c" stroke-width="1.4"/>
+      <path d="M5 16 H27" fill="none" stroke="#78b58c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="23" cy="13" r="1.7" fill="#78b58c" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#78b58c" opacity=".8">8</text>
+    </symbol><symbol id="cur_trauma" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#78b58c" stroke-width="1.4"/>
+      <path d="M9 9 Q16 4 23 9 Q27 16 16 26 Q5 16 9 9" fill="none" stroke="#78b58c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="8" r="1.7" fill="#78b58c" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#78b58c" opacity=".8">9</text>
+    </symbol><symbol id="cur_pulso" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#78b58c" stroke-width="1.4"/>
+      <path d="M16 5 V27" fill="none" stroke="#78b58c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="13" cy="23" r="1.7" fill="#78b58c" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#78b58c" opacity=".8">A</text>
+    </symbol><symbol id="cur_queda" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#78b58c" stroke-width="1.4"/>
+      <path d="M5 16 H27" fill="none" stroke="#78b58c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="18" cy="18" r="1.7" fill="#78b58c" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#78b58c" opacity=".8">B</text>
+    </symbol><symbol id="cur_retorno" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#78b58c" stroke-width="1.4"/>
+      <path d="M9 9 Q16 4 23 9 Q27 16 16 26 Q5 16 9 9" fill="none" stroke="#78b58c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="23" cy="13" r="1.7" fill="#78b58c" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#78b58c" opacity=".8">C</text>
+    </symbol><symbol id="inv_familiar" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#b16b77" stroke-width="1.4"/>
+      <path d="M16 4 C24 7 27 15 24 23 C20 29 12 29 8 23 C5 15 8 7 16 4 Z" fill="none" stroke="#b16b77" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="8" r="1.7" fill="#b16b77" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#b16b77" opacity=".8">1</text>
+    </symbol><symbol id="inv_troca" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#b16b77" stroke-width="1.4"/>
+      <path d="M8 8 L24 24" fill="none" stroke="#b16b77" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="13" cy="23" r="1.7" fill="#b16b77" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#b16b77" opacity=".8">2</text>
+    </symbol><symbol id="inv_ordem" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#b16b77" stroke-width="1.4"/>
+      <path d="M24 8 L8 24" fill="none" stroke="#b16b77" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="18" cy="18" r="1.7" fill="#b16b77" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#b16b77" opacity=".8">3</text>
+    </symbol><symbol id="inv_selo" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#b16b77" stroke-width="1.4"/>
+      <path d="M16 4 C24 7 27 15 24 23 C20 29 12 29 8 23 C5 15 8 7 16 4 Z" fill="none" stroke="#b16b77" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="23" cy="13" r="1.7" fill="#b16b77" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#b16b77" opacity=".8">4</text>
+    </symbol><symbol id="inv_pacto" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#b16b77" stroke-width="1.4"/>
+      <path d="M8 8 L24 24" fill="none" stroke="#b16b77" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="8" r="1.7" fill="#b16b77" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#b16b77" opacity=".8">5</text>
+    </symbol><symbol id="inv_eco" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#b16b77" stroke-width="1.4"/>
+      <path d="M24 8 L8 24" fill="none" stroke="#b16b77" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="13" cy="23" r="1.7" fill="#b16b77" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#b16b77" opacity=".8">6</text>
+    </symbol><symbol id="inv_sacrificio" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#b16b77" stroke-width="1.4"/>
+      <path d="M16 4 C24 7 27 15 24 23 C20 29 12 29 8 23 C5 15 8 7 16 4 Z" fill="none" stroke="#b16b77" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="18" cy="18" r="1.7" fill="#b16b77" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#b16b77" opacity=".8">7</text>
+    </symbol><symbol id="inv_dupla" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#b16b77" stroke-width="1.4"/>
+      <path d="M8 8 L24 24" fill="none" stroke="#b16b77" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="23" cy="13" r="1.7" fill="#b16b77" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#b16b77" opacity=".8">8</text>
+    </symbol><symbol id="inv_portal" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#b16b77" stroke-width="1.4"/>
+      <path d="M24 8 L8 24" fill="none" stroke="#b16b77" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="8" r="1.7" fill="#b16b77" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#b16b77" opacity=".8">9</text>
+    </symbol><symbol id="inv_nome" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#b16b77" stroke-width="1.4"/>
+      <path d="M16 4 C24 7 27 15 24 23 C20 29 12 29 8 23 C5 15 8 7 16 4 Z" fill="none" stroke="#b16b77" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="13" cy="23" r="1.7" fill="#b16b77" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#b16b77" opacity=".8">A</text>
+    </symbol><symbol id="inv_cortejo" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#b16b77" stroke-width="1.4"/>
+      <path d="M8 8 L24 24" fill="none" stroke="#b16b77" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="18" cy="18" r="1.7" fill="#b16b77" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#b16b77" opacity=".8">B</text>
+    </symbol><symbol id="inv_trono" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#b16b77" stroke-width="1.4"/>
+      <path d="M24 8 L8 24" fill="none" stroke="#b16b77" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="23" cy="13" r="1.7" fill="#b16b77" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#b16b77" opacity=".8">C</text>
+    </symbol><symbol id="cac_tiro" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#6d9b75" stroke-width="1.4"/>
+      <path d="M5 16 H27" fill="none" stroke="#6d9b75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="8" r="1.7" fill="#6d9b75" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#6d9b75" opacity=".8">1</text>
+    </symbol><symbol id="cac_armadilha" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#6d9b75" stroke-width="1.4"/>
+      <path d="M22 10 L27 16 L22 22" fill="none" stroke="#6d9b75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="13" cy="23" r="1.7" fill="#6d9b75" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#6d9b75" opacity=".8">2</text>
+    </symbol><symbol id="cac_rastro" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#6d9b75" stroke-width="1.4"/>
+      <path d="M8 7 Q20 16 8 25" fill="none" stroke="#6d9b75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="18" cy="18" r="1.7" fill="#6d9b75" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#6d9b75" opacity=".8">3</text>
+    </symbol><symbol id="cac_refugio" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#6d9b75" stroke-width="1.4"/>
+      <path d="M5 16 H27" fill="none" stroke="#6d9b75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="23" cy="13" r="1.7" fill="#6d9b75" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#6d9b75" opacity=".8">4</text>
+    </symbol><symbol id="cac_olho" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#6d9b75" stroke-width="1.4"/>
+      <path d="M22 10 L27 16 L22 22" fill="none" stroke="#6d9b75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="8" r="1.7" fill="#6d9b75" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#6d9b75" opacity=".8">5</text>
+    </symbol><symbol id="cac_trilha" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#6d9b75" stroke-width="1.4"/>
+      <path d="M8 7 Q20 16 8 25" fill="none" stroke="#6d9b75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="13" cy="23" r="1.7" fill="#6d9b75" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#6d9b75" opacity=".8">6</text>
+    </symbol><symbol id="cac_interromper" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#6d9b75" stroke-width="1.4"/>
+      <path d="M5 16 H27" fill="none" stroke="#6d9b75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="18" cy="18" r="1.7" fill="#6d9b75" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#6d9b75" opacity=".8">7</text>
+    </symbol><symbol id="cac_comp" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#6d9b75" stroke-width="1.4"/>
+      <path d="M22 10 L27 16 L22 22" fill="none" stroke="#6d9b75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="23" cy="13" r="1.7" fill="#6d9b75" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#6d9b75" opacity=".8">8</text>
+    </symbol><symbol id="cac_camu" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#6d9b75" stroke-width="1.4"/>
+      <path d="M8 7 Q20 16 8 25" fill="none" stroke="#6d9b75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="8" cy="8" r="1.7" fill="#6d9b75" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#6d9b75" opacity=".8">9</text>
+    </symbol><symbol id="cac_chuva" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#6d9b75" stroke-width="1.4"/>
+      <path d="M5 16 H27" fill="none" stroke="#6d9b75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="13" cy="23" r="1.7" fill="#6d9b75" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#6d9b75" opacity=".8">A</text>
+    </symbol><symbol id="cac_quebra" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#6d9b75" stroke-width="1.4"/>
+      <path d="M22 10 L27 16 L22 22" fill="none" stroke="#6d9b75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="18" cy="18" r="1.7" fill="#6d9b75" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#6d9b75" opacity=".8">B</text>
+    </symbol><symbol id="cac_final" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="#17120f" stroke="#6d9b75" stroke-width="1.4"/>
+      <path d="M8 7 Q20 16 8 25" fill="none" stroke="#6d9b75" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="23" cy="13" r="1.7" fill="#6d9b75" opacity=".8"/>
+      <text x="25" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="5" font-weight="700" fill="#6d9b75" opacity=".8">C</text>
+    </symbol></svg>
