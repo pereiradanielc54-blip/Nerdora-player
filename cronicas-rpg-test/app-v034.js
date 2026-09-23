@@ -998,6 +998,7 @@ let directoryCleanupTimer=null;
 let directoryReady=false;
 let hostCampaignChosen=false;
 let deferredInstallPrompt=null;
+let directoryPromise=null;
 
 function showScreen(id){
   document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));
@@ -1214,6 +1215,8 @@ function cleanupRoomDirectory(){
 }
 async function ensureRoomDirectory(){
   if(directoryRoom)return directoryRoom;
+  if(directoryPromise)return directoryPromise;
+  directoryPromise=(async function(){
   try{
     const mod=await import("https://esm.sh/@trystero-p2p/torrent"),joinRoom=mod.joinRoom;
     directoryRoom=joinRoom(directoryRoomConfig(),"CRONICAS-PUBLIC-ROOMS");
@@ -1243,7 +1246,9 @@ async function ensureRoomDirectory(){
     console.warn("Diretório de salas indisponível",err);directoryReady=false;
     if(ui.availableRoomsList)ui.availableRoomsList.innerHTML='<div class="empty-rooms"><strong>Diretório temporariamente indisponível</strong><span>A verificação direta por código ainda pode funcionar.</span></div>';
     return null;
-  }
+  }finally{directoryPromise=null}
+  })();
+  return directoryPromise;
 }
 function announceRoom(target){
   if(!directoryActions.sendAd||!isHost||!roomId||!p2pReady||state)return;
@@ -1309,6 +1314,8 @@ async function leaveGameRoom(opts){
   opts=opts||{};stopRoomAdvertising();
   if(room){try{room.leave()}catch(e){}}
   room=null;p2pReady=false;hostPeerId=null;participants.clear();
+  roomId="";hostCampaignChosen=false;state=null;
+  const cleanUrl=new URL(location.href);cleanUrl.searchParams.delete("room");history.replaceState({},"",cleanUrl);
   remoteVoice.forEach(function(rec){rec.audio.srcObject=null;rec.audio.remove()});remoteVoice.clear();peerVoiceState.clear();peerStatsBaseline.clear();
   clearInterval(voiceStatsTimer);voiceStatsTimer=null;
   if(opts.keepDirectory===false&&directoryRoom){try{directoryRoom.leave()}catch(e){}directoryRoom=null;directoryReady=false}
@@ -2447,7 +2454,7 @@ async function connectP2P(){
     voiceA.onMessage=(data,{peerId})=>{
       const st=peerVoiceState.get(peerId)||{};peerVoiceState.set(peerId,{...st,...data});updatePeerVoiceDom(peerId);
     };
-    campaignA.onMessage=(data,{peerId})=>{if(isHost)return;hostPeerId=peerId;hostCampaignChosen=true;selectedCampaign=data.campaignId||"derenfall";setTheme(selectedCampaign);if(ui.lobbyCampaign)ui.lobbyCampaign.textContent=CAMPAIGNS[selectedCampaign].title};
+    campaignA.onMessage=(data,{peerId})=>{if(isHost)return;hostPeerId=peerId;hostCampaignChosen=true;selectedCampaign=data.campaignId||"derenfall";setTheme(selectedCampaign);if(ui.lobbyCampaign)ui.lobbyCampaign.textContent=CAMPAIGNS[selectedCampaign].title;if(ui.lobbyPremise)ui.lobbyPremise.textContent=CAMPAIGNS[selectedCampaign].premise;if(ui.lobbyEmblem)ui.lobbyEmblem.textContent=CAMPAIGNS[selectedCampaign].icon||"⚔"};
     startA.onMessage=(payload,{peerId})=>{if(isHost)return;hostPeerId=peerId;selectedCampaign=payload.campaignId;state=payload.state;enterGameScreen()};
     stateA.onMessage=(incoming,{peerId})=>{if(isHost)return;if(hostPeerId&&peerId!==hostPeerId)return;hostPeerId=peerId;state=incoming;if(ui.gameScreen.classList.contains("active"))renderState()};
     intentA.onMessage=(data,{peerId})=>{if(!isHost)return;const p=participants.get(peerId);const actor={...(p||{}),...(data.player||{})};processIntent(actor,data.text)};
