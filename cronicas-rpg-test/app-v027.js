@@ -617,7 +617,7 @@ const ui={};
 "campaignTitle","modeBadge","roomCode","copyInviteBtn","partyList","connectionStatus","voiceBtn","voiceStatus","selfAvatar","selfName","selfClass","selfStats",
 "hpBar","mpBar","hpText","mpText","locationName","worldDay","worldTime","storyLog","dicePrompt","dicePromptLabel","dicePromptHelp","interactiveDie",
 "quickActions","actionInput","speechBtn","freeRollBtn","sendActionBtn","objectiveText","clueList","mysteryLabel","mysteryBar","sheetSummary","sheetStats",
-"unspentBox","sheetSkills","sheetAvailableSkills","alphaLevelBtn","chatLog","chatInput","chatSendBtn","toast","diceOverlay","diceCard","diceWho","diceResult","diceFormula","audioMount","mobileGameNav","orientationHint","orientationLandscapeBtn","orientationContinueBtn","orientationDontShow","masterMemoryTitle","masterMemoryCount","masterMemoryInsight","masterMemoryList","evidenceList"
+"unspentBox","sheetSkills","sheetAvailableSkills","alphaLevelBtn","chatLog","chatInput","chatSendBtn","toast","diceOverlay","diceCard","diceWho","diceResult","diceFormula","audioMount","mobileGameNav","orientationHint","orientationLandscapeBtn","orientationContinueBtn","orientationDontShow","masterMemoryTitle","masterMemoryCount","masterMemoryInsight","masterMemoryList","evidenceList","importantPerson","characterFear","personalGoal","npcRelationList"
 ].forEach(k=>ui[k]=$(k));
 
 let mode="online";
@@ -668,7 +668,7 @@ function roomFromUrl(){return new URL(location.href).searchParams.get("room")?.t
 
 function freshDraft(){
   const stats={};Object.keys(ATTRS).forEach(k=>stats[k]=1);
-  return {id:persistentPlayerId(),name:"",sex:"Masculino",origin:"Asterfall",className:"Guerreiro",level:1,stats,creationPoints:10,attributePoints:0,skillPoints:2,skills:[],ready:false,characterReady:false};
+  return {id:persistentPlayerId(),name:"",sex:"Masculino",origin:"Asterfall",className:"Guerreiro",level:1,stats,creationPoints:10,attributePoints:0,skillPoints:2,skills:[],importantPerson:"",fear:"",personalGoal:"",ready:false,characterReady:false};
 }
 function classSkills(cls=selectedClass){return SKILLS[cls]||[]}
 function getSkill(id,cls=player?.className||selectedClass){return classSkills(cls).find(s=>s.id===id)}
@@ -707,7 +707,7 @@ function openMode(which){
 
 function resetDraft(){
   draft=freshDraft();selectedSex=draft.sex;selectedOrigin=draft.origin;selectedClass=draft.className;currentCharStep=1;
-  ui.charName.value="";renderCharacterBuilder();goCharStep(1);
+  ui.charName.value="";if(ui.importantPerson)ui.importantPerson.value="";if(ui.characterFear)ui.characterFear.value="";if(ui.personalGoal)ui.personalGoal.value="";renderCharacterBuilder();goCharStep(1);
 }
 function beginCharacter(){
   resetDraft();showScreen("characterScreen");
@@ -791,7 +791,7 @@ function goCharStep(n){
   if(n===3)renderSkills();
 }
 function validateIdentity(){
-  draft.name=ui.charName.value.trim();draft.sex=selectedSex;draft.origin=selectedOrigin;draft.className=selectedClass;
+  draft.name=ui.charName.value.trim();draft.sex=selectedSex;draft.origin=selectedOrigin;draft.className=selectedClass;draft.importantPerson=(ui.importantPerson?.value||"").trim();draft.fear=(ui.characterFear?.value||"").trim();draft.personalGoal=(ui.personalGoal?.value||"").trim();
   if(draft.name.length<2){toast("Escolha um nome para o personagem.");return false}
   return true;
 }
@@ -813,7 +813,7 @@ function createInitialState(campaignId){
   else if(map)unlocked=Object.values(map.nodes).map(function(n){return n.name});
   return {version:"0.3",campaignId:campaignId,campaign:c.title,location:c.location,worldMinutes:18*60+40,day:1,pressure:0,
     clues:[],rawEvidence:[],objective:c.objective,ended:false,ending:null,pendingRoll:null,lastRoll:null,completedActions:[],failedActions:{},
-    routeFlags:[],eventFired:[],unlockedLocations:unlocked,visitedLocations:visited,
+    routeFlags:[],eventFired:[],unlockedLocations:unlocked,visitedLocations:visited,npcRelations:{},director:{beats:0,stagnation:0,tension:1,restNeed:0,lastStyle:null,styleStreak:0,lastInterventionBeat:-99,worldBeat:0,personalHookUsed:false},
     story:c.opening.map(function(text,i){return {id:uid(),type:i===0?"system":"master",who:i===0?"Prólogo":"Mestre Máquina",text:text,ts:Date.now()+i}})
   };
 }
@@ -826,6 +826,8 @@ function ensureStateShape(){
   if(!Array.isArray(state.eventFired))state.eventFired=[];
   if(!Array.isArray(state.unlockedLocations))state.unlockedLocations=[state.location];
   if(!Array.isArray(state.visitedLocations))state.visitedLocations=[state.location];
+  if(!state.npcRelations)state.npcRelations={};
+  if(!state.director)state.director={beats:0,stagnation:0,tension:1,restNeed:0,lastStyle:null,styleStreak:0,lastInterventionBeat:-99,worldBeat:0,personalHookUsed:false};
   if(state.campaignId==="derenfall"){
     unlockLocations("Estrada de Derenfall","Portão de Derenfall");
     if(state.location==="Portão de Derenfall")unlockLocations("Praça de Derenfall");
@@ -1369,7 +1371,7 @@ function submitIntent(text=null){
   else if(actions.sendIntent&&p2pReady){actions.sendIntent({text:v,player:publicCharacter(player)});toast("Ação enviada ao Mestre Máquina.");}
   else toast("Aguardando conexão com o anfitrião.");
 }
-function publicCharacter(p){return {id:p.id,name:p.name,sex:p.sex,origin:p.origin,className:p.className,level:p.level,stats:p.stats,skills:p.skills,icon:p.icon,ready:p.ready,characterReady:p.characterReady}}
+function publicCharacter(p){return {id:p.id,name:p.name,sex:p.sex,origin:p.origin,className:p.className,level:p.level,stats:p.stats,skills:p.skills,icon:p.icon,importantPerson:p.importantPerson||"",fear:p.fear||"",personalGoal:p.personalGoal||"",ready:p.ready,characterReady:p.characterReady}}
 function soloFreeRoll(){const d=1+Math.floor(Math.random()*20);showDiceOverlay(player?.name||"Jogador",d,"1d20 = "+d);if((mode==="solo"||isHost)&&state){addStory("system","Rolagem livre",`${player.name} rolou um D20.`,`1d20 = ${d}`);renderState();broadcastState()}}
 function startSpeech(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return toast("Ditado não é suportado neste navegador.");
