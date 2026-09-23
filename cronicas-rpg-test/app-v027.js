@@ -1546,7 +1546,7 @@ function renderParty(){
 }
 function renderSheet(){
   if(!player)return;
-  ui.sheetSummary.innerHTML=`<div class="sheet-hero"><strong>${esc(player.name)}</strong><span>${esc(player.sex)} • ${esc(ORIGINS[player.origin]?.name||player.origin)} • ${esc(player.className)} • Nível ${player.level}</span></div>`;
+  ui.sheetSummary.innerHTML=`<div class="sheet-hero"><strong>${esc(player.name)}</strong><span>${esc(player.sex)} • ${esc(ORIGINS[player.origin]?.name||player.origin)} • ${esc(player.className)} • Nível ${player.level}</span></div>`+((player.importantPerson||player.fear||player.personalGoal)?`<div class="character-hooks">${player.importantPerson?`<div><small>PESSOA IMPORTANTE</small><strong>${esc(player.importantPerson)}</strong></div>`:""}${player.fear?`<div><small>MEDO / FRAQUEZA</small><strong>${esc(player.fear)}</strong></div>`:""}${player.personalGoal?`<div><small>OBJETIVO PESSOAL</small><strong>${esc(player.personalGoal)}</strong></div>`:""}</div>`:"");
   ui.sheetStats.innerHTML=Object.entries(player.stats).map(([k,v])=>`<div class="sheet-stat"><span>${ATTRS[k].name}</span><b>${v}</b></div>`).join("");
   if(player.attributePoints>0){ui.unspentBox.classList.remove("hidden");ui.unspentBox.innerHTML=`<strong>${player.attributePoints} ponto(s) de atributo disponível(is).</strong><br><small>Use + ao lado do atributo abaixo:</small>`+Object.keys(ATTRS).map(k=>`<div style="margin-top:5px">${ATTRS[k].name} (${player.stats[k]}) <button data-attr="${k}">+</button></div>`).join("");ui.unspentBox.querySelectorAll("button").forEach(b=>b.onclick=()=>spendAttributePoint(b.dataset.attr))}
   else ui.unspentBox.classList.add("hidden");
