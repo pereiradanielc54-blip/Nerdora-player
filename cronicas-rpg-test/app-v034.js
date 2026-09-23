@@ -2142,7 +2142,7 @@ function hello(target=null){
   const data=player?{...publicCharacter(player),isHost,voice:!!localStream,voiceMuted:voiceMuted,voiceMode:voiceMode}:{id:persistentPlayerId(),name:"Criando personagem...",characterReady:false,ready:false,isHost};
   actions.sendHello(data,target);
 }
-function sendCampaignInfo(target=null){if(isHost&&actions.sendCampaign)actions.sendCampaign({campaignId:selectedCampaign,title:CAMPAIGNS[selectedCampaign].title},target)}
+function sendCampaignInfo(target=null){if(isHost&&hostCampaignChosen&&actions.sendCampaign)actions.sendCampaign({campaignId:selectedCampaign,title:CAMPAIGNS[selectedCampaign].title},target)}
 async function beginOnline(host,codeValue){
   await prepareOnlineConnection(host,codeValue);
   if(host){await ensureRoomDirectory();startRoomAdvertising()}
@@ -2437,7 +2437,7 @@ async function connectP2P(){
       if(localStream)room.addStream(localStream,{target:peerId,metadata:{kind:"voice",version:3}});
       setTimeout(()=>{tunePeerAudio(peerId);sendVoiceState(true);if(isHost)announceRoom()},350);
     };
-    room.onPeerLeave=peerId=>{participants.delete(peerId);cleanupPeerVoice(peerId);renderLobby();renderParty();if(isHost)announceRoom();toast("Um jogador saiu da sala.")};
+    room.onPeerLeave=peerId=>{const wasPlayer=participants.has(peerId);participants.delete(peerId);cleanupPeerVoice(peerId);renderLobby();renderParty();if(isHost)announceRoom();if(wasPlayer)toast("Um jogador saiu da sala.")};
     helloA.onMessage=(data,{peerId})=>{
       participants.set(peerId,{...data,peerId});if(data.isHost)hostPeerId=peerId;
       const st=peerVoiceState.get(peerId)||{};peerVoiceState.set(peerId,{...st,active:!!data.voice,muted:!!data.voiceMuted,mode:data.voiceMode||"open"});
@@ -2458,7 +2458,7 @@ async function connectP2P(){
   }catch(err){console.warn(err);ui.connectionStatus.textContent="modo local";toast("A conexão multiplayer não iniciou. Recarregue e tente novamente.")}
 }
 function showLobby(){
-  setTheme(selectedCampaign);ui.lobbyCampaign.textContent=CAMPAIGNS[selectedCampaign].title;ui.lobbyCode.textContent=roomId;ui.lobbyPremise.textContent=CAMPAIGNS[selectedCampaign].premise;if(ui.lobbyEmblem)ui.lobbyEmblem.textContent=CAMPAIGNS[selectedCampaign].icon||"⚔";showScreen("lobbyScreen");renderLobby();
+  setTheme(selectedCampaign);ui.lobbyCampaign.textContent=(!isHost&&!hostCampaignChosen)?"Aguardando campanha":CAMPAIGNS[selectedCampaign].title;ui.lobbyCode.textContent=roomId;ui.lobbyPremise.textContent=(!isHost&&!hostCampaignChosen)?"O anfitrião ainda está escolhendo a campanha.":CAMPAIGNS[selectedCampaign].premise;if(ui.lobbyEmblem)ui.lobbyEmblem.textContent=CAMPAIGNS[selectedCampaign].icon||"⚔";showScreen("lobbyScreen");renderLobby();
 }
 function allLobbyPlayers(){return player?[{...player,isHost},...Array.from(participants.values()).filter(p=>p.characterReady)]:Array.from(participants.values()).filter(p=>p.characterReady)}
 function renderLobby(){
