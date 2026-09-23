@@ -1191,7 +1191,7 @@ function currentRoomAd(){
     hostName:player&&player.name||"Anfitrião",
     players:Math.max(1,1+participants.size),
     maxPlayers:8,
-    joinable:!!(isHost&&roomId&&p2pReady&&!state),
+    joinable:!!(isHost&&roomId&&p2pReady&&!state&&participants.size<7),
     createdAt:Date.now()
   };
 }
@@ -1271,7 +1271,7 @@ async function probeRoomHost(codeValue){
     const check=probe.makeAction("roomcheck");
     return await new Promise(function(resolve){
       function finish(ok){if(resolved)return;resolved=true;clearTimeout(timer);try{probe&&probe.leave()}catch(e){}resolve(ok)}
-      check.onMessage=function(data){if(data&&data.kind==="pong"&&data.host===true)finish(true)};
+      check.onMessage=function(data){if(data&&data.kind==="pong"&&data.host===true&&data.joinable!==false)finish(true)};
       probe.onPeerJoin=function(peerId){setTimeout(function(){check.send({kind:"ping",code:codeValue},{target:peerId})},80)};
       timer=setTimeout(function(){finish(false)},4200);
       setTimeout(function(){check.send({kind:"ping",code:codeValue})},500);
@@ -1315,7 +1315,7 @@ async function leaveGameRoom(opts){
 }
 async function prepareOnlineConnection(host,codeValue){
   if(room)await leaveGameRoom({keepDirectory:true});
-  mode="online";isHost=host;roomId=codeValue;hostPeerId=host?"self":null;participants.clear();p2pReady=false;room=null;player=null;
+  mode="online";isHost=host;roomId=codeValue;hostPeerId=host?"self":null;if(!host)hostCampaignChosen=false;participants.clear();p2pReady=false;room=null;player=null;state=null;
   const url=new URL(location.href);url.searchParams.set("room",roomId);history.replaceState({},"",url);
   await connectP2P();
 }
@@ -2443,7 +2443,7 @@ async function connectP2P(){
       const st=peerVoiceState.get(peerId)||{};peerVoiceState.set(peerId,{...st,active:!!data.voice,muted:!!data.voiceMuted,mode:data.voiceMode||"open"});
       renderLobby();renderParty();if(isHost&&state)broadcastState(peerId);registerPeerConnection(peerId);
     };
-    roomCheckA.onMessage=(data,{peerId})=>{if(isHost&&data?.kind==="ping")roomCheckA.send({kind:"pong",host:true,code:roomId},{target:peerId})};
+    roomCheckA.onMessage=(data,{peerId})=>{if(isHost&&data?.kind==="ping")roomCheckA.send({kind:"pong",host:true,joinable:!state&&participants.size<7,code:roomId},{target:peerId})};
     voiceA.onMessage=(data,{peerId})=>{
       const st=peerVoiceState.get(peerId)||{};peerVoiceState.set(peerId,{...st,...data});updatePeerVoiceDom(peerId);
     };
