@@ -76,44 +76,7 @@ jobs:
         shell: bash
         run: |
           cp .github/overlays/v0.6.1/DocumentOpenActivity.kt extracted_project/app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
-          python3 - <<'PY'
-          from pathlib import Path
-          manifest = Path("extracted_project/app/src/main/AndroidManifest.xml")
-          text = manifest.read_text(encoding="utf-8")
-          activity = r'''
-
-        <activity
-            android:name=".DocumentOpenActivity"
-            android:exported="true"
-            android:label="@string/app_name">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
-                <data android:mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
-                <data android:mimeType="application/vnd.openxmlformats-officedocument.presentationml.presentation" />
-                <data android:mimeType="application/pdf" />
-                <data android:mimeType="text/plain" />
-                <data android:mimeType="text/csv" />
-                <data android:mimeType="text/markdown" />
-                <data android:mimeType="application/json" />
-                <data android:mimeType="application/xml" />
-                <data android:mimeType="text/xml" />
-                <data android:mimeType="text/html" />
-                <data android:mimeType="text/css" />
-                <data android:mimeType="application/yaml" />
-                <data android:mimeType="application/zip" />
-                <data android:mimeType="application/x-zip-compressed" />
-            </intent-filter>
-        </activity>
-'''
-          if 'android:name=".DocumentOpenActivity"' not in text:
-              marker = '        <service\n            android:name=".playback.PlaybackService"'
-              if marker not in text:
-                  raise SystemExit("Não foi possível localizar o ponto de inserção no AndroidManifest.xml")
-              text = text.replace(marker, activity + "\n\n" + marker, 1)
-              manifest.write_text(text, encoding="utf-8")
-          PY
+          python3 -c 'from pathlib import Path; p=Path("extracted_project/app/src/main/AndroidManifest.xml"); t=p.read_text(encoding="utf-8"); a=Path(".github/overlays/v0.6.1/document-activity.xml").read_text(encoding="utf-8"); m="        <service\\n            android:name=\".playback.PlaybackService\""; assert m in t, "Ponto de inserção não encontrado"; p.write_text(t if "android:name=\".DocumentOpenActivity\"" in t else t.replace(m, a+"\\n"+m, 1), encoding="utf-8")'
           sed -i -E 's/versionCode = [0-9]+/versionCode = 31/' extracted_project/app/build.gradle.kts
           sed -i -E 's/versionName = "[^"]+"/versionName = "0.6.1"/' extracted_project/app/build.gradle.kts
           grep -q 'android:name=".DocumentOpenActivity"' extracted_project/app/src/main/AndroidManifest.xml
@@ -171,7 +134,9 @@ jobs:
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
           grep -q 'versionName = "0.6.1"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
-          test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt\n          grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml\n          echo "Nerdora Player v0.6.1 validado."
+          test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
+          grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
+          echo "Nerdora Player v0.6.1 validado."
 
       - name: Compilar APK
         id: build
