@@ -205,6 +205,8 @@ jobs:
           cat \
             .github/overlays/v0.9.0/payload.part00.b64 \
             .github/overlays/v0.9.0/payload.part01.b64 \
+            .github/overlays/v0.9.0/payload.part02.b64 \
+            .github/overlays/v0.9.0/payload.part03.b64 \
             | base64 -d > /tmp/nerdora-v090/payload.tar.gz
           gzip -t /tmp/nerdora-v090/payload.tar.gz
           tar -tzf /tmp/nerdora-v090/payload.tar.gz >/dev/null
