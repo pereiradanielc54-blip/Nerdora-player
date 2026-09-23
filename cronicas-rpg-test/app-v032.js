@@ -211,7 +211,21 @@ Object.assign(CLUES,{
   eco_relogio:{title:"O tempo não falhou de uma vez",text:"O moinho registra pequenas anomalias anteriores ao desaparecimento geral."},
   tunel_igreja:{title:"Túnel entre capela e igreja",text:"Uma passagem antiga interliga fundações religiosas e oferece outro acesso ao sistema de Éter."},
   agua_espelho:{title:"Água que devolve nomes errados",text:"A água usada na hospedaria reflete memórias de pessoas que não estão presentes."},
-  sino_token:{title:"Fragmento do sino antigo",text:"Uma peça enterrada no cemitério reage à mesma ressonância do sino da igreja."}
+  sino_token:{title:"Fragmento do sino antigo",text:"Uma peça enterrada no cemitério reage à mesma ressonância do sino da igreja."},
+  vidrotestemunhas:{title:"A mesma frase em bocas diferentes",text:"Testemunhas de Casas rivais lembram a mesma frase ausente do juramento oficial."},
+  vidrocustodia:{title:"Caixas fora da cadeia de custódia",text:"Volumes dinásticos foram retirados dos Arquivos por uma rota administrativa ligada ao Porto Seco."},
+  vidrolinhagem:{title:"Ramo apagado da dinastia",text:"Registros funerários confirmam que um ramo real existiu e foi removido de genealogias posteriores."},
+  vidroescriba:{title:"Margens que sobreviveram",text:"Uma cópia clandestina preserva notas sobre o soberano omitido, feitas antes da censura oficial."},
+  vidroconcilio:{title:"A Coroa já sabia",text:"A corte conhecia a contradição e escolheu administrá-la em segredo para evitar uma crise sucessória."},
+  vidrointeresse:{title:"Casas exploram a ausência",text:"Parte da nobreza não busca a verdade; usa o soberano apagado para renegociar poder e privilégios."},
+  corofebre:{title:"Não é uma doença comum",text:"Pulso, respiração e sono dos mineiros sincronizam com vibração mineral, não com contágio biológico."},
+  cororitmo:{title:"Yara ouve antes dos outros",text:"A jovem mineira antecipa versos porque sua memória está conectada a uma camada mais profunda da rede."},
+  coromapa:{title:"A mina cresceu para dentro",text:"Os novos túneis não são escavações recentes; parecem reorganizações de estruturas antigas sob a montanha."},
+  corofrequencia:{title:"Frequência de prospecção",text:"O diapasão da forja identifica uma nota capaz de interromper ou redirecionar a ressonância do veio."},
+  coropedra:{title:"Liturgia da Pedra",text:"O santuário descreve um rito antigo para devolver vozes à montanha sem destruir as memórias contidas nela."},
+  coromemoria:{title:"Vidas gravadas no veio",text:"O minério preserva fragmentos de experiência de gerações de mineiros, não apenas o canto atual."},
+  corofonte:{title:"O Coro busca continuidade",text:"A rede mineral tenta completar padrões interrompidos usando mentes vivas como pontes."},
+  coropressao:{title:"Produção acima das vidas",text:"O clã sabia de incidentes menores e manteve a mina aberta por pressão econômica."}
 });
 
 
@@ -557,6 +571,111 @@ function rememberCampaignEnding(title){
   mergeFacts(masterMemoryProfile,[fact]);dbPut("player_memory",masterMemoryProfile).catch(function(){});renderMasterMemory();
 }
 
+
+const CAMPAIGN_ACTIONS={
+  vidro:[
+    {id:"vidro_coroa",location:"Salão dos Juramentos",label:"Examinar a Coroa de Vidro",stat:"PER",df:12,keywords:["coroa","cristal","examinar"],clue:"vidroeco",item:"crown_imprint",success:"O reflexo não é profecia: ele reage à fórmula do juramento. Existe uma memória dinástica que a versão oficial não consegue apagar.",fail:"O cristal responde, mas o reflexo se desfaz antes de mostrar contexto suficiente."},
+    {id:"vidro_testemunhas",location:"Salão dos Juramentos",label:"Comparar os relatos das testemunhas",stat:"PRE",df:12,keywords:["testemunhas","relatos","juramentados"],clue:"vidrotestemunhas",success:"Pessoas de Casas rivais repetem a mesma frase que não existe na transcrição oficial. Elas discordam sobre política, mas não sobre o que ouviram.",fail:"Os relatos parecem contaminados pelo pânico. Ainda assim, duas expressões se repetem de forma incômoda."},
+    {id:"vidro_rainha",location:"Palácio Real",label:"Pedir uma audiência reservada com Maeryn",stat:"PRE",df:14,keywords:["maeryn","rainha","audiencia"],clue:"vidroconcilio",npc:"maeryn",requiresAnyClue:["vidroeco","vidrotestemunhas"],success:"Maeryn não confirma um herdeiro, mas admite que a Coroa já apresentou o mesmo reflexo em uma cerimônia privada anos atrás. O Conselho decidiu silenciar o caso.",fail:"A rainha mantém a versão oficial, mas sua escolha cuidadosa de palavras confirma que aquilo não foi a primeira ocorrência."},
+    {id:"vidro_selos",location:"Arquivos Reais",label:"Comparar selos e numeração dos juramentos",stat:"INT",df:12,keywords:["selos","numeracao","documentos","comparar"],clue:"vidroselos",item:"archive_seal",success:"As cópias incompatíveis usam papel, cera e numeração internos. A contradição nasceu dentro dos Arquivos, não numa falsificação recente.",fail:"Nada prova fraude comum. Os documentos resistem ao primeiro exame e exigem reconstruir a cadeia de custódia."},
+    {id:"vidro_caixas",location:"Arquivos Reais",label:"Rastrear as caixas retiradas do catálogo",stat:"PER",df:13,keywords:["caixas","catalogo","custodia"],clue:"vidrocustodia",success:"Três caixas saíram dos Arquivos usando autorização real e seguiram para um depósito do Porto Seco. A data coincide com a última revisão da genealogia oficial.",fail:"A trilha burocrática foi limpa, mas uma assinatura de transporte aponta para fora do palácio."},
+    {id:"vidro_ilyan",location:"Arquivos Reais",label:"Confrontar Ilyan sobre as rasuras",stat:"PRE",df:13,keywords:["ilyan","rasuras","arquivista"],flag:"ilyan_abriu_jogo",npc:"ilyan",success:"Ilyan admite que aprendeu a reconhecer documentos censurados pelo espaço deixado no catálogo. Ele entrega o nome de Sera Valen, uma escriba que copiou margens antes do expurgo.",fail:"Ilyan se fecha, mas menciona sem querer que 'as margens foram copiadas'. O nome da escriba ainda precisa ser descoberto."},
+    {id:"vidro_sera",location:"Bairro dos Escribas",label:"Encontrar Sera e a cópia clandestina",stat:"PRE",df:13,keywords:["sera","copia","escriba","clandestina"],clue:"vidroescriba",npc:"sera",requiresAnyClue:["vidrocustodia","vidroselos"],success:"Sera mostra uma cópia anterior à censura. Nas margens, um escriba registra que o segundo soberano jurou renunciar ao nome, não ao sangue.",fail:"Sera testa a companhia com informações falsas antes de mostrar que possui algo real. Será preciso ganhar sua confiança ou voltar com prova."},
+    {id:"vidro_mensageiro",location:"Distrito das Casas",label:"Seguir o mensageiro de Cassian",stat:"AGI",df:13,keywords:["mensageiro","seguir","cassian"],clue:"vidrointeresse",npc:"cassian",success:"O mensageiro entrega propostas a duas Casas: ambas pretendem usar o soberano apagado para reabrir antigos privilégios, independentemente de quem tenha direito ao trono.",fail:"O mensageiro percebe a perseguição e muda de rota, mas a reação de Cassian revela que existe negociação paralela."},
+    {id:"vidro_cassian",location:"Mercado Alto",label:"Pressionar Cassian sobre as alianças",stat:"PRE",df:14,keywords:["cassian","aliancas","casas"],clue:"vidrointeresse",npc:"cassian",success:"Cassian admite que metade das Casas não quer um novo rei: quer usar a dúvida para enfraquecer Maeryn. A verdade histórica e o jogo político não são a mesma coisa.",fail:"Cassian não entrega nomes, mas deixa claro que a Coroa de Vidro virou moeda de negociação."},
+    {id:"vidro_catedral",location:"Catedral da Aurora",label:"Comparar o livro de memoriais reais",stat:"INT",df:13,keywords:["memoriais","catedral","livro"],flag:"pista_cripta",success:"O livro de memoriais pula uma numeração inteira e referencia uma capela funerária que oficialmente nunca existiu.",fail:"As páginas foram reencadernadas. A ausência é visível, mas ainda não identifica quem foi apagado."},
+    {id:"vidro_cripta",location:"Cripta Dinástica",label:"Reconstruir a genealogia pelas inscrições",stat:"PER",df:14,keywords:["genealogia","inscricoes","cripta"],clue:"vidrolinhagem",requiresAnyClue:["vidrotestemunhas","vidrocustodia"],success:"Datas, brasões e espaços raspados confirmam um ramo real entre dois reinados conhecidos. A pessoa da Coroa pertencia à dinastia e foi apagada depois de viver.",fail:"As inscrições foram mutiladas, mas o padrão de datas prova que a genealogia oficial possui um intervalo deliberado."},
+    {id:"vidro_porto",location:"Porto Seco",label:"Localizar a remessa dos Arquivos",stat:"PER",df:13,keywords:["remessa","caixas","porto"],clue:"vidrocustodia",requiresAnyClue:["vidroselos","vidrotestemunhas"],success:"Uma caixa ainda está no depósito. O manifesto prova que documentos dinásticos foram enviados para fora do circuito real antes da revisão oficial.",fail:"A caixa desapareceu, mas o manifesto permanece e confirma a rota."},
+    {id:"vidro_tuneis",location:"Passagens Subterrâneas",label:"Seguir a rota secreta até o palácio",stat:"AGI",df:13,keywords:["rota secreta","passagens","seguir"],flag:"rota_salao_velado",requiresAnyClue:["vidrocustodia","vidroescriba"],success:"As passagens ligam depósitos, cripta e uma sala sem registro no palácio. Alguém criou uma infraestrutura física para administrar segredos dinásticos.",fail:"O caminho termina em grades recentes, prova de que a rota ainda é usada."},
+    {id:"vidro_velado",location:"Salão Velado",label:"Examinar os registros do Conselho secreto",stat:"INT",df:15,keywords:["conselho","registros","velado"],clue:"vidroconcilio",requiresAnyFlag:["rota_salao_velado"],success:"Atas lacradas mostram que três gerações da Coroa mantiveram o apagamento para preservar uma sucessão negociada. O segredo era política de Estado.",fail:"As atas usam cifras, mas datas e lacres bastam para demonstrar continuidade institucional."},
+    {id:"vidro_jardins",location:"Jardins Reais",label:"Ouvir a conversa dos conselheiros",stat:"AGI",df:13,keywords:["conselheiros","ouvir","jardins"],clue:"vidroconcilio",success:"Dois conselheiros discutem como conter a 'segunda aparição'. O termo prova que o fenômeno era conhecido dentro do palácio.",fail:"A conversa termina cedo, mas 'segunda aparição' é dito claramente antes de eles se separarem."}
+  ],
+  coro:[
+    {id:"coro_mineiros",location:"Acampamento de Khar-Dor",label:"Examinar os mineiros adormecidos",stat:"PER",df:12,keywords:["mineiros","adormecidos","examinar"],clue:"cororesp",success:"Os mineiros cantam no mesmo compasso apesar da distância. Uma voz começa cada verso antes das demais, como se uma fonte comum distribuísse a sequência.",fail:"O padrão não parece aprendido nem coordenado por som comum."},
+    {id:"coro_borik",location:"Acampamento de Khar-Dor",label:"Questionar Borik sobre incidentes anteriores",stat:"PRE",df:13,keywords:["borik","incidentes","capataz"],clue:"coropressao",npc:"borik",success:"Borik admite pequenos apagões, ferramentas devolvidas ao lugar errado e turnos esquecidos semanas antes. A produção continuou por ordem do clã.",fail:"Borik minimiza tudo, mas cita acidentes anteriores que não estavam no relatório oficial."},
+    {id:"coro_yara",location:"Alojamentos dos Mineiros",label:"Conversar com Yara sobre o próximo verso",stat:"PRE",df:12,keywords:["yara","verso","conversar"],clue:"cororitmo",npc:"yara",success:"Yara ouve o verso antes que ele exista no ar. Ela descreve a sensação como lembrar de algo que outra pessoa ainda vai pensar.",fail:"Yara não consegue explicar, mas antecipa novamente uma nota que ninguém cantou."},
+    {id:"coro_beliches",location:"Alojamentos dos Mineiros",label:"Comparar objetos pessoais dos turnos",stat:"PER",df:12,keywords:["objetos","beliches","turnos"],flag:"memorias_trocadas",success:"Objetos foram trocados entre pessoas que juram reconhecê-los como seus. O problema já afeta identidade, não apenas sono.",fail:"Há confusão real sobre propriedade, embora ainda falte saber se é causa ou efeito."},
+    {id:"coro_enfermaria",location:"Enfermaria",label:"Comparar pulso, respiração e canto",stat:"INT",df:13,keywords:["pulso","respiracao","enfermaria"],clue:"corofebre",npc:"sella",success:"Os corpos sincronizam quando a pedra vibra e se desfazem quando o minério é isolado. Isso não se comporta como infecção comum.",fail:"Os sintomas mudam quando fragmentos de minério são afastados dos pacientes."},
+    {id:"coro_sella",location:"Enfermaria",label:"Ajudar Sella a estabilizar um mineiro",stat:"VIG",df:12,keywords:["sella","estabilizar","curar"],flag:"sella_confia",npc:"sella",success:"Ao estabilizar o paciente, Sella percebe que interromper a vibração reduz o canto. Ela oferece acesso aos registros médicos completos.",fail:"O paciente estabiliza apenas parcialmente, mas a reação à vibração fica evidente."},
+    {id:"coro_diapasao",location:"Forja",label:"Calibrar o diapasão de prospecção",stat:"INT",df:13,keywords:["diapasao","calibrar","forja"],clue:"corofrequencia",item:"khar_tuning_fork",npc:"dorran",success:"Dorran e vocês isolam uma frequência que faz o veio responder sem ativar os mineiros. Existe uma forma de falar com a montanha sem usar pessoas.",fail:"A frequência ainda é instável, mas uma faixa específica reduz o canto por alguns segundos."},
+    {id:"coro_mapas",location:"Galeria Principal",label:"Comparar os mapas antigos com a galeria",stat:"PER",df:13,keywords:["mapas","galeria","comparar"],clue:"coromapa",success:"O túnel 'novo' ocupa um vazio cartográfico citado há décadas. A mina não abriu uma passagem: algo antigo reorganizou o acesso.",fail:"As medidas não fecham. A galeria atual possui comprimento impossível para a rocha removida."},
+    {id:"coro_escoras",location:"Galeria Principal",label:"Inspecionar o desabamento recente",stat:"FOR",df:12,keywords:["desabamento","escoras","inspecionar"],flag:"atalho_reservatorio",success:"Atrás da pedra quebrada existe um canal antigo levando ao reservatório. O colapso revelou uma rota que a mina moderna desconhecia.",fail:"O desabamento não é natural; as pedras parecem ter sido empurradas de dentro."},
+    {id:"coro_agua",location:"Reservatório Subterrâneo",label:"Testar a ressonância na água",stat:"INT",df:13,keywords:["agua","reservatorio","ressonancia"],flag:"agua_carrega_canto",success:"A água transporta a vibração sem reproduzir memórias. Isso explica por que áreas distantes da mina entram em sincronia.",fail:"A superfície repete a nota do veio com atraso constante, revelando um canal de transmissão."},
+    {id:"coro_santuario",location:"Santuário de Pedra",label:"Decifrar a Liturgia da Pedra",stat:"INT",df:14,keywords:["liturgia","santuario","decifrar"],clue:"coropedra",success:"O rito antigo não destruía o veio: ensinava a devolver nomes e vozes à pedra, separando memória de hospedeiro vivo.",fail:"O texto está quebrado, mas a repetição de 'devolver a voz à pedra' é inequívoca."},
+    {id:"coro_tunel",location:"Túnel Impossível",label:"Examinar o minério que canta",stat:"INT",df:13,keywords:["minerio","tunel","examinar"],clue:"corominerio",item:"resonant_shard",success:"O veio guarda padrões semelhantes a lembranças. O canto atual é apenas a camada mais recente de uma memória mineral muito mais antiga.",fail:"A pedra reage a nomes e ritmos pessoais. Não é um mineral inerte."},
+    {id:"coro_veio",location:"Veio Memorial",label:"Rastrear as memórias mais antigas",stat:"PER",df:14,keywords:["memorias","veio","rastrear"],clue:"coromemoria",success:"Vocês encontram fragmentos de gerações de trabalhadores, juramentos de clã e acidentes esquecidos. O Coro é uma biblioteca viva e ferida.",fail:"Vozes antigas atravessam o veio; algumas pertencem a pessoas mortas há décadas."},
+    {id:"coro_camara",location:"Câmara do Coro",label:"Escutar a rede sem responder",stat:"VIG",df:14,keywords:["escutar","rede","camara"],clue:"corofonte",requiresAnyClue:["corominerio","cororitmo"],success:"A rede não pede obediência: procura continuidade. Ela usa os vivos porque perdeu partes de si durante a Ruptura e tenta completar lacunas.",fail:"O Coro tenta preencher seus silêncios com lembranças da companhia. Resistir revela que ele busca padrões faltantes."},
+    {id:"coro_poco",location:"Poço Profundo",label:"Descer até as fundações pré-mina",stat:"AGI",df:13,keywords:["descer","poco","fundacoes"],flag:"rota_santuario",success:"Nas fundações existe uma passagem talhada antes de Khar-Dor, conectando o poço ao santuário de pedra.",fail:"A descida é interrompida por instabilidade, mas marcas antigas apontam claramente para o santuário."},
+    {id:"coro_nucleo",location:"Núcleo Mineral",label:"Observar como o núcleo usa as vozes",stat:"PER",df:15,keywords:["nucleo","vozes","observar"],clue:"corofonte",requiresAnyClue:["corominerio","coropedra"],success:"Cada voz humana funciona como ponte temporária entre partes quebradas da rede. O núcleo não precisa das pessoas se receber outro padrão de continuidade.",fail:"A pressão mental é forte, mas fica claro que o núcleo depende de conexões, não de corpos específicos."}
+  ]
+};
+function campaignActionsFor(cid=state?.campaignId){return CAMPAIGN_ACTIONS[cid]||[]}
+function campaignActionAvailable(a){
+  ensureStateShapeBase();
+  if(state.completedActions.includes(a.id))return false;
+  if(a.requiresCluesAll&& !a.requiresCluesAll.every(hasClue))return false;
+  if(a.requiresAnyClue&& a.requiresAnyClue.length && !a.requiresAnyClue.some(hasClue))return false;
+  if(a.requiresFlagsAll&& !a.requiresFlagsAll.every(hasFlag))return false;
+  if(a.requiresAnyFlag&& a.requiresAnyFlag.length && !a.requiresAnyFlag.some(hasFlag))return false;
+  return true;
+}
+function currentCampaignActions(){
+  return rankActionsWithMemory(campaignActionsFor().filter(function(a){return a.location===state.location&&campaignActionAvailable(a)}));
+}
+function findCampaignAction(text){
+  const n=norm(text),list=currentCampaignActions();
+  return list.find(function(a){return norm(a.label)===n})||list.find(function(a){return (a.keywords||[]).some(function(k){return n.includes(norm(k))})})||null;
+}
+function campaignCaseReady(cid=state?.campaignId){
+  if(cid==="vidro"){
+    const core=hasClue("vidroeco")&&hasClue("vidroselos")&&hasClue("vidrolinhagem");
+    const secondary=["vidrotestemunhas","vidrocustodia","vidroescriba","vidroconcilio","vidrointeresse"].filter(hasClue).length;
+    return core&&secondary>=2;
+  }
+  if(cid==="coro"){
+    const core=hasClue("cororesp")&&hasClue("corominerio")&&hasClue("coropedra");
+    const secondary=["corofebre","cororitmo","coromapa","corofrequencia","coromemoria","corofonte"].filter(hasClue).length;
+    return core&&secondary>=2;
+  }
+  return false;
+}
+function updateCampaignObjective(){
+  if(!state||state.campaignId==="derenfall")return;
+  if(state.campaignId==="vidro"){
+    const count=["vidroeco","vidroselos","vidrolinhagem","vidrotestemunhas","vidrocustodia","vidroescriba","vidroconcilio","vidrointeresse"].filter(hasClue).length;
+    state.objective=campaignCaseReady("vidro")
+      ?"Vocês já possuem base para decidir como revelar, negociar ou controlar a verdade dinástica."
+      :count<2?"Reconstruir o que a Coroa mostrou e separar testemunho de oportunismo político."
+      :count<4?"Cruzar documentos, testemunhos e genealogia para provar quem foi apagado e por quê."
+      :"Encontrar a peça que liga a linhagem apagada ao encobrimento institucional.";
+  }else if(state.campaignId==="coro"){
+    const count=["cororesp","corominerio","coropedra","corofebre","cororitmo","coromapa","corofrequencia","coromemoria","corofonte"].filter(hasClue).length;
+    state.objective=campaignCaseReady("coro")
+      ?"Vocês entendem o bastante para escolher o destino do Coro e dos mineiros."
+      :count<2?"Entender por que os mineiros compartilham a mesma canção."
+      :count<4?"Descobrir como corpo, mina e memória estão ligados."
+      :"Encontrar um método capaz de separar os mineiros da rede sem destruir tudo que ela guarda.";
+  }
+}
+function resolveCampaignActionRoll(actor,r,actionId){
+  const a=campaignActionsFor().find(function(x){return x.id===actionId});if(!a)return;
+  if(!r.success){
+    state.failedActions[a.id]=(state.failedActions[a.id]||0)+1;
+    if(state.failedActions[a.id]>=2){
+      completeAction(a.id);
+      if(a.clue)addClue(a.clue);if(a.flag)addRouteFlag(a.flag);if(a.item&&!hasItem(a.item))addItem(a.item);
+      if(a.npc)adjustNpcRelation(a.npc,{trust:1,respect:1},"A companhia persistiu e obteve informação apesar do custo.");
+      state.pressure=Math.min(5,(state.pressure||0)+1);
+      addStory("master","Mestre Máquina",(a.fail||"A tentativa encontra resistência.")+" A segunda abordagem produz progresso com custo: a peça necessária é obtida, mas o mundo avança e alguém percebe o interesse da companhia.",r.formula);
+      advanceTime(10);updateCampaignObjective();return;
+    }
+    addStory("master","Mestre Máquina",a.fail||"A tentativa não fecha a questão, mas deixa um caminho claro para outra abordagem.",r.formula);advanceTime(6);return;
+  }
+  completeAction(a.id);if(a.clue)addClue(a.clue);if(a.flag)addRouteFlag(a.flag);if(a.item&&!hasItem(a.item))addItem(a.item);
+  if(a.npc)adjustNpcRelation(a.npc,{trust:1,respect:1},"A companhia conduziu uma interação importante com sucesso.");
+  addStory("master","Mestre Máquina",a.success||"A ação produz uma nova peça concreta para a investigação.",r.formula);
+  advanceTime(7);updateCampaignObjective();
+}
 const NPC_CATALOG={
   derenfall:{
     colecionador:{name:"O Colecionador",role:"Entidade da Fenda",locations:["Salão das Memórias"]}
@@ -565,13 +684,17 @@ const NPC_CATALOG={
     maeryn:{name:"Rainha Maeryn",role:"Soberana de Asterfall",locations:["Salão dos Juramentos","Palácio Real"]},
     ilyan:{name:"Ilyan Voss",role:"Arquivista Real",locations:["Arquivos Reais"]},
     cassian:{name:"Cassian Dorel",role:"Representante de uma Casa nobre",locations:["Distrito das Casas","Mercado Alto"]},
-    sera:{name:"Sera Valen",role:"Escriba clandestina",locations:["Bairro dos Escribas","Porto Seco"]}
+    sera:{name:"Sera Valen",role:"Escriba clandestina",locations:["Bairro dos Escribas","Porto Seco"]},
+    arven:{name:"Arven Sol",role:"Guardião dos memoriais reais",locations:["Catedral da Aurora","Cripta Dinástica"]},
+    elia:{name:"Elia Varn",role:"Capitã da guarda palaciana",locations:["Palácio Real","Passagens Subterrâneas"]}
   },
   coro:{
     borik:{name:"Borik Khar",role:"Capataz da mina",locations:["Acampamento de Khar-Dor","Galeria Principal"]},
     sella:{name:"Sella",role:"Curandeira do acampamento",locations:["Enfermaria","Acampamento de Khar-Dor"]},
     yara:{name:"Yara",role:"Mineira que antecipa o canto",locations:["Alojamentos dos Mineiros","Enfermaria"]},
-    dorran:{name:"Dorran",role:"Mestre da Forja",locations:["Forja"]}
+    dorran:{name:"Dorran",role:"Mestre da Forja",locations:["Forja"]},
+    tarek:{name:"Tarek",role:"Cartógrafo da mina",locations:["Galeria Principal","Reservatório Subterrâneo"]},
+    nura:{name:"Nura",role:"Anciã das liturgias de pedra",locations:["Santuário de Pedra"]}
   }
 };
 
@@ -584,12 +707,16 @@ const DIRECTOR_WORLD_EVENTS={
   vidro:[
     {id:"vidro_beat_4",beat:4,text:"Antes que a investigação esfrie, um novo rumor atravessa Arken: uma das Casas nobres afirma possuir uma cópia anterior do juramento real. A cidade começa a tomar partido.",pressure:1,npc:"cassian"},
     {id:"vidro_beat_8",beat:8,text:"Os Arquivos Reais suspendem o acesso público. Um funcionário desapareceu durante a troca de turno e alguém removeu três caixas do catálogo.",pressure:1,npc:"ilyan"},
-    {id:"vidro_beat_12",beat:12,text:"A Coroa convoca uma reunião extraordinária para a noite. As Casas agora negociam como se a sucessão pudesse mudar antes do amanhecer.",pressure:1,npc:"maeryn"}
+    {id:"vidro_beat_12",beat:12,text:"A Coroa convoca uma reunião extraordinária para a noite. As Casas agora negociam como se a sucessão pudesse mudar antes do amanhecer.",pressure:1,npc:"maeryn"},
+    {id:"vidro_beat_16",beat:16,text:"Panfletos anônimos aparecem no Mercado Alto com um brasão que não existe na genealogia oficial. A população começa a discutir o nome que a corte tentou apagar.",pressure:1,npc:"sera"},
+    {id:"vidro_beat_20",beat:20,text:"Guardas fecham as pontes internas do palácio. A crise deixou de ser acadêmica: cada Casa prepara sua própria versão da sucessão.",pressure:1,npc:"elia"}
   ],
   coro:[
     {id:"coro_beat_4",beat:4,text:"Mesmo acordados, dois mineiros começam a murmurar a melodia do sono. A enfermaria percebe que o fenômeno já não depende de inconsciência.",pressure:1,npc:"sella"},
     {id:"coro_beat_8",beat:8,text:"Um desabamento fecha uma galeria antiga e revela uma parede de pedra que não aparece em nenhum mapa da mina.",pressure:1,npc:"borik"},
-    {id:"coro_beat_12",beat:12,text:"O clã recebe ordem para retomar parte da produção apesar dos desaparecimentos. A ameaça agora também é política e econômica.",pressure:1,npc:"dorran"}
+    {id:"coro_beat_12",beat:12,text:"O clã recebe ordem para retomar parte da produção apesar dos desaparecimentos. A ameaça agora também é política e econômica.",pressure:1,npc:"dorran"},
+    {id:"coro_beat_16",beat:16,text:"A água do reservatório começa a vibrar sem som. Mineiros acordados repetem lembranças de colegas que estão em outra galeria.",pressure:1,npc:"sella"},
+    {id:"coro_beat_20",beat:20,text:"O canto alcança a forja e faz ferramentas ressoarem com nomes de mortos do clã. A montanha começa a misturar passado e presente.",pressure:1,npc:"nura"}
   ]
 };
 
@@ -1186,7 +1313,7 @@ function moveTo(dest,text=null){
   addStory("master","Mestre Máquina",text||(state.campaignId==="derenfall"?derenfallArrival(dest):"A companhia segue para "+dest+". O lugar muda as pessoas, informações e riscos disponíveis."));
   triggerLocationEvent(dest);
   discoverNpcsForLocation(dest);
-  if(state.campaignId==="derenfall")updateDerenObjective();
+  if(state.campaignId==="derenfall")updateDerenObjective();else updateCampaignObjective();
 }
 
 
@@ -1481,17 +1608,29 @@ function derenfallArrival(dest){
 }
 function resolveGenericCampaign(actor,text){
   const c=CAMPAIGNS[state.campaignId],n=norm(text),dest=inferDestination(state.campaignId,text);
-  if(state.campaignId==="vidro"&&/apresentar as provas|provas a coroa|expor os documentos|confrontar a coroa/.test(n)&&hasClue("vidroeco")&&hasClue("vidroselos")){
+  const action=findCampaignAction(text);
+  if(action){requestRoll(actor,action.stat,action.df,action.label,{kind:"campaign_action",campaignId:state.campaignId,actionId:action.id});return}
+  if(state.campaignId==="vidro"&&/apresentar as provas|provas a coroa|expor os documentos|confrontar a coroa/.test(n)){
+    if(!campaignCaseReady("vidro")){addStory("master","Mestre Máquina","Vocês já possuem peças importantes, mas ainda há brechas que a corte poderia explorar. Falta ligar a linhagem apagada ao encobrimento e cruzar pelo menos duas frentes independentes da investigação.");updateCampaignObjective();return}
     const df=hasItem("archive_seal")?11:13;requestRoll(actor,"PRE",df,"Expor a verdade dinástica",{kind:"vidro_verdict"});return;
   }
-  if(state.campaignId==="coro"&&/harmonizar o coro|harmonizar a rede|desviar o canto|responder ao coro/.test(n)&&hasClue("cororesp")&&hasClue("corominerio")){
+  if(state.campaignId==="vidro"&&/vazar os dossies|publicar as provas|entregar a sera/.test(n)){
+    if(!campaignCaseReady("vidro")||!hasClue("vidroescriba")){addStory("master","Mestre Máquina","Sera se recusa a publicar um caso que ainda possa ser desmontado como rumor. É preciso fechar melhor a genealogia e o encobrimento.");return}
+    requestRoll(actor,"PRE",12,"Publicar o dossiê dinástico",{kind:"vidro_leak"});return;
+  }
+  if(state.campaignId==="coro"&&/harmonizar o coro|harmonizar a rede|desviar o canto|responder ao coro/.test(n)){
+    if(!campaignCaseReady("coro")){addStory("master","Mestre Máquina","Interferir agora seria adivinhar. Vocês ainda precisam entender a memória da pedra, o ritual antigo e pelo menos duas peças sobre como a rede alcança os vivos.");updateCampaignObjective();return}
     const df=hasItem("khar_tuning_fork")?12:14;requestRoll(actor,"INT",df,"Harmonizar o Coro",{kind:"coro_harmonize"});return;
   }
-  if(dest&&dest!==state.location&&(/ir|entrar|seguir|andar|voltar|visitar|aproxim/.test(n)||n.includes(norm(dest)))){moveTo(dest,`A companhia segue para ${dest}. O tom da aventura muda com o lugar, e novas pessoas, riscos e evidências entram em cena.`);return}
-  if(/investig|procur|exam|observar|rastre|escut|ler|analis|vasculh|compar/.test(n)){requestRoll(actor,statFor(text),12,"Investigar "+state.location,{kind:"campaign_investigate",campaignId:state.campaignId,location:state.location,text});return}
-  if(/convenc|negoci|engan|interrogar|persu/.test(n)){requestRoll(actor,"PRE",13,"Influenciar a situação",{kind:"campaign_social",campaignId:state.campaignId,text});return}
+  if(state.campaignId==="coro"&&/selar o nucleo|silenciar o nucleo|fechar o nucleo/.test(n)){
+    if(!campaignCaseReady("coro")){addStory("master","Mestre Máquina","O núcleo pode ser selado, mas fazê-lo sem compreender a Liturgia da Pedra arriscaria prender as memórias junto com os mineiros.");return}
+    requestRoll(actor,"INT",14,"Selar o Núcleo Mineral",{kind:"coro_seal"});return;
+  }
+  if(dest&&dest!==state.location&&(/ir|entrar|seguir|andar|voltar|visitar|aproxim/.test(n)||n.includes(norm(dest)))){moveTo(dest,`A companhia segue para ${dest}. O lugar adiciona uma nova frente à investigação e pode contradizer o que parecia certo até agora.`);updateCampaignObjective();return}
+  if(/investig|procur|exam|observar|rastre|escut|ler|analis|vasculh|compar/.test(n)){requestRoll(actor,statFor(text),13,"Investigar "+state.location,{kind:"campaign_investigate",campaignId:state.campaignId,location:state.location,text});return}
+  if(/convenc|negoci|engan|interrogar|persu|convers|pergunt/.test(n)){requestRoll(actor,"PRE",13,"Influenciar a situação",{kind:"campaign_social",campaignId:state.campaignId,text});return}
   if(/tentar|forcar|forçar|saltar|escalar|arrombar|atacar/.test(n)){requestRoll(actor,statFor(text),13,"Resolver a ação",{kind:"generic",text});return}
-  advanceTime(3);addStory("master","Mestre Máquina",`A ação muda o contexto em ${state.location}. O Mestre mantém o foco da campanha — ${c.tone} — mas aceita a direção escolhida pela companhia e apresenta uma consequência observável.`);
+  advanceTime(3);addStory("master","Mestre Máquina",`A ação muda o contexto em ${state.location}. O Mestre preserva o tom — ${c.tone} — e responde com uma consequência concreta ou nova oportunidade, sem fingir que toda ação precisa revelar uma pista.`);
 }
 function inferDestination(campaignId,text){
   const n=norm(text),map=WORLD_MAPS[campaignId],c=CAMPAIGNS[campaignId];
@@ -1551,14 +1690,25 @@ function resolveRollContext(actor,r,ctx){
   if(ctx.kind==="deren_investigate"){
     resolveDerenInvestigation(actor,r,ctx.location,ctx.text);return;
   }
+  if(ctx.kind==="campaign_action"){resolveCampaignActionRoll(actor,r,ctx.actionId);return;}
   if(ctx.kind==="vidro_verdict"){
     if(r.success)finishEnding("A Verdade sob Juramento","As provas são apresentadas diante da Coroa e das Casas. Maeryn não consegue apagar a contradição sem romper publicamente o próprio juramento. O segundo soberano passa a ser reconhecido como parte censurada da história, abrindo uma crise política em vez de uma guerra imediata.");
     else finishEnding("A Verdade sob Censura","As provas não vencem a sala, mas são fortes demais para desaparecer. A Coroa impõe silêncio oficial; cópias começam a circular clandestinamente e Arken entra numa guerra de versões.");
     return;
   }
+  if(ctx.kind==="vidro_leak"){
+    if(r.success)finishEnding("O Nome nas Ruas","Sera distribui cópias verificáveis antes que a guarda consiga conter a notícia. A verdade deixa de pertencer à Coroa; Arken entra numa crise pública, mas nenhuma Casa pode controlar sozinha o que todos agora conhecem.");
+    else finishEnding("Panfletos e Cinzas","Parte do dossiê é apreendida, mas cópias incompletas escapam. A cidade conhece o nome apagado sem conhecer toda a história, criando uma crise ainda mais imprevisível.");
+    return;
+  }
   if(ctx.kind==="coro_harmonize"){
     if(r.success)finishEnding("A Canção Desviada","Usando a cadência dos mineiros e a ressonância do veio, a companhia devolve ao Coro um padrão que não exige hospedeiros humanos. Os trabalhadores despertam, mas a montanha continua cantando para si mesma.");
     else finishEnding("Silêncio de Pedra","A tentativa quebra a sincronia, mas sela parte das vozes dentro do minério. Os mineiros sobrevivem; algumas memórias, porém, permanecem gravadas na montanha e podem voltar a responder no futuro.");
+    return;
+  }
+  if(ctx.kind==="coro_seal"){
+    if(r.success)finishEnding("Silêncio de Pedra","A Liturgia fecha o núcleo sem esmagar as memórias gravadas. Os mineiros despertam; a montanha fica muda, preservando dentro dela séculos de vozes que talvez um dia possam ser estudadas com segurança.");
+    else finishEnding("A Última Nota","O selo funciona de forma incompleta. Os mineiros são libertados, mas parte da rede mineral se parte e algumas memórias antigas desaparecem para sempre.");
     return;
   }
   if(ctx.kind==="campaign_investigate"){
@@ -1589,16 +1739,26 @@ function resolveDerenInvestigation(actor,r,loc,text){
   addStory("master","Mestre Máquina",result,r.formula);advanceTime(7);
 }
 function resolveCampaignInvestigation(actor,r,cid,loc,text){
-  if(cid==="vidro"){
-    if(loc==="Salão dos Juramentos"){addClue("vidroeco");if(r.success&&!hasItem("crown_imprint"))addItem("crown_imprint");addStory("master","Mestre Máquina",r.success?"O cristal possui uma assinatura de memória, não de profecia. O segundo soberano parece ligado a um juramento real que foi retirado dos registros.":"A Coroa reage a palavras de juramento e nomes dinásticos. Ela não se comporta como simples objeto cerimonial.",r.formula)}
-    else if(loc==="Arquivos Reais"){addClue("vidroselos");if(r.success&&!hasItem("archive_seal"))addItem("archive_seal");addStory("master","Mestre Máquina",r.success?"Papel, cera e numeração indicam que ao menos dois documentos rivais nasceram dentro do próprio sistema de arquivos. A contradição é histórica, não uma falsificação recente comum.":"Os selos resistem a verificações simples. Será necessário comparar cadeia de custódia, juramentos e cópias antigas.",r.formula)}
-    else addStory("master","Mestre Máquina",r.success?"A investigação encontra uma ligação entre interesses atuais e um juramento apagado da história do reino.":"Você encontra versões conflitantes. A verdade política continua acessível por outras fontes.",r.formula);
-  }else{
-    if(loc==="Acampamento de Khar-Dor"){addClue("cororesp");addStory("master","Mestre Máquina",r.success?"Os mineiros cantam exatamente no mesmo ritmo, mesmo dormindo em tendas afastadas. Um deles antecipa notas que os outros ainda não emitiram.":"O padrão é coordenado demais para ser coincidência ou canção comum.",r.formula)}
-    else if(loc==="Túnel Impossível"||loc==="Câmara do Coro"){addClue("corominerio");if(r.success&&!hasItem("resonant_shard"))addItem("resonant_shard");addStory("master","Mestre Máquina",r.success?"O minério contém padrões repetitivos de Éter semelhantes a registros mentais. A montanha está armazenando algo que tenta se recompor usando os vivos.":"O veio reage a voz e memória. Não parece um predador simples.",r.formula)}
-    else {if(loc==="Galeria Principal"&&r.success&&!hasItem("khar_tuning_fork"))addItem("khar_tuning_fork");addStory("master","Mestre Máquina",r.success?"A investigação revela que o canto acompanha uma estrutura física abaixo da mina, dando ao grupo uma direção concreta.":"Os sinais continuam ambíguos, mas a hipótese de uma causa subterrânea ganha força.",r.formula);}
-  }
-  advanceTime(7);
+  const extras={
+    vidro:{
+      "Jardins Reais":"A disposição dos encontros e guardas mostra que a corte usa os jardins para conversas que não devem entrar em ata.",
+      "Mercado Alto":"Rumores sobre o soberano apagado mudam de forma conforme passam entre mercadores, criados e agentes das Casas.",
+      "Porto Seco":"Manifestos e depósitos confirmam que a cidade possui rotas perfeitas para mover documentos sem passar pelos Arquivos.",
+      "Passagens Subterrâneas":"As passagens foram reformadas em épocas diferentes, sinal de uso continuado pela administração do palácio.",
+      "Salão Velado":"O mobiliário e os lacres indicam reuniões formais que nunca aparecem nos calendários públicos."
+    },
+    coro:{
+      "Reservatório Subterrâneo":"A água amplifica certas notas e abafa outras, transformando o reservatório num enorme instrumento natural.",
+      "Santuário de Pedra":"Marcas de mãos e nomes antigos sugerem que o lugar foi usado para ritos de memória muito antes da mina moderna.",
+      "Veio Memorial":"As camadas do veio respondem a nomes de épocas diferentes, como páginas sobrepostas.",
+      "Poço Profundo":"As fundações descem além da exploração conhecida e carregam símbolos anteriores ao clã Khar-Dor.",
+      "Núcleo Mineral":"A pressão do núcleo muda conforme os jogadores lembram pessoas e lugares, confirmando que memória é parte do mecanismo."
+    }
+  };
+  const msg=extras[cid]?.[loc]||"A investigação amplia o contexto do lugar, mas nenhuma conclusão nova é segura sem cruzar essa observação com outra frente.";
+  addStory("master","Mestre Máquina",r.success?msg:"Vocês encontram detalhes úteis, porém fragmentados. A informação não é perdida, mas precisa ser cruzada com uma ação mais específica neste ou em outro local.",r.formula);
+  if(!r.success)state.pressure=Math.min(5,(state.pressure||0)+1);
+  advanceTime(r.success?6:8);updateCampaignObjective();
 }
 
 function renderState(){
@@ -1653,17 +1813,14 @@ function renderQuickActions(){
   ensureStateShape();let list=[];
   if(state.campaignId==="derenfall"){
     list=currentDerenActions().map(function(a){return {label:a.label,type:"action"}});
-    connectedLocations(state.location).forEach(function(dest){list.push({label:"Ir para "+dest,type:"travel",dest:dest})});
   }else{
-    const base=CAMPAIGNS[state.campaignId].locations[state.location]||["Observar ao redor","Conversar com a companhia","Investigar"];
-    list=base.map(function(label){return {label:label,type:"action"}});
-    connectedLocations(state.location).forEach(function(dest){
-      if(!list.some(function(x){return norm(x.label).includes(norm(dest))}))list.push({label:"Ir para "+dest,type:"travel",dest:dest});
-    });
+    list=currentCampaignActions().map(function(a){return {label:a.label,type:"action"}});
   }
-  if(state.campaignId==="vidro"&&hasClue("vidroeco")&&hasClue("vidroselos")&&["Palácio Real","Salão dos Juramentos"].includes(state.location))list.unshift({label:"Apresentar as provas à Coroa",type:"action"});
-  if(state.campaignId==="coro"&&hasClue("cororesp")&&hasClue("corominerio")&&["Câmara do Coro","Núcleo Mineral"].includes(state.location))list.unshift({label:"Harmonizar o Coro",type:"action"});
-  if((state.director?.restNeed||0)>=5)list.push({label:"Fazer uma pausa com a companhia",type:"action"});
+  connectedLocations(state.location).forEach(function(dest){list.push({label:"Ir para "+dest,type:"travel",dest:dest})});
+  if(state.campaignId==="vidro"&&campaignCaseReady("vidro")&&["Palácio Real","Salão dos Juramentos"].includes(state.location))list.unshift({label:"Apresentar as provas à Coroa",type:"action"});
+  if(state.campaignId==="vidro"&&campaignCaseReady("vidro")&&hasClue("vidroescriba")&&["Bairro dos Escribas","Porto Seco"].includes(state.location))list.unshift({label:"Vazar os dossiês com Sera",type:"action"});
+  if(state.campaignId==="coro"&&campaignCaseReady("coro")&&["Câmara do Coro","Núcleo Mineral"].includes(state.location))list.unshift({label:"Harmonizar o Coro",type:"action"},{label:"Selar o Núcleo",type:"action"});
+  if((state.director?.restNeed||0)>=6)list.push({label:"Fazer uma pausa com a companhia",type:"action"});
   ui.quickActions.innerHTML="";
   list.forEach(function(item){
     const b=document.createElement("button");b.classList.add(item.type==="travel"?"travel-token":"action-token");b.textContent=(item.type==="travel"?"↟ ":"✦ ")+item.label;
