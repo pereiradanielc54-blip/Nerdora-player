@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#090b12"/>
   <meta name="description" content="Crônicas de Nerdora — RPG narrativo multiplayer com Mestre Máquina."/>
   <title>Crônicas de Nerdora — Web Alpha 0.2</title>
-  <link rel="stylesheet" href="./styles-v028.css"/>
+  <link rel="stylesheet" href="./styles-v029.css"/>
 </head>
 <body data-theme="derenfall">
   <div class="ambient"></div><div class="noise"></div><div class="tabletop-grain" aria-hidden="true"></div><div class="corner-runes rune-a" aria-hidden="true">✦</div><div class="corner-runes rune-b" aria-hidden="true">✧</div>
@@ -25,7 +25,7 @@
       <div class="intro-copy">
         <div class="brand-lockup">
           <div class="brand-rune">N</div>
-          <div><p class="eyebrow">NERDORA APRESENTA</p><span class="edition-chip">WEB ALPHA 0.2.8</span></div>
+          <div><p class="eyebrow">NERDORA APRESENTA</p><span class="edition-chip">WEB ALPHA 0.2.9</span></div>
         </div>
 
         <h1>Crônicas de <span>Nerdora</span></h1>
@@ -183,7 +183,7 @@
 
       <section class="panel story-panel">
         <div class="scene-head"><div><p class="eyebrow">CENA ATUAL</p><h3 id="locationName">—</h3></div><div class="world-clock"><span id="worldDay">Dia 1</span><strong id="worldTime">—</strong></div></div>
-        <div class="scene-banner" aria-hidden="true">
+        <div id="sceneBanner" class="scene-banner scene-village" aria-hidden="true">
           <div id="sceneSigil" class="scene-sigil">✦</div>
           <div class="scene-landscape"><span></span><i></i><b></b></div>
           <div id="sceneBannerLabel" class="scene-banner-label">MESA DE AVENTURA</div>
@@ -230,7 +230,7 @@
           <div class="objective-card"><span>OBJETIVO ATUAL</span><strong id="objectiveText"></strong></div>
           <h4>Evidências guardadas</h4><div id="evidenceList" class="clue-list evidence-list"></div>
           <h4>Conclusões ligadas</h4><div id="clueList" class="clue-list"></div>
-          <h4>Pressão da história</h4><div class="mystery-meter"><span id="mysteryLabel">Calma</span><i><b id="mysteryBar"></b></i></div>
+          <h4>Pressão da história</h4><div class="mystery-meter"><span id="mysteryLabel">Calma</span><i><b id="mysteryBar"></b></i></div><div class="event-deck-head"><span>CARTAS DE EVENTO</span><small>O mundo muda mesmo fora de cena</small></div><div id="worldEventCards" class="world-event-cards"></div>
           <div class="npc-relations-card">
             <div class="npc-relations-head"><span>RELAÇÕES ENCONTRADAS</span><small>NPCs lembram como foram tratados</small></div>
             <div id="npcRelationList" class="npc-relation-list"><p class="muted">Nenhuma relação relevante ainda.</p></div>
@@ -277,6 +277,6 @@
   });
 </script>
 <div id="bootError" hidden style="position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;background:#26151b;border:1px solid #78404d;color:#ffe6eb;padding:10px 14px;border-radius:12px;font:12px system-ui;max-width:min(90vw,520px);text-align:center"></div>
-<script type="module" src="./app-v028.js"></script>
+<script type="module" src="./app-v029.js"></script>
 </body>
 </html>
