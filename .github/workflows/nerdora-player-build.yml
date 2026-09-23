@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.6.1
+name: Nerdora Player - Build v0.8.0
 
 on:
   workflow_dispatch:
@@ -84,6 +84,119 @@ jobs:
           grep -q 'versionName = "0.6.1"' extracted_project/app/build.gradle.kts
           echo "Associação de DOCX/XLSX/PPTX/PDF e documentos de texto aplicada."
 
+      - name: Aplicar Universal Files v0.7.0
+        shell: bash
+        run: |
+          cat \
+            .github/overlays/v0.7.0/FilesScreen.part00.b64 \
+            .github/overlays/v0.7.0/FilesScreen.part01.b64 \
+            .github/overlays/v0.7.0/FilesScreen.part02.b64 \
+            .github/overlays/v0.7.0/FilesScreen.part03a.b64 \
+            .github/overlays/v0.7.0/FilesScreen.part03b.b64 \
+            .github/overlays/v0.7.0/FilesScreen.part03c.b64 \
+            .github/overlays/v0.7.0/FilesScreen.part03d.b64 \
+            .github/overlays/v0.7.0/FilesScreen.part04.b64 \
+            .github/overlays/v0.7.0/FilesScreen.part05.b64 \
+            .github/overlays/v0.7.0/FilesScreen.part06.b64 \
+            .github/overlays/v0.7.0/FilesScreen.part07.b64 \
+            .github/overlays/v0.7.0/FilesScreen.part08.b64 \
+            | base64 -d > extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+
+          cat \
+            .github/overlays/v0.7.0/DocumentViewer.part00.b64 \
+            .github/overlays/v0.7.0/DocumentViewer.part01.b64 \
+            .github/overlays/v0.7.0/DocumentViewer.part02.b64 \
+            .github/overlays/v0.7.0/DocumentViewer.part03.b64 \
+            .github/overlays/v0.7.0/DocumentViewer.part04.b64 \
+            | base64 -d > extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+
+          cp .github/overlays/v0.7.0/UniversalFilesStore.kt extracted_project/app/src/main/java/com/nerdora/player/UniversalFilesStore.kt
+          cp .github/overlays/v0.7.0/file_paths.xml extracted_project/app/src/main/res/xml/file_paths.xml
+
+          python3 -c 'from pathlib import Path; p=Path("extracted_project/app/src/main/AndroidManifest.xml"); t=p.read_text(encoding="utf-8"); perm="    <uses-permission android:name=\"android.permission.MANAGE_EXTERNAL_STORAGE\" />\n"; needle="<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n"; assert needle in t; p.write_text(t if "MANAGE_EXTERNAL_STORAGE" in t else t.replace(needle, needle+"\n"+perm, 1), encoding="utf-8")'
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 40/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.7.0"/' extracted_project/app/build.gradle.kts
+
+          test -s extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          test -s extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          test -f extracted_project/app/src/main/java/com/nerdora/player/UniversalFilesStore.kt
+          grep -q 'MANAGE_EXTERNAL_STORAGE' extracted_project/app/src/main/AndroidManifest.xml
+          grep -q 'external-path' extracted_project/app/src/main/res/xml/file_paths.xml
+          grep -q 'versionName = "0.7.0"' extracted_project/app/build.gradle.kts
+          echo "Universal Files v0.7.0 aplicado."
+
+      - name: Aplicar melhorias v0.8.0
+        shell: bash
+        run: |
+          rm -rf /tmp/nerdora-v080
+          mkdir -p /tmp/nerdora-v080
+          cat \
+            .github/overlays/v0.8.0/payload.part00.b64 \
+            .github/overlays/v0.8.0/payload.part01.b64 \
+            | base64 -d > /tmp/nerdora-v080/payload.tar.gz
+          echo "ea4d2c8872571ab3f2fd7a0392e5af1cdba43a978891964b665e87630e0de46e  /tmp/nerdora-v080/payload.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/nerdora-v080/payload.tar.gz -C /tmp/nerdora-v080
+
+          cp /tmp/nerdora-v080/NerdoraAccountStore.kt extracted_project/app/src/main/java/com/nerdora/player/NerdoraAccountStore.kt
+          cp /tmp/nerdora-v080/UniversalFileIndexCache.kt extracted_project/app/src/main/java/com/nerdora/player/UniversalFileIndexCache.kt
+          cp /tmp/nerdora-v080/AccountScreen.kt extracted_project/app/src/main/java/com/nerdora/player/ui/AccountScreen.kt
+          python3 /tmp/nerdora-v080/apply_v080.py
+
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt")
+          t = p.read_text(encoding="utf-8")
+          if "import androidx.activity.compose.BackHandler" not in t:
+              t = t.replace(
+                  "import androidx.activity.compose.rememberLauncherForActivityResult\n",
+                  "import androidx.activity.compose.BackHandler\nimport androidx.activity.compose.rememberLauncherForActivityResult\n",
+                  1,
+              )
+          if "BackHandler(enabled = folder != null)" not in t:
+              marker = '    val sort = runCatching { FileSort.valueOf(sortName) }.getOrDefault(FileSort.NEWEST)\n'
+              back = '''    BackHandler(enabled = folder != null) {
+                  val current = folder
+                  folder = when {
+                      current == null -> null
+                      current.absolutePath == root.absolutePath -> null
+                      current.parentFile != null && current.parentFile!!.absolutePath.startsWith(root.absolutePath) -> current.parentFile
+                      else -> null
+                  }
+                  query = ""
+              }
+
+              '''
+              assert marker in t, "Ponto para Back nas pastas não encontrado"
+              t = t.replace(marker, back + marker, 1)
+          if "BackHandler(enabled = stack.isNotEmpty())" not in t:
+              marker = '    var refresh by remember { mutableIntStateOf(0) }\n    LaunchedEffect(current?.uri, refresh) {'
+              replacement = '''    var refresh by remember { mutableIntStateOf(0) }
+              BackHandler(enabled = stack.isNotEmpty()) {
+                  current = stack.last()
+                  stack = stack.dropLast(1)
+                  query = ""
+              }
+              LaunchedEffect(current?.uri, refresh) {'''
+              assert marker in t, "Ponto para Back no navegador SAF não encontrado"
+              t = t.replace(marker, replacement, 1)
+          p.write_text(t, encoding="utf-8")
+          PY
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 50/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.8.0"/' extracted_project/app/build.gradle.kts
+
+          grep -q 'versionName = "0.8.0"' extracted_project/app/build.gradle.kts
+          grep -q 'BackHandler' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          grep -q 'AppScreen.ACCOUNT' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          grep -q 'mediaIndexInitialized' extracted_project/app/src/main/java/com/nerdora/player/PlayerPreferences.kt
+          grep -q 'UniversalFileIndexCache.readPaths' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'BackHandler(enabled = folder != null)' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'BackHandler(enabled = stack.isNotEmpty())' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          test -f extracted_project/app/src/main/java/com/nerdora/player/NerdoraAccountStore.kt
+          test -f extracted_project/app/src/main/java/com/nerdora/player/ui/AccountScreen.kt
+          echo "v0.8.0: conta, navegação Voltar e índices persistentes aplicados."
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
@@ -132,11 +245,16 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.6.1"' app/build.gradle.kts
+          grep -q 'versionName = "0.8.0"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
-          echo "Nerdora Player v0.6.1 validado."
+          grep -q 'MANAGE_EXTERNAL_STORAGE' app/src/main/AndroidManifest.xml
+          grep -q 'ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'readXlsx' app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          grep -q 'AppScreen.ACCOUNT' app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          grep -q 'UniversalFileIndexCache' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          echo "Nerdora Player v0.8.0 validado."
 
       - name: Compilar APK
         id: build
@@ -169,6 +287,24 @@ jobs:
           path: final-apk/*.apk
           if-no-files-found: error
           retention-days: 30
+
+      - name: Publicar Release pública v0.8.0
+        if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG="v${VERSION}"
+          APK="final-apk/Nerdora-Player-v${VERSION}.apk"
+          TITLE="Nerdora Player v${VERSION} — Conta, Navegação e Cache"
+          NOTES="Nerdora Player v0.8.0: login local com e-mail e senha protegida por hash, navegação Voltar com histórico e saída somente na tela inicial, biblioteca de mídia carregada do índice persistente sem revarrer a cada abertura, Universal Files com índice salvo e reindexação somente no primeiro uso ou quando o usuário toca em Atualizar, além das melhorias de documentos, PDF, Word, Excel, PowerPoint e gerenciamento de arquivos da v0.7."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" --clobber
+            gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
+          else
+            gh release create "$TAG" "$APK" --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
+          fi
 
       - name: Mostrar erro
         if: steps.build.outputs.status != '0'
