@@ -82,7 +82,9 @@ jobs:
           echo "=== DOCUMENT VIEWER ==="
           sed -n '1,320p' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           echo "=== APP ==="
-          grep -n -E 'external|Document|FilesScreen|document|viewer|selected' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt | head -n 200
+          sed -n '35,180p' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          echo "=== DOCUMENT REF MODEL ==="
+          grep -R -n -A 30 -B 5 "data class DocumentRef" extracted_project/app/src/main/java/com/nerdora/player/model || true
       - name: Encontrar projeto Android
         id: android
         shell: bash
