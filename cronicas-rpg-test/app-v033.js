@@ -2102,7 +2102,7 @@ function startVoiceMeter(){
     const speech=now-voiceLastActive<280;
     if(voiceGraph.gate&&voiceCtx){
       const target=speech?1:.10;
-      voiceGraph.gate.gain.setTargetAtTime(target,voiceCtx.currentTime,speech?.008:.045);
+      voiceGraph.gate.gain.setTargetAtTime(target,voiceCtx.currentTime,speech ? .008 : .045);
     }
     if(speech!==lastLocalSpeaking){lastLocalSpeaking=speech;syncVoiceControls();document.querySelectorAll('[data-peer-id="self"]').forEach(el=>el.classList.toggle("speaking",speech&&voiceTransmitting()));sendVoiceState()}
     voiceMeterRAF=requestAnimationFrame(tick);
@@ -2361,7 +2361,24 @@ function bind(){
   ui.charBackBtn.onclick=()=>currentCharStep>1?goCharStep(currentCharStep-1):showScreen("modeScreen");
   ui.charName.oninput=renderPreview;ui.toStatsBtn.onclick=()=>{if(validateIdentity())goCharStep(2)};ui.backIdentityBtn.onclick=()=>goCharStep(1);ui.toSkillsBtn.onclick=()=>{if(validateStats())goCharStep(3)};ui.backStatsBtn.onclick=()=>goCharStep(2);ui.finishCharacterBtn.onclick=finishCharacter;
   ui.copyLobbyBtn.onclick=copyInvite;ui.readyBtn.onclick=toggleReady;ui.startCampaignBtn.onclick=hostStartCampaign;ui.lobbyVoiceBtn.onclick=toggleVoice;
-  ui.copyInviteBtn.onclick=copyInvite;ui.voiceBtn.onclick=toggleVoice;ui.sendActionBtn.onclick=()=>submitIntent();ui.actionInput.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();submitIntent()}});
+  ui.copyInviteBtn.onclick=copyInvite;ui.voiceBtn.onclick=toggleVoice;
+  document.querySelectorAll(".voice-mode-btn").forEach(btn=>btn.onclick=()=>setVoiceMode(btn.dataset.voiceMode));
+  document.querySelectorAll(".voice-mute-btn").forEach(btn=>btn.onclick=()=>setVoiceMuted(!voiceMuted));
+  document.querySelectorAll(".voice-master-slider").forEach(slider=>slider.oninput=()=>setMasterVoiceVolume(Number(slider.value)/100));
+  document.querySelectorAll(".voice-disconnect").forEach(btn=>btn.onclick=shutdownVoice);
+  document.querySelectorAll(".ptt-hold").forEach(btn=>{
+    btn.addEventListener("pointerdown",e=>{e.preventDefault();btn.setPointerCapture?.(e.pointerId);startPTT()});
+    ["pointerup","pointercancel","lostpointercapture"].forEach(ev=>btn.addEventListener(ev,stopPTT));
+  });
+  document.addEventListener("pointerdown",resumeBlockedVoice,{passive:true});
+  document.addEventListener("keydown",e=>{
+    if(e.code!=="Space"||voiceMode!=="ptt"||!localStream||e.repeat)return;
+    const tag=document.activeElement?.tagName;if(tag==="INPUT"||tag==="TEXTAREA"||document.activeElement?.isContentEditable)return;
+    e.preventDefault();startPTT();
+  });
+  document.addEventListener("keyup",e=>{if(e.code==="Space"&&voiceMode==="ptt"){e.preventDefault();stopPTT()}});
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden){resumeBlockedVoice();if(voiceWanted&&rawVoiceTrack()?.readyState==="ended")scheduleVoiceRecovery()}});
+ui.sendActionBtn.onclick=()=>submitIntent();ui.actionInput.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();submitIntent()}});
   ui.speechBtn.onclick=startSpeech;ui.freeRollBtn.onclick=soloFreeRoll;ui.interactiveDie.onclick=()=>{const p=state?.pendingRoll;if(!p||p.assignedPlayerId!==player.id)return;ui.interactiveDie.classList.add("rolling");setTimeout(()=>ui.interactiveDie.classList.remove("rolling"),720);if(mode==="solo"||isHost)handleRollTap(player.id);else actions.sendRollTap({playerId:player.id,rollId:p.id})};
   ui.chatSendBtn.onclick=sendChat;ui.chatInput.addEventListener("keydown",e=>{if(e.key==="Enter")sendChat()});ui.alphaLevelBtn.onclick=levelUpAlpha;ui.diceOverlay.onclick=()=>ui.diceOverlay.classList.add("hidden");
   ui.mobileGameNav?.querySelectorAll(".mobile-nav-btn").forEach(b=>b.onclick=()=>setMobileGamePanel(b.dataset.mobilePanel));
@@ -2372,7 +2389,7 @@ function bind(){
 }
 function boot(){
   window.__CN_BOOT_OK = true;
-  bind();renderCampaigns();setTheme(selectedCampaign);
+  bind();renderCampaigns();setTheme(selectedCampaign);syncVoiceControls();
   const incoming=roomFromUrl();if(incoming){mode="online";ui.roomCodeInput.value=incoming;openMode("online");toast("Convite detectado. Crie seu personagem e entre na sala "+incoming)}
 }
 boot();
