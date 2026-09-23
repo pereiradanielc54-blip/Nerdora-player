@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 320">
+    <rect width="800" height="320" fill="#bda978"/>
+    <g opacity=".18" fill="#8f7450">
+      <path d="M0 250 L80 180 L145 205 L240 105 L330 190 L450 110 L545 200 L660 95 L800 175 L800 320 L0 320Z"/>
+      <path d="M0 80 C120 20 210 90 320 45 C450 0 540 75 800 25 L800 0 L0 0Z"/>
+    </g>
+    <g stroke="#5a452d" stroke-width="3" stroke-dasharray="8 7" fill="none" opacity=".7">
+      <path d="M80 210 C210 180 280 155 360 150 C470 140 545 115 680 125"/>
+      <path d="M360 150 C410 200 500 235 650 230"/>
+      <path d="M360 150 C340 100 310 75 250 65"/>
+    </g>
+    <g><circle cx="390" cy="90" r="10" fill="#c39a4b" stroke="#3f2d1e" stroke-width="3"/><text x="405" y="94" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3a2b1e">Palácio</text><circle cx="225" cy="130" r="10" fill="#c39a4b" stroke="#3f2d1e" stroke-width="3"/><text x="240" y="134" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3a2b1e">Arquivos</text><circle cx="390" cy="190" r="10" fill="#c39a4b" stroke="#3f2d1e" stroke-width="3"/><text x="405" y="194" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3a2b1e">Mercado</text><circle cx="570" cy="170" r="10" fill="#c39a4b" stroke="#3f2d1e" stroke-width="3"/><text x="585" y="174" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3a2b1e">Catedral</text><circle cx="410" cy="255" r="10" fill="#c39a4b" stroke="#3f2d1e" stroke-width="3"/><text x="425" y="259" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3a2b1e">Porto Seco</text><circle cx="610" cy="240" r="10" fill="#c39a4b" stroke="#3f2d1e" stroke-width="3"/><text x="625" y="244" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3a2b1e">Cripta</text></g>
+    <g stroke="#4a3522" fill="none" opacity=".35"><circle cx="72" cy="62" r="28"/><path d="M72 25v74M35 62h74M52 42l40 40M92 42L52 82"/></g>
+  </svg>
