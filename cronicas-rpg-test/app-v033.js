@@ -1887,8 +1887,15 @@ function renderSelf(){
 }
 function renderParty(){
   if(!player)return;
-  const all=[{...player,isHost},...Array.from(participants.values())];const seen=new Set();ui.partyList.innerHTML="";
-  all.filter(p=>{if(seen.has(p.id))return false;seen.add(p.id);return true}).forEach(p=>{const el=document.createElement("div");el.className="party-person";el.innerHTML=`<div class="mini-avatar">${esc((p.name||"?")[0].toUpperCase())}</div><span class="dot"></span><div><strong>${esc(p.name||"Jogador")}${p.isHost?" 👑":""}</strong><small>${CLASS_DATA[p.className]?.icon||"⚔️"} ${esc(p.className||"Aventureiro")} • Nv. ${p.level||1}</small></div>`;ui.partyList.appendChild(el)});
+  const all=[{...player,isHost,peerId:"self"},...Array.from(participants.values())];const seen=new Set();ui.partyList.innerHTML="";
+  all.filter(function(p){if(seen.has(p.id))return false;seen.add(p.id);return true}).forEach(function(p){
+    const peerId=p.peerId||"self",st=peerId==="self"?{speaking:lastLocalSpeaking&&voiceTransmitting(),muted:voiceMode==="ptt"?!pttHeld:voiceMuted,quality:"great"}:(peerVoiceState.get(peerId)||{});
+    const el=document.createElement("div");el.className="party-person voice-peer"+(st.speaking&&!st.muted?" speaking":"")+(st.muted?" voice-muted":"");el.dataset.peerId=peerId;
+    const remoteControls=peerId!=="self"?`<div class="peer-voice-controls"><button data-peer-mute="${esc(peerId)}" title="Silenciar somente para você">🔊</button><input data-peer-volume="${esc(peerId)}" type="range" min="0" max="100" value="${Math.round((remoteVoice.get(peerId)?.volume??1)*100)}"/><span class="peer-quality">${peerQualityLabel(peerId)}</span></div>`:`<div class="peer-voice-controls self-voice"><span class="peer-quality">${localStream?(voiceMode==="ptt"?"PTT":"Local"):"Sem voz"}</span></div>`;
+    el.innerHTML=`<div class="mini-avatar">${esc((p.name||"?")[0].toUpperCase())}<i class="speak-ring"></i></div><span class="dot"></span><div class="party-copy"><strong>${esc(p.name||"Jogador")}${p.isHost?" 👑":""}</strong><small>${CLASS_DATA[p.className]?.icon||"⚔️"} ${esc(p.className||"Aventureiro")} • Nv. ${p.level||1}</small>${remoteControls}</div>`;
+    ui.partyList.appendChild(el);
+  });
+  bindPeerVoiceControls(ui.partyList);
 }
 function renderSheet(){
   if(!player)return;
@@ -2097,7 +2104,7 @@ function startVoiceMeter(){
       const target=speech?1:.10;
       voiceGraph.gate.gain.setTargetAtTime(target,voiceCtx.currentTime,speech?.008:.045);
     }
-    if(speech!==lastLocalSpeaking){lastLocalSpeaking=speech;syncVoiceControls();sendVoiceState()}
+    if(speech!==lastLocalSpeaking){lastLocalSpeaking=speech;syncVoiceControls();document.querySelectorAll('[data-peer-id="self"]').forEach(el=>el.classList.toggle("speaking",speech&&voiceTransmitting()));sendVoiceState()}
     voiceMeterRAF=requestAnimationFrame(tick);
   };tick();
 }
@@ -2253,7 +2260,6 @@ async function connectP2P(){
     chatA.onMessage=(data,{peerId})=>appendChat(data.name||participants.get(peerId)?.name||"Jogador",data.text,false);
     rollA.onMessage=(data)=>{if(isHost)handleRollTap(data.playerId)};
     room.onPeerStream=(stream,peerId,metadata)=>attachRemoteVoice(stream,peerId,metadata);
-    room.onPeerTrack=(track,stream,peerId,metadata)=>{if(track.kind==="audio")attachRemoteVoice(stream,peerId,metadata)};
     startVoiceStats();hello();if(isHost)sendCampaignInfo();syncVoiceControls();
   }catch(err){console.warn(err);ui.connectionStatus.textContent="modo local";toast("A conexão multiplayer não iniciou. Recarregue e tente novamente.")}
 }
@@ -2263,11 +2269,17 @@ function showLobby(){
 function allLobbyPlayers(){return player?[{...player,isHost},...Array.from(participants.values()).filter(p=>p.characterReady)]:Array.from(participants.values()).filter(p=>p.characterReady)}
 function renderLobby(){
   if(!ui.lobbyScreen.classList.contains("active")||!player)return;
-  const all=allLobbyPlayers();ui.lobbyPlayers.innerHTML=all.map(p=>`<div class="lobby-player ${p.ready?"ready":""}"><div class="mini-avatar">${esc((p.name||"?")[0].toUpperCase())}</div><div><strong>${esc(p.name)}${p.isHost?" 👑":""}</strong><small>${CLASS_DATA[p.className]?.icon||"⚔️"} ${esc(p.className)} • ${esc(ORIGINS[p.origin]?.name||"Origem")} • Nv. ${p.level||1}</small></div><span class="ready-mark">${p.ready?"✓":""}</span></div>`).join("");
+  const all=allLobbyPlayers();ui.lobbyPlayers.innerHTML=all.map(function(p){
+    const peerId=p.peerId||"self",st=peerId==="self"?{speaking:lastLocalSpeaking&&voiceTransmitting(),muted:voiceMode==="ptt"?!pttHeld:voiceMuted}:(peerVoiceState.get(peerId)||{});
+    const controls=peerId!=="self"?`<div class="peer-voice-controls"><button data-peer-mute="${esc(peerId)}">🔊</button><input data-peer-volume="${esc(peerId)}" type="range" min="0" max="100" value="${Math.round((remoteVoice.get(peerId)?.volume??1)*100)}"/><span class="peer-quality">${peerQualityLabel(peerId)}</span></div>`:"";
+    return `<div class="lobby-player voice-peer ${p.ready?"ready":""} ${st.speaking&&!st.muted?"speaking":""} ${st.muted?"voice-muted":""}" data-peer-id="${esc(peerId)}"><div class="mini-avatar">${esc((p.name||"?")[0].toUpperCase())}<i class="speak-ring"></i></div><div class="party-copy"><strong>${esc(p.name)}${p.isHost?" 👑":""}</strong><small>${CLASS_DATA[p.className]?.icon||"⚔️"} ${esc(p.className)} • ${esc(ORIGINS[p.origin]?.name||"Origem")} • Nv. ${p.level||1}</small>${controls}</div><span class="ready-mark">${p.ready?"✓":""}</span></div>`;
+  }).join("");
+  bindPeerVoiceControls(ui.lobbyPlayers);
   ui.readyBtn.textContent=player.ready?"✓ Pronto":"Estou pronto";ui.readyBtn.classList.toggle("primary",player.ready);ui.readyBtn.classList.toggle("secondary",!player.ready);
   const enough=all.length>=2,allReady=enough&&all.every(p=>p.ready);
   ui.startCampaignBtn.classList.toggle("hidden",!isHost);ui.startCampaignBtn.disabled=!allReady;
   ui.lobbyRule.textContent=!isHost?"Aguardando o anfitrião iniciar a campanha.":!enough?`A sala precisa de pelo menos 2 jogadores. Agora: ${all.length}/2.`:!allReady?"Todos os jogadores precisam marcar que estão prontos.":"Companhia pronta. A campanha pode começar.";
+  syncVoiceControls();
 }
 function toggleReady(){player.ready=!player.ready;persistCharacter();renderLobby();hello()}
 function hostStartCampaign(){
