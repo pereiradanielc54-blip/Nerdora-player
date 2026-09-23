@@ -49,7 +49,13 @@ jobs:
       - name: Aplicar atualização v0.6.0
         shell: bash
         run: |
-          cat .github/patches/v0.6.0.part*.b64 > /tmp/v060.patch.gz.b64
+          cat \
+            .github/patches/v0.6.0.part1a.b64 \
+            .github/patches/v0.6.0.part1b.b64 \
+            .github/patches/v0.6.0.part2.b64 \
+            .github/patches/v0.6.0.part3.b64 \
+            .github/patches/v0.6.0.part4.b64 \
+            > /tmp/v060.patch.gz.b64
           base64 -d /tmp/v060.patch.gz.b64 > /tmp/v060.patch.gz
           gzip -t /tmp/v060.patch.gz
           gunzip -c /tmp/v060.patch.gz > /tmp/v060.patch
