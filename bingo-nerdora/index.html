@@ -43,12 +43,16 @@
     <div class="gameHead"><div><div class="eyebrow">SUA CARTELA</div><h2 id="title">Aguardando sorteio</h2><span id="count" class="muted">0 de 75 bolas</span></div><div id="last" class="ball">—</div></div>
     <div class="letters"><b>B</b><b>I</b><b>N</b><b>G</b><b>O</b></div>
     <div id="card" class="card"></div>
+    <div id="shadowWrap" class="opponentShadow hidden" aria-label="Cartela do outro jogador">
+      <span id="shadowTitle">Outro jogador</span>
+      <div id="shadowCard" class="shadowCard"></div>
+    </div>
     <div class="actions center"><button id="draw" class="primary hidden">Iniciar sorteio automático</button><button id="bingo" class="green">BINGO!</button></div>
     <div id="winner" class="winner hidden"></div>
   </main>
 
   <aside class="panel">
-    <label>ÚLTIMAS CHAMADAS</label><div id="history" class="history"></div>
+    <label>HISTÓRICO DE CHAMADAS</label><div id="history" class="history"></div>
     <h3>Regra desta versão</h3><p class="note">Você pode marcar qualquer número. Marcações ainda não sorteadas ficam destacadas; o botão BINGO só aparece quando houver uma linha completa e todas as marcações já tiverem sido chamadas.</p>
   </aside>
 </section>
