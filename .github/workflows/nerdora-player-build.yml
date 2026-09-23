@@ -143,6 +143,46 @@ jobs:
           cp /tmp/nerdora-v080/AccountScreen.kt extracted_project/app/src/main/java/com/nerdora/player/ui/AccountScreen.kt
           python3 /tmp/nerdora-v080/apply_v080.py
 
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt")
+          t = p.read_text(encoding="utf-8")
+          if "import androidx.activity.compose.BackHandler" not in t:
+              t = t.replace(
+                  "import androidx.activity.compose.rememberLauncherForActivityResult\n",
+                  "import androidx.activity.compose.BackHandler\nimport androidx.activity.compose.rememberLauncherForActivityResult\n",
+                  1,
+              )
+          if "BackHandler(enabled = folder != null)" not in t:
+              marker = '    val sort = runCatching { FileSort.valueOf(sortName) }.getOrDefault(FileSort.NEWEST)\n'
+              back = '''    BackHandler(enabled = folder != null) {
+                  val current = folder
+                  folder = when {
+                      current == null -> null
+                      current.absolutePath == root.absolutePath -> null
+                      current.parentFile != null && current.parentFile!!.absolutePath.startsWith(root.absolutePath) -> current.parentFile
+                      else -> null
+                  }
+                  query = ""
+              }
+
+              '''
+              assert marker in t, "Ponto para Back nas pastas não encontrado"
+              t = t.replace(marker, back + marker, 1)
+          if "BackHandler(enabled = stack.isNotEmpty())" not in t:
+              marker = '    var refresh by remember { mutableIntStateOf(0) }\n    LaunchedEffect(current?.uri, refresh) {'
+              replacement = '''    var refresh by remember { mutableIntStateOf(0) }
+              BackHandler(enabled = stack.isNotEmpty()) {
+                  current = stack.last()
+                  stack = stack.dropLast(1)
+                  query = ""
+              }
+              LaunchedEffect(current?.uri, refresh) {'''
+              assert marker in t, "Ponto para Back no navegador SAF não encontrado"
+              t = t.replace(marker, replacement, 1)
+          p.write_text(t, encoding="utf-8")
+          PY
+
           sed -i -E 's/versionCode = [0-9]+/versionCode = 50/' extracted_project/app/build.gradle.kts
           sed -i -E 's/versionName = "[^"]+"/versionName = "0.8.0"/' extracted_project/app/build.gradle.kts
 
@@ -151,6 +191,8 @@ jobs:
           grep -q 'AppScreen.ACCOUNT' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
           grep -q 'mediaIndexInitialized' extracted_project/app/src/main/java/com/nerdora/player/PlayerPreferences.kt
           grep -q 'UniversalFileIndexCache.readPaths' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'BackHandler(enabled = folder != null)' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'BackHandler(enabled = stack.isNotEmpty())' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f extracted_project/app/src/main/java/com/nerdora/player/NerdoraAccountStore.kt
           test -f extracted_project/app/src/main/java/com/nerdora/player/ui/AccountScreen.kt
           echo "v0.8.0: conta, navegação Voltar e índices persistentes aplicados."
