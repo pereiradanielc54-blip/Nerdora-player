@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 320">
+    <rect width="800" height="320" fill="#bda978"/>
+    <g opacity=".18" fill="#7e7658">
+      <path d="M0 250 L80 180 L145 205 L240 105 L330 190 L450 110 L545 200 L660 95 L800 175 L800 320 L0 320Z"/>
+      <path d="M0 80 C120 20 210 90 320 45 C450 0 540 75 800 25 L800 0 L0 0Z"/>
+    </g>
+    <g stroke="#5a452d" stroke-width="3" stroke-dasharray="8 7" fill="none" opacity=".7">
+      <path d="M80 210 C210 180 280 155 360 150 C470 140 545 115 680 125"/>
+      <path d="M360 150 C410 200 500 235 650 230"/>
+      <path d="M360 150 C340 100 310 75 250 65"/>
+    </g>
+    <g><circle cx="110" cy="170" r="10" fill="#7e72b8" stroke="#3f2d1e" stroke-width="3"/><text x="125" y="174" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3a2b1e">Estrada</text><circle cx="360" cy="150" r="10" fill="#7e72b8" stroke="#3f2d1e" stroke-width="3"/><text x="375" y="154" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3a2b1e">Derenfall</text><circle cx="410" cy="70" r="10" fill="#7e72b8" stroke="#3f2d1e" stroke-width="3"/><text x="425" y="74" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3a2b1e">Igreja</text><circle cx="640" cy="180" r="10" fill="#7e72b8" stroke="#3f2d1e" stroke-width="3"/><text x="655" y="184" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3a2b1e">Bosque</text><circle cx="630" cy="75" r="10" fill="#7e72b8" stroke="#3f2d1e" stroke-width="3"/><text x="645" y="79" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3a2b1e">Moinho</text><circle cx="520" cy="220" r="10" fill="#7e72b8" stroke="#3f2d1e" stroke-width="3"/><text x="535" y="224" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3a2b1e">Capela</text></g>
+    <g stroke="#4a3522" fill="none" opacity=".35"><circle cx="72" cy="62" r="28"/><path d="M72 25v74M35 62h74M52 42l40 40M92 42L52 82"/></g>
+  </svg>
