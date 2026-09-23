@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#090b12" />
+  <meta name="description" content="Crônicas de Nerdora — protótipo web multiplayer do Mestre Máquina." />
+  <title>Crônicas de Nerdora — Web Alpha</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="noise"></div>
+
+  <section id="landing" class="screen active">
+    <div class="hero">
+      <div class="brand-rune">N</div>
+      <p class="eyebrow">NERDORA APRESENTA</p>
+      <h1>Crônicas de <span>Nerdora</span></h1>
+      <p class="subtitle">RPG narrativo multiplayer • Mestre Máquina • Web Alpha 0.1</p>
+
+      <div class="hero-card">
+        <label class="field">
+          <span>Seu nome</span>
+          <input id="playerName" maxlength="18" placeholder="Ex.: Daniel" autocomplete="nickname" />
+        </label>
+
+        <div class="class-grid" id="classGrid"></div>
+
+        <div class="landing-actions">
+          <button id="createRoomBtn" class="btn primary">Criar sala</button>
+          <button id="showJoinBtn" class="btn secondary">Entrar em sala</button>
+        </div>
+
+        <div id="joinBox" class="join-box hidden">
+          <label class="field">
+            <span>Código da sala</span>
+            <input id="roomCodeInput" maxlength="12" placeholder="NRD-AB12" autocapitalize="characters" />
+          </label>
+          <button id="joinRoomBtn" class="btn primary">Entrar agora</button>
+        </div>
+
+        <p class="fineprint">Protótipo de testes. As salas usam conexão P2P entre os navegadores; mantenha a aba do anfitrião aberta.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="game" class="screen">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">CRÔNICAS DE NERDORA</p>
+        <h2 id="campaignTitle">O Vilarejo Sem Amanhã</h2>
+      </div>
+      <div class="room-badge">
+        <span>SALA</span>
+        <strong id="roomCode">—</strong>
+        <button id="copyInviteBtn" title="Copiar convite">⧉</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="panel party-panel">
+        <div class="panel-title">
+          <span>Companhia</span>
+          <span id="connectionStatus" class="status-dot">offline</span>
+        </div>
+
+        <div id="partyList" class="party-list"></div>
+
+        <div class="voice-card">
+          <div>
+            <strong>Voz da mesa</strong>
+            <small id="voiceStatus">Microfone desligado</small>
+          </div>
+          <button id="voiceBtn" class="icon-btn" aria-label="Ativar microfone">🎙️</button>
+        </div>
+
+        <div class="char-card">
+          <div class="avatar" id="selfAvatar">D</div>
+          <div class="char-meta">
+            <strong id="selfName">Jogador</strong>
+            <span id="selfClass">Aventureiro</span>
+          </div>
+          <div class="bars">
+            <div><span>HP</span><i><b id="hpBar" style="width:100%"></b></i><em id="hpText">100/100</em></div>
+            <div><span>MP</span><i><b id="mpBar" style="width:100%"></b></i><em id="mpText">40/40</em></div>
+          </div>
+          <div id="selfStats" class="stats-mini"></div>
+        </div>
+      </aside>
+
+      <section class="panel story-panel">
+        <div class="scene-head">
+          <div>
+            <p class="eyebrow">CENA ATUAL</p>
+            <h3 id="locationName">Estrada de Derenfall</h3>
+          </div>
+          <div class="world-clock">
+            <span id="worldDay">Dia 1</span>
+            <strong id="worldTime">18:40</strong>
+          </div>
+        </div>
+
+        <div id="storyLog" class="story-log" aria-live="polite"></div>
+
+        <div id="quickActions" class="quick-actions"></div>
+
+        <div class="action-box">
+          <textarea id="actionInput" rows="2" placeholder="O que seu personagem faz? Ex.: Vou procurar pegadas perto da igreja."></textarea>
+          <div class="action-tools">
+            <button id="speechBtn" class="tool-btn" title="Ditado por voz">🎤 Ditar</button>
+            <button id="rollBtn" class="tool-btn">🎲 D20</button>
+            <button id="sendActionBtn" class="btn primary">Agir</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel info-panel">
+        <div class="tabs">
+          <button class="tab active" data-tab="journal">Diário</button>
+          <button class="tab" data-tab="chat">Chat</button>
+          <button class="tab" data-tab="rules">Mesa</button>
+        </div>
+
+        <div id="tab-journal" class="tab-content active">
+          <div class="objective-card">
+            <span>OBJETIVO ATUAL</span>
+            <strong id="objectiveText">Descobrir o que aconteceu com os moradores de Derenfall.</strong>
+          </div>
+          <h4>Pistas descobertas</h4>
+          <div id="clueList" class="clue-list"><p class="muted">Nenhuma pista registrada.</p></div>
+          <h4>Estado do mistério</h4>
+          <div class="mystery-meter"><span id="mysteryLabel">Silêncio</span><i><b id="mysteryBar" style="width:8%"></b></i></div>
+        </div>
+
+        <div id="tab-chat" class="tab-content">
+          <div id="chatLog" class="chat-log"></div>
+          <div class="chat-send">
+            <input id="chatInput" maxlength="240" placeholder="Mensagem para a mesa..." />
+            <button id="chatSendBtn" class="icon-btn">➤</button>
+          </div>
+        </div>
+
+        <div id="tab-rules" class="tab-content">
+          <h4>Regras rápidas</h4>
+          <p><strong>D20 + atributo</strong> contra uma dificuldade definida pelo Mestre Máquina.</p>
+          <p>20 natural é crítico. 1 natural cria complicação, mas pistas essenciais nunca desaparecem por causa de um único teste.</p>
+          <p>O mundo reage às decisões do grupo. Não existe uma única rota obrigatória.</p>
+          <hr />
+          <p class="muted">Nesta Alpha, o anfitrião executa localmente o motor narrativo de Derenfall e sincroniza o estado com os demais jogadores.</p>
+        </div>
+      </aside>
+    </main>
+  </section>
+
+  <div id="toast" class="toast"></div>
+  <div id="diceOverlay" class="dice-overlay hidden">
+    <div class="dice-card">
+      <span id="diceWho">Rolagem</span>
+      <strong id="diceResult">20</strong>
+      <small id="diceFormula">1d20</small>
+    </div>
+  </div>
+
+  <div id="audioMount" class="audio-mount"></div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
