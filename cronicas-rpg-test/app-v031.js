@@ -692,6 +692,8 @@ function directorBeforeAction(actor,text){
 function recordWorldEvent(title,text,kind="world",location=null){
   ensureDirectorState();
   if(!Array.isArray(state.worldEventLog))state.worldEventLog=[];
+  ensureInventoryState();
+  if(!state.metrics)state.metrics={startedAt:Date.now(),decisions:0,rolls:0,travels:0,endedAt:null};
   state.worldEventLog.unshift({id:uid(),title:title,text:text,kind:kind,location:location||state.location,at:Date.now()});
   state.worldEventLog=state.worldEventLog.slice(0,12);
 }
@@ -818,7 +820,7 @@ const ui={};
 "campaignTitle","modeBadge","roomCode","copyInviteBtn","partyList","connectionStatus","voiceBtn","voiceStatus","selfAvatar","selfName","selfClass","selfStats",
 "hpBar","mpBar","hpText","mpText","locationName","worldDay","worldTime","storyLog","dicePrompt","dicePromptLabel","dicePromptHelp","interactiveDie",
 "quickActions","actionInput","speechBtn","freeRollBtn","sendActionBtn","objectiveText","clueList","mysteryLabel","mysteryBar","sheetSummary","sheetStats",
-"unspentBox","sheetSkills","sheetAvailableSkills","alphaLevelBtn","chatLog","chatInput","chatSendBtn","toast","diceOverlay","diceCard","diceWho","diceResult","diceFormula","audioMount","mobileGameNav","orientationHint","orientationLandscapeBtn","orientationContinueBtn","orientationDontShow","masterMemoryTitle","masterMemoryCount","masterMemoryInsight","masterMemoryList","evidenceList","importantPerson","characterFear","personalGoal","npcRelationList","sceneSigil","sceneBannerLabel","lobbyEmblem","campaignSeal","sceneBanner","worldEventCards","sceneArtUse"
+"unspentBox","sheetSkills","sheetAvailableSkills","alphaLevelBtn","chatLog","chatInput","chatSendBtn","toast","diceOverlay","diceCard","diceWho","diceResult","diceFormula","audioMount","mobileGameNav","orientationHint","orientationLandscapeBtn","orientationContinueBtn","orientationDontShow","masterMemoryTitle","masterMemoryCount","masterMemoryInsight","masterMemoryList","evidenceList","importantPerson","characterFear","personalGoal","npcRelationList","sceneSigil","sceneBannerLabel","lobbyEmblem","campaignSeal","sceneBanner","worldEventCards","sceneArtUse","goldCount","equipmentSlots","inventoryList"
 ].forEach(k=>ui[k]=$(k));
 
 let mode="online";
@@ -867,6 +869,87 @@ function persistentPlayerId(){
 }
 function roomFromUrl(){return new URL(location.href).searchParams.get("room")?.toUpperCase()||""}
 
+
+const ITEMS={
+  worn_blade:{name:"Lâmina Gasta",icon:"⚔",type:"weapon",rarity:"Comum",desc:"Arma simples e confiável.",bonuses:{FOR:1}},
+  arcane_staff:{name:"Cajado de Foco",icon:"✦",type:"weapon",rarity:"Comum",desc:"Canaliza fórmulas e leituras de Éter.",bonuses:{INT:1}},
+  twin_knives:{name:"Lâminas Gêmeas",icon:"◈",type:"weapon",rarity:"Comum",desc:"Leves e discretas.",bonuses:{AGI:1}},
+  pilgrim_mace:{name:"Maça de Peregrino",icon:"✚",type:"weapon",rarity:"Comum",desc:"Símbolo de proteção e arma de defesa.",bonuses:{VIG:1}},
+  pact_talisman:{name:"Talismã de Pacto",icon:"◉",type:"accessory",rarity:"Comum",desc:"Ajuda a estabilizar invocações.",bonuses:{INT:1}},
+  hunter_bow:{name:"Arco de Trilha",icon:"➶",type:"weapon",rarity:"Comum",desc:"Feito para precisão e rastreio.",bonuses:{PER:1}},
+  traveler_coat:{name:"Casaco de Viagem",icon:"♜",type:"armor",rarity:"Comum",desc:"Couro reforçado contra clima e impacto.",bonuses:{VIG:1}},
+  bandage:{name:"Bandagem de Campo",icon:"✚",type:"consumable",rarity:"Comum",desc:"Recupera 18 HP.",heal:18},
+  ether_vial:{name:"Frasco de Éter",icon:"◌",type:"consumable",rarity:"Raro",desc:"Recupera 14 MP.",mana:14},
+  rope:{name:"Corda de 15 m",icon:"⌁",type:"tool",rarity:"Comum",desc:"Pode criar soluções de travessia e exploração."},
+  bell_fragment:{name:"Fragmento do Sino",icon:"🔔",type:"quest",rarity:"Raro",desc:"Bronze antigo que responde à ressonância de Derenfall.",bonuses:{PER:1}},
+  parish_registry:{name:"Cópia do Registro Paroquial",icon:"▤",type:"quest",rarity:"Raro",desc:"Nomes de famílias preservados em papel."},
+  archive_seal:{name:"Lacre Autêntico dos Arquivos",icon:"♛",type:"quest",rarity:"Épico",desc:"Prova material de que os documentos rivais nasceram dentro do sistema real.",bonuses:{PRE:1}},
+  crown_imprint:{name:"Impressão da Coroa de Vidro",icon:"◇",type:"quest",rarity:"Raro",desc:"Registro do reflexo dinástico observado na cerimônia."},
+  khar_tuning_fork:{name:"Diapasão de Prospecção",icon:"♬",type:"tool",rarity:"Raro",desc:"Ferramenta de mineiro capaz de comparar ressonâncias do veio.",bonuses:{INT:1}},
+  resonant_shard:{name:"Fragmento de Minério Memorial",icon:"◆",type:"quest",rarity:"Épico",desc:"Vibra com a mesma cadência do Coro.",bonuses:{PER:1}}
+};
+const STARTER_KITS={
+  Guerreiro:["worn_blade","traveler_coat","bandage","rope"],
+  Mago:["arcane_staff","traveler_coat","ether_vial","rope"],
+  Assassino:["twin_knives","traveler_coat","bandage","rope"],
+  Curandeiro:["pilgrim_mace","traveler_coat","bandage","ether_vial"],
+  Invocador:["pact_talisman","traveler_coat","ether_vial","rope"],
+  Caçador:["hunter_bow","traveler_coat","bandage","rope"]
+};
+function starterEquipment(className){
+  const item=(STARTER_KITS[className]||STARTER_KITS.Guerreiro)[0];
+  const def=ITEMS[item];
+  return {weapon:def?.type==="weapon"?item:null,armor:"traveler_coat",accessory:def?.type==="accessory"?item:null};
+}
+function starterInventory(className){
+  return (STARTER_KITS[className]||STARTER_KITS.Guerreiro).map(function(id){return {id:id,qty:1}});
+}
+function ensureInventoryState(){
+  if(!state)return;
+  if(!Array.isArray(state.inventory))state.inventory=starterInventory(player?.className||"Guerreiro");
+  if(!state.equipmentByPlayer)state.equipmentByPlayer={};
+  if(player&&!state.equipmentByPlayer[player.id])state.equipmentByPlayer[player.id]=starterEquipment(player.className);
+  if(typeof state.gold!=="number")state.gold=24;
+}
+function itemQty(id){ensureInventoryState();const row=state.inventory.find(function(x){return x.id===id});return row?.qty||0}
+function hasItem(id){return itemQty(id)>0}
+function addItem(id,qty=1,announce=true){
+  ensureInventoryState();if(!ITEMS[id])return;
+  let row=state.inventory.find(function(x){return x.id===id});
+  if(row)row.qty+=qty;else state.inventory.push({id:id,qty:qty});
+  if(announce)addStory("system","Loot obtido",ITEMS[id].name+" foi adicionado à mochila da companhia.");
+}
+function removeItem(id,qty=1){
+  ensureInventoryState();const row=state.inventory.find(function(x){return x.id===id});if(!row)return false;
+  row.qty-=qty;if(row.qty<=0)state.inventory=state.inventory.filter(function(x){return x.id!==id});return true;
+}
+function equipmentFor(actor){ensureInventoryState();return state.equipmentByPlayer[actor?.id]||starterEquipment(actor?.className||"Guerreiro")}
+function equipmentBonus(actor,stat){
+  if(!state||!actor)return 0;const eq=equipmentFor(actor);let total=0;
+  Object.values(eq||{}).filter(Boolean).forEach(function(id){total+=(ITEMS[id]?.bonuses?.[stat]||0)});
+  return total;
+}
+function equipItem(id){
+  ensureInventoryState();const item=ITEMS[id];if(!item||!["weapon","armor","accessory"].includes(item.type))return;
+  state.equipmentByPlayer[player.id]=state.equipmentByPlayer[player.id]||starterEquipment(player.className);
+  state.equipmentByPlayer[player.id][item.type]=id;addStory("system","Equipamento",player.name+" equipou "+item.name+".");saveHostState();renderState();broadcastState();
+}
+function useItem(id){
+  ensureInventoryState();const item=ITEMS[id];if(!item||!hasItem(id))return;
+  if(item.heal){player.hp=Math.min(player.maxHp,player.hp+item.heal);removeItem(id);persistCharacter();addStory("system","Item usado",player.name+" recuperou "+item.heal+" HP com "+item.name+".")}
+  else if(item.mana){player.mp=Math.min(player.maxMp,player.mp+item.mana);removeItem(id);persistCharacter();addStory("system","Item usado",player.name+" recuperou "+item.mana+" MP com "+item.name+".")}
+  else if(["weapon","armor","accessory"].includes(item.type)){equipItem(id);return}
+  else return toast("Esse item é usado pelo Mestre quando a situação permitir.");
+  saveHostState();renderState();broadcastState();
+}
+function runMetrics(){
+  ensureStateShape();
+  const m=state.metrics||{};
+  const elapsedMs=(m.endedAt||Date.now())-(m.startedAt||Date.now());
+  const storyWords=(state.story||[]).reduce(function(sum,e){return sum+String(e.text||"").trim().split(/\s+/).filter(Boolean).length},0);
+  const fastMinutes=storyWords/220+(m.decisions||0)*0.18+(m.rolls||0)*0.07+(m.travels||0)*0.08;
+  return {...m,elapsedMs:elapsedMs,storyWords:storyWords,estimatedFastMinutes:Math.max(1,fastMinutes)};
+}
 function freshDraft(){
   const stats={};Object.keys(ATTRS).forEach(k=>stats[k]=1);
   return {id:persistentPlayerId(),name:"",sex:"Masculino",origin:"Asterfall",className:"Guerreiro",level:1,stats,creationPoints:10,attributePoints:0,skillPoints:2,skills:[],importantPerson:"",fear:"",personalGoal:"",ready:false,characterReady:false};
@@ -1037,7 +1120,7 @@ function createInitialState(campaignId){
   else if(map)unlocked=Object.values(map.nodes).map(function(n){return n.name});
   return {version:"0.3",campaignId:campaignId,campaign:c.title,location:c.location,worldMinutes:18*60+40,day:1,pressure:0,
     clues:[],rawEvidence:[],objective:c.objective,ended:false,ending:null,pendingRoll:null,lastRoll:null,completedActions:[],failedActions:{},
-    routeFlags:[],eventFired:[],worldEventLog:[],unlockedLocations:unlocked,visitedLocations:visited,npcRelations:{},director:{beats:0,stagnation:0,tension:1,restNeed:0,lastStyle:null,styleStreak:0,lastInterventionBeat:-99,worldBeat:0,personalHookUsed:false},
+    routeFlags:[],eventFired:[],worldEventLog:[],inventory:starterInventory(player?.className||"Guerreiro"),equipmentByPlayer:player?{[player.id]:starterEquipment(player.className)}:{},gold:24,metrics:{startedAt:Date.now(),decisions:0,rolls:0,travels:0,endedAt:null},unlockedLocations:unlocked,visitedLocations:visited,npcRelations:{},director:{beats:0,stagnation:0,tension:1,restNeed:0,lastStyle:null,styleStreak:0,lastInterventionBeat:-99,worldBeat:0,personalHookUsed:false},
     story:c.opening.map(function(text,i){return {id:uid(),type:i===0?"system":"master",who:i===0?"Prólogo":"Mestre Máquina",text:text,ts:Date.now()+i}})
   };
 }
@@ -1092,12 +1175,12 @@ function addClue(id){
   if(revealClue(id))tryResolveRevelations();
 }
 function finishEnding(title,text){
-  state.ended=true;state.ending=title;state.objective="Desfecho alcançado: "+title;addStory("system","DESFECHO — "+title,text);rememberCampaignEnding(title);
+  state.ended=true;state.ending=title;state.objective="Desfecho alcançado: "+title;state.metrics.endedAt=Date.now();addStory("system","DESFECHO — "+title,text);const rm=runMetrics();addStory("system","Resumo da run",`Decisões: ${rm.decisions||0} • Rolagens: ${rm.rolls||0} • Viagens: ${rm.travels||0} • Tempo no mundo: ${Math.max(0,state.worldMinutes-(18*60+40))} min • Ritmo rápido estimado: ${rm.estimatedFastMinutes.toFixed(1)} min.`);rememberCampaignEnding(title);
 }
 function moveTo(dest,text=null){
   ensureStateShape();unlockLocations(dest);state.location=dest;
   if(!state.visitedLocations.includes(dest))state.visitedLocations.push(dest);
-  advanceTime(6);
+  advanceTime(6);state.metrics.travels=(state.metrics.travels||0)+1;
   if(state.campaignId==="derenfall"&&dest==="Portão de Derenfall")unlockLocations("Praça de Derenfall");
   if(state.campaignId==="derenfall"&&dest==="Praça de Derenfall")unlockDerenSurface();
   addStory("master","Mestre Máquina",text||(state.campaignId==="derenfall"?derenfallArrival(dest):"A companhia segue para "+dest+". O lugar muda as pessoas, informações e riscos disponíveis."));
@@ -1126,8 +1209,8 @@ function handleRollTap(playerId){
   if(!isHost&&mode==="online")return;
   const p=state?.pendingRoll;if(!p||p.assignedPlayerId!==playerId)return;
   const actor=findActorById(playerId);if(!actor)return;
-  const d20=1+Math.floor(Math.random()*20),bonus=actor.stats?.[p.stat]||0,total=d20+bonus;
-  const result={id:uid(),rollId:p.id,playerId,who:actor.name,d20,bonus,total,stat:p.stat,df:p.df,success:total>=p.df,critical:d20===20,fumble:d20===1,formula:`1d20 (${d20}) + ${p.stat} ${bonus>=0?"+":""}${bonus} = ${total} vs DF ${p.df}`};
+  const d20=1+Math.floor(Math.random()*20),baseBonus=actor.stats?.[p.stat]||0,gearBonus=equipmentBonus(actor,p.stat),bonus=baseBonus+gearBonus,total=d20+bonus;state.metrics.rolls=(state.metrics.rolls||0)+1;
+  const result={id:uid(),rollId:p.id,playerId,who:actor.name,d20,bonus,total,stat:p.stat,df:p.df,success:total>=p.df,critical:d20===20,fumble:d20===1,formula:`1d20 (${d20}) + ${p.stat} ${baseBonus>=0?"+":""}${baseBonus}${gearBonus?` + Equip. ${gearBonus}`:""} = ${total} vs DF ${p.df}`};
   observeRollOutcome(actor,result,p.context).catch(function(){});
   state.lastRoll=result;const context=clone(p.context);state.pendingRoll=null;
   addStory("system","Resultado do dado",`${actor.name}: ${result.formula}`,result.formula);
@@ -1290,7 +1373,7 @@ function applyDerenActionSuccess(actor,a,r){
     case "square_routes": unlockDerenSurface();text="Do centro, vocês identificam rotas claras para igreja, hospedaria, escola, poço, cemitério e casas periféricas.";break;
     case "church_bell": addEvidence("ev_bell_mechanism","Igreja");addEvidence("ev_bell_response","Igreja");text="O mecanismo não poderia tocar o sino. Quando um de vocês lembra em voz alta o nome de alguém importante, o bronze responde com uma vibração própria.";break;
     case "church_altar": addEvidence("ev_hollow_altar","Igreja");text="Sob o altar existe um encaixe circular muito mais antigo que a igreja. O piso esconde uma estrutura subterrânea.";break;
-    case "church_records": addEvidence("ev_parish_names","Igreja");unlockLocations("Escola","Cemitério","Hospedaria");text="Os registros conectam famílias da vila a escola, cemitério e hospedaria. Alguns nomes começam a desaparecer de documentos diferentes na mesma ordem.";break;
+    case "church_records": addEvidence("ev_parish_names","Igreja");if(!hasItem("parish_registry"))addItem("parish_registry");unlockLocations("Escola","Cemitério","Hospedaria");text="Os registros conectam famílias da vila a escola, cemitério e hospedaria. Alguns nomes começam a desaparecer de documentos diferentes na mesma ordem.";break;
     case "church_passage": addRouteFlag("route_igreja");unlockLocations("Fenda Memorial");text="O encaixe cede. A escada sob o altar desce mais do que a profundidade da igreja permitiria. Vocês abriram uma rota direta para a Fenda.";break;
     case "inn_ledger": addClue("livro");unlockLocations("Moinho Velho");text="A última anotação termina antes do nome do próprio autor. Entre as despesas do dia há uma entrega do moinho e hospedagem de um viajante cuja assinatura também sumiu.";break;
     case "inn_rooms": addClue("botas");unlockLocations("Moinho Velho","Casas Periféricas");text="Num quarto, botas ainda molhadas carregam barro escuro e palha do caminho do moinho. O hóspede esteve lá pouco antes de desaparecer.";break;
@@ -1304,7 +1387,7 @@ function applyDerenActionSuccess(actor,a,r){
     case "well_reflection": addRouteFlag("route_poco");unlockLocations("Fenda Memorial");text="O reflexo se abre como uma superfície profunda. Por alguns segundos, o poço se torna uma passagem estável para a Fenda Memorial.";break;
     case "cemetery_graves": addEvidence("ev_names_erasing","Cemitério");unlockLocations("Capela Antiga");text="As letras racham de dentro para fora. A trilha das fissuras aponta para pedras mais antigas junto à Capela Antiga.";break;
     case "cemetery_tracks": addClue("animais");unlockLocations("Bosque da Lembrança");text="Animais passaram pelo cemitério, mas todos desviaram da mesma direção: o bosque. O padrão é deliberado demais para ser acaso.";break;
-    case "cemetery_token": addEvidence("ev_bronze_resonance","Cemitério");unlockLocations("Igreja");text="Sob a lápide sem nome há um fragmento de bronze. Ao segurá-lo, o sino da igreja vibra à distância.";break;
+    case "cemetery_token": addEvidence("ev_bronze_resonance","Cemitério");if(!hasItem("bell_fragment"))addItem("bell_fragment");unlockLocations("Igreja");text="Sob a lápide sem nome há um fragmento de bronze. Ao segurá-lo, o sino da igreja vibra à distância.";break;
     case "chapel_seal": addEvidence("ev_nhal_symbol","Capela Antiga");text="O selo pertence a Nhal e descreve uma técnica para separar memória, identidade e matéria sem destruir nenhuma das três.";break;
     case "chapel_crypt": addEvidence("ev_tunnel_church","Capela Antiga");addRouteFlag("route_tunnel");unlockLocations("Igreja");text="Uma passagem estreita segue sob o terreno até as fundações da igreja. Capela e altar faziam parte do mesmo sistema antigo.";break;
     case "chapel_activate": addRouteFlag("route_capela");unlockLocations("Fenda Memorial");text="O mecanismo reconhece as pistas reunidas e abre uma dobra silenciosa entre a capela e a Fenda.";break;
@@ -1397,6 +1480,12 @@ function derenfallArrival(dest){
 }
 function resolveGenericCampaign(actor,text){
   const c=CAMPAIGNS[state.campaignId],n=norm(text),dest=inferDestination(state.campaignId,text);
+  if(state.campaignId==="vidro"&&/apresentar as provas|provas a coroa|expor os documentos|confrontar a coroa/.test(n)&&hasClue("vidroeco")&&hasClue("vidroselos")){
+    const df=hasItem("archive_seal")?11:13;requestRoll(actor,"PRE",df,"Expor a verdade dinástica",{kind:"vidro_verdict"});return;
+  }
+  if(state.campaignId==="coro"&&/harmonizar o coro|harmonizar a rede|desviar o canto|responder ao coro/.test(n)&&hasClue("cororesp")&&hasClue("corominerio")){
+    const df=hasItem("khar_tuning_fork")?12:14;requestRoll(actor,"INT",df,"Harmonizar o Coro",{kind:"coro_harmonize"});return;
+  }
   if(dest&&dest!==state.location&&(/ir|entrar|seguir|andar|voltar|visitar|aproxim/.test(n)||n.includes(norm(dest)))){moveTo(dest,`A companhia segue para ${dest}. O tom da aventura muda com o lugar, e novas pessoas, riscos e evidências entram em cena.`);return}
   if(/investig|procur|exam|observar|rastre|escut|ler|analis|vasculh|compar/.test(n)){requestRoll(actor,statFor(text),12,"Investigar "+state.location,{kind:"campaign_investigate",campaignId:state.campaignId,location:state.location,text});return}
   if(/convenc|negoci|engan|interrogar|persu/.test(n)){requestRoll(actor,"PRE",13,"Influenciar a situação",{kind:"campaign_social",campaignId:state.campaignId,text});return}
@@ -1422,7 +1511,7 @@ function inferDestination(campaignId,text){
 function processIntent(actor,text){
   if(!state||state.ended)return;
   if(state.pendingRoll){toast("Há um teste aguardando o D20 antes da próxima ação.");return}
-  ensureStateShape();
+  ensureStateShape();state.metrics.decisions=(state.metrics.decisions||0)+1;
   const beforeSignature=directorSignature();
   directorBeforeAction(actor,text);
   observePlayerAction(actor,text).catch(function(){});
@@ -1461,6 +1550,16 @@ function resolveRollContext(actor,r,ctx){
   if(ctx.kind==="deren_investigate"){
     resolveDerenInvestigation(actor,r,ctx.location,ctx.text);return;
   }
+  if(ctx.kind==="vidro_verdict"){
+    if(r.success)finishEnding("A Verdade sob Juramento","As provas são apresentadas diante da Coroa e das Casas. Maeryn não consegue apagar a contradição sem romper publicamente o próprio juramento. O segundo soberano passa a ser reconhecido como parte censurada da história, abrindo uma crise política em vez de uma guerra imediata.");
+    else finishEnding("A Verdade sob Censura","As provas não vencem a sala, mas são fortes demais para desaparecer. A Coroa impõe silêncio oficial; cópias começam a circular clandestinamente e Arken entra numa guerra de versões.");
+    return;
+  }
+  if(ctx.kind==="coro_harmonize"){
+    if(r.success)finishEnding("A Canção Desviada","Usando a cadência dos mineiros e a ressonância do veio, a companhia devolve ao Coro um padrão que não exige hospedeiros humanos. Os trabalhadores despertam, mas a montanha continua cantando para si mesma.");
+    else finishEnding("Silêncio de Pedra","A tentativa quebra a sincronia, mas sela parte das vozes dentro do minério. Os mineiros sobrevivem; algumas memórias, porém, permanecem gravadas na montanha e podem voltar a responder no futuro.");
+    return;
+  }
   if(ctx.kind==="campaign_investigate"){
     resolveCampaignInvestigation(actor,r,ctx.campaignId,ctx.location,ctx.text);return;
   }
@@ -1490,13 +1589,13 @@ function resolveDerenInvestigation(actor,r,loc,text){
 }
 function resolveCampaignInvestigation(actor,r,cid,loc,text){
   if(cid==="vidro"){
-    if(loc==="Salão dos Juramentos"){addClue("vidroeco");addStory("master","Mestre Máquina",r.success?"O cristal possui uma assinatura de memória, não de profecia. O segundo soberano parece ligado a um juramento real que foi retirado dos registros.":"A Coroa reage a palavras de juramento e nomes dinásticos. Ela não se comporta como simples objeto cerimonial.",r.formula)}
-    else if(loc==="Arquivos Reais"){addClue("vidroselos");addStory("master","Mestre Máquina",r.success?"Papel, cera e numeração indicam que ao menos dois documentos rivais nasceram dentro do próprio sistema de arquivos. A contradição é histórica, não uma falsificação recente comum.":"Os selos resistem a verificações simples. Será necessário comparar cadeia de custódia, juramentos e cópias antigas.",r.formula)}
+    if(loc==="Salão dos Juramentos"){addClue("vidroeco");if(r.success&&!hasItem("crown_imprint"))addItem("crown_imprint");addStory("master","Mestre Máquina",r.success?"O cristal possui uma assinatura de memória, não de profecia. O segundo soberano parece ligado a um juramento real que foi retirado dos registros.":"A Coroa reage a palavras de juramento e nomes dinásticos. Ela não se comporta como simples objeto cerimonial.",r.formula)}
+    else if(loc==="Arquivos Reais"){addClue("vidroselos");if(r.success&&!hasItem("archive_seal"))addItem("archive_seal");addStory("master","Mestre Máquina",r.success?"Papel, cera e numeração indicam que ao menos dois documentos rivais nasceram dentro do próprio sistema de arquivos. A contradição é histórica, não uma falsificação recente comum.":"Os selos resistem a verificações simples. Será necessário comparar cadeia de custódia, juramentos e cópias antigas.",r.formula)}
     else addStory("master","Mestre Máquina",r.success?"A investigação encontra uma ligação entre interesses atuais e um juramento apagado da história do reino.":"Você encontra versões conflitantes. A verdade política continua acessível por outras fontes.",r.formula);
   }else{
     if(loc==="Acampamento de Khar-Dor"){addClue("cororesp");addStory("master","Mestre Máquina",r.success?"Os mineiros cantam exatamente no mesmo ritmo, mesmo dormindo em tendas afastadas. Um deles antecipa notas que os outros ainda não emitiram.":"O padrão é coordenado demais para ser coincidência ou canção comum.",r.formula)}
-    else if(loc==="Túnel Impossível"||loc==="Câmara do Coro"){addClue("corominerio");addStory("master","Mestre Máquina",r.success?"O minério contém padrões repetitivos de Éter semelhantes a registros mentais. A montanha está armazenando algo que tenta se recompor usando os vivos.":"O veio reage a voz e memória. Não parece um predador simples.",r.formula)}
-    else addStory("master","Mestre Máquina",r.success?"A investigação revela que o canto acompanha uma estrutura física abaixo da mina, dando ao grupo uma direção concreta.":"Os sinais continuam ambíguos, mas a hipótese de uma causa subterrânea ganha força.",r.formula);
+    else if(loc==="Túnel Impossível"||loc==="Câmara do Coro"){addClue("corominerio");if(r.success&&!hasItem("resonant_shard"))addItem("resonant_shard");addStory("master","Mestre Máquina",r.success?"O minério contém padrões repetitivos de Éter semelhantes a registros mentais. A montanha está armazenando algo que tenta se recompor usando os vivos.":"O veio reage a voz e memória. Não parece um predador simples.",r.formula)}
+    else {if(loc==="Galeria Principal"&&r.success&&!hasItem("khar_tuning_fork"))addItem("khar_tuning_fork");addStory("master","Mestre Máquina",r.success?"A investigação revela que o canto acompanha uma estrutura física abaixo da mina, dando ao grupo uma direção concreta.":"Os sinais continuam ambíguos, mas a hipótese de uma causa subterrânea ganha força.",r.formula);}
   }
   advanceTime(7);
 }
@@ -1561,6 +1660,8 @@ function renderQuickActions(){
       if(!list.some(function(x){return norm(x.label).includes(norm(dest))}))list.push({label:"Ir para "+dest,type:"travel",dest:dest});
     });
   }
+  if(state.campaignId==="vidro"&&hasClue("vidroeco")&&hasClue("vidroselos")&&["Palácio Real","Salão dos Juramentos"].includes(state.location))list.unshift({label:"Apresentar as provas à Coroa",type:"action"});
+  if(state.campaignId==="coro"&&hasClue("cororesp")&&hasClue("corominerio")&&["Câmara do Coro","Núcleo Mineral"].includes(state.location))list.unshift({label:"Harmonizar o Coro",type:"action"});
   if((state.director?.restNeed||0)>=5)list.push({label:"Fazer uma pausa com a companhia",type:"action"});
   ui.quickActions.innerHTML="";
   list.forEach(function(item){
@@ -1602,6 +1703,12 @@ function renderSheet(){
   const avail=classSkills(player.className).filter(s=>s.level<=player.level&&!player.skills.includes(s.id));
   ui.sheetAvailableSkills.innerHTML=avail.length?avail.map(s=>`<div class="mini-skill"><span class="mini-skill-icon">${skillIcon(s)}</span><div><strong>${esc(s.name)}</strong>Nv. ${s.level} • ${Object.entries(s.req).map(([a,v])=>a+" "+v).join(" • ")}</div><button data-skill="${s.id}" ${player.skillPoints>0&&meetsReq(s,player)?"":"disabled"}>Aprender</button></div>`).join(""):'<p class="muted">Nenhuma habilidade disponível.</p>';
   ui.sheetAvailableSkills.querySelectorAll("button:not([disabled])").forEach(b=>b.onclick=()=>learnGameSkill(b.dataset.skill));
+  ensureInventoryState();if(ui.goldCount)ui.goldCount.textContent=state.gold+" ◈";
+  const eq=equipmentFor(player);
+  if(ui.equipmentSlots)ui.equipmentSlots.innerHTML=["weapon","armor","accessory"].map(function(slot){const id=eq[slot],it=id?ITEMS[id]:null;return "<div class='equip-slot'><small>"+({weapon:"ARMA",armor:"ARMADURA",accessory:"ACESSÓRIO"}[slot])+"</small><strong>"+(it?it.icon+" "+esc(it.name):"— vazio —")+"</strong></div>"}).join("");
+  if(ui.inventoryList)ui.inventoryList.innerHTML=state.inventory.length?state.inventory.map(function(row){const it=ITEMS[row.id];if(!it)return"";const usable=it.type==="consumable"||["weapon","armor","accessory"].includes(it.type);return "<article class='inventory-item rarity-"+norm(it.rarity)+"'><span class='item-icon'>"+it.icon+"</span><div><strong>"+esc(it.name)+(row.qty>1?" ×"+row.qty:"")+"</strong><small>"+esc(it.rarity)+" • "+esc(it.type)+"</small><p>"+esc(it.desc)+"</p></div>"+(usable?"<button data-item='"+row.id+"'>"+(it.type==="consumable"?"Usar":"Equipar")+"</button>":"")+"</article>"}).join(""):"<p class='muted'>A mochila está vazia.</p>";
+  ui.inventoryList?.querySelectorAll("button[data-item]").forEach(function(b){b.onclick=function(){useItem(b.dataset.item)}});
+
 }
 function spendAttributePoint(attr){
   if(!player.attributePoints||player.stats[attr]>=7)return;player.stats[attr]++;player.attributePoints--;Object.assign(player,resourcesFor(player));persistCharacter();renderSelf();renderSheet();hello();
