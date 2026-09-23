@@ -947,7 +947,7 @@ const ui={};
 "campaignTitle","modeBadge","roomCode","copyInviteBtn","partyList","connectionStatus","voiceBtn","voiceStatus","selfAvatar","selfName","selfClass","selfStats",
 "hpBar","mpBar","hpText","mpText","locationName","worldDay","worldTime","storyLog","dicePrompt","dicePromptLabel","dicePromptHelp","interactiveDie",
 "quickActions","actionInput","speechBtn","freeRollBtn","sendActionBtn","objectiveText","clueList","mysteryLabel","mysteryBar","sheetSummary","sheetStats",
-"unspentBox","sheetSkills","sheetAvailableSkills","alphaLevelBtn","chatLog","chatInput","chatSendBtn","toast","diceOverlay","diceCard","diceWho","diceResult","diceFormula","audioMount","mobileGameNav","orientationHint","orientationLandscapeBtn","orientationContinueBtn","orientationDontShow","masterMemoryTitle","masterMemoryCount","masterMemoryInsight","masterMemoryList","evidenceList","importantPerson","characterFear","personalGoal","npcRelationList","sceneSigil","sceneBannerLabel","lobbyEmblem","campaignSeal","sceneBanner","worldEventCards","sceneArtUse","goldCount","equipmentSlots","inventoryList","campaignThreads","lobbyVoiceTechStatus","voiceTechStatus"
+"unspentBox","sheetSkills","sheetAvailableSkills","alphaLevelBtn","chatLog","chatInput","chatSendBtn","toast","diceOverlay","diceCard","diceWho","diceResult","diceFormula","audioMount","mobileGameNav","orientationHint","orientationLandscapeBtn","orientationContinueBtn","orientationDontShow","masterMemoryTitle","masterMemoryCount","masterMemoryInsight","masterMemoryList","evidenceList","importantPerson","characterFear","personalGoal","npcRelationList","sceneSigil","sceneBannerLabel","lobbyEmblem","campaignSeal","sceneBanner","worldEventCards","sceneArtUse","goldCount","equipmentSlots","inventoryList","campaignThreads","lobbyVoiceTechStatus","voiceTechStatus","installAppBtn","roomBrowserBackBtn","roomValidationStatus","refreshRoomsBtn","availableRoomsList","createdRoomCode","hostCampaignContinueBtn"
 ].forEach(k=>ui[k]=$(k));
 
 let mode="online";
@@ -990,6 +990,14 @@ let renderedStoryIds=new Set();
 let narrationQueue=Promise.resolve();
 let lastRollShown=null;
 let currentCharStep=1;
+let directoryRoom=null;
+let directoryActions={};
+let availableRooms=new Map();
+let directoryAdvertTimer=null;
+let directoryCleanupTimer=null;
+let directoryReady=false;
+let hostCampaignChosen=false;
+let deferredInstallPrompt=null;
 
 function showScreen(id){
   document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));
@@ -1141,6 +1149,186 @@ function finalizeDraft(){
   localStorage.setItem("cn_character",JSON.stringify(player));initMasterMemory(player).catch(function(){});
 }
 
+
+function isStandaloneApp(){
+  return (window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)||window.navigator.standalone===true;
+}
+function syncInstallButton(){
+  if(!ui.installAppBtn)return;
+  const installed=isStandaloneApp();
+  ui.installAppBtn.classList.toggle("installed",installed);
+  const strong=ui.installAppBtn.querySelector("strong"),small=ui.installAppBtn.querySelector("small");
+  if(strong)strong.textContent=installed?"Instalado no celular":"Instalar no celular";
+  if(small)small.textContent=installed?"Crônicas de Nerdora está aberto como aplicativo.":"Abra Crônicas de Nerdora pela tela inicial, como um app.";
+}
+async function installApp(){
+  if(isStandaloneApp())return toast("O jogo já está aberto como aplicativo.");
+  if(deferredInstallPrompt){
+    const prompt=deferredInstallPrompt;deferredInstallPrompt=null;
+    await prompt.prompt();const choice=await prompt.userChoice.catch(function(){return null});
+    syncInstallButton();if(choice&&choice.outcome==="accepted")toast("Instalação iniciada.");return;
+  }
+  if(/iphone|ipad|ipod/i.test(navigator.userAgent))toast("No iPhone/iPad: Compartilhar → Adicionar à Tela de Início.");
+  else toast("No navegador, abra o menu ⋮ e escolha Instalar app ou Adicionar à tela inicial.");
+}
+function registerPWA(){
+  if("serviceWorker" in navigator)navigator.serviceWorker.register("./service-worker.js",{scope:"./"}).catch(function(err){console.warn("Service Worker",err)});
+  window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();deferredInstallPrompt=e;syncInstallButton()});
+  window.addEventListener("appinstalled",function(){deferredInstallPrompt=null;syncInstallButton();toast("Crônicas de Nerdora foi instalado.")});
+  syncInstallButton();
+}
+function directoryRoomConfig(){
+  return {appId:"cronicas-de-nerdora-directory-v1",trickleIce:true,relayConfig:{redundancy:3}};
+}
+function roomFresh(rec){
+  return !!(rec&&Date.now()-(rec.seenAt||0)<14000&&rec.joinable!==false);
+}
+function currentRoomAd(){
+  return {
+    code:roomId,
+    campaignId:hostCampaignChosen?selectedCampaign:null,
+    campaignTitle:hostCampaignChosen?(CAMPAIGNS[selectedCampaign]&&CAMPAIGNS[selectedCampaign].title||"Campanha"):"Escolhendo campanha",
+    hostName:player&&player.name||"Anfitrião",
+    players:Math.max(1,1+participants.size),
+    maxPlayers:8,
+    joinable:!!(isHost&&roomId&&p2pReady&&!state),
+    createdAt:Date.now()
+  };
+}
+function renderAvailableRooms(){
+  if(!ui.availableRoomsList)return;
+  const rooms=Array.from(availableRooms.values()).filter(roomFresh).sort(function(a,b){return (b.seenAt||0)-(a.seenAt||0)});
+  if(!rooms.length){
+    ui.availableRoomsList.innerHTML='<div class="empty-rooms"><strong>Nenhuma sala aberta encontrada</strong><span>Crie uma sala ou toque em Atualizar. Salas aparecem enquanto o anfitrião estiver online.</span></div>';
+    return;
+  }
+  ui.availableRoomsList.innerHTML=rooms.map(function(r){
+    return '<article class="available-room"><div class="room-live-dot"></div><div class="available-room-copy"><strong>'+esc(r.code)+'</strong><span>'+esc(r.campaignTitle||"Escolhendo campanha")+'</span><small>'+esc(r.hostName||"Anfitrião")+' • '+(r.players||1)+'/'+(r.maxPlayers||8)+' jogadores</small></div><button class="btn primary room-enter-btn" data-room-code="'+esc(r.code)+'">Entrar</button></article>';
+  }).join("");
+  ui.availableRoomsList.querySelectorAll("[data-room-code]").forEach(function(btn){btn.onclick=function(){validateAndJoinRoom(btn.dataset.roomCode)}});
+}
+function cleanupRoomDirectory(){
+  const now=Date.now();let changed=false;
+  availableRooms.forEach(function(rec,code){if(now-(rec.seenAt||0)>16000){availableRooms.delete(code);changed=true}});
+  if(changed)renderAvailableRooms();
+}
+async function ensureRoomDirectory(){
+  if(directoryRoom)return directoryRoom;
+  try{
+    const mod=await import("https://esm.sh/@trystero-p2p/torrent"),joinRoom=mod.joinRoom;
+    directoryRoom=joinRoom(directoryRoomConfig(),"CRONICAS-PUBLIC-ROOMS");
+    const adA=directoryRoom.makeAction("roomad"),queryA=directoryRoom.makeAction("roomquery"),closeA=directoryRoom.makeAction("roomclose");
+    directoryActions={
+      sendAd:function(data,target){return adA.send(data,target?{target:target}:undefined)},
+      query:function(data,target){return queryA.send(data,target?{target:target}:undefined)},
+      close:function(data,target){return closeA.send(data,target?{target:target}:undefined)}
+    };
+    adA.onMessage=function(data){
+      if(!data||!/^NRD-[A-Z0-9]{4}$/.test(data.code||""))return;
+      if(data.joinable===false){availableRooms.delete(data.code);renderAvailableRooms();return}
+      availableRooms.set(data.code,Object.assign({},data,{seenAt:Date.now()}));renderAvailableRooms();
+    };
+    queryA.onMessage=function(_,meta){if(isHost&&roomId&&p2pReady&&!state)announceRoom(meta&&meta.peerId)};
+    closeA.onMessage=function(data){if(data&&data.code){availableRooms.delete(data.code);renderAvailableRooms()}};
+    directoryRoom.onPeerJoin=function(peerId){
+      setTimeout(function(){directoryActions.query({at:Date.now()},peerId)},120);
+      if(isHost&&roomId&&p2pReady&&!state)setTimeout(function(){announceRoom(peerId)},220);
+    };
+    directoryRoom.onPeerLeave=function(){cleanupRoomDirectory()};
+    directoryReady=true;
+    clearInterval(directoryCleanupTimer);directoryCleanupTimer=setInterval(cleanupRoomDirectory,4000);
+    directoryActions.query({at:Date.now()});
+    return directoryRoom;
+  }catch(err){
+    console.warn("Diretório de salas indisponível",err);directoryReady=false;
+    if(ui.availableRoomsList)ui.availableRoomsList.innerHTML='<div class="empty-rooms"><strong>Diretório temporariamente indisponível</strong><span>A verificação direta por código ainda pode funcionar.</span></div>';
+    return null;
+  }
+}
+function announceRoom(target){
+  if(!directoryActions.sendAd||!isHost||!roomId||!p2pReady||state)return;
+  directoryActions.sendAd(currentRoomAd(),target||null);
+}
+function startRoomAdvertising(){
+  clearInterval(directoryAdvertTimer);announceRoom();directoryAdvertTimer=setInterval(function(){announceRoom()},4500);
+}
+function stopRoomAdvertising(sendClose){
+  clearInterval(directoryAdvertTimer);directoryAdvertTimer=null;
+  if(sendClose!==false&&directoryActions.close&&roomId)directoryActions.close({code:roomId,at:Date.now()});
+}
+async function refreshAvailableRooms(){
+  await ensureRoomDirectory();cleanupRoomDirectory();
+  if(directoryActions.query)directoryActions.query({at:Date.now()});
+  if(ui.roomValidationStatus)ui.roomValidationStatus.textContent="Atualizando salas...";
+  setTimeout(function(){renderAvailableRooms();if(ui.roomValidationStatus&&ui.roomValidationStatus.textContent==="Atualizando salas...")ui.roomValidationStatus.textContent=""},1400);
+}
+function normalizeRoomCode(value){return String(value||"").toUpperCase().trim()}
+async function probeRoomHost(codeValue){
+  let probe=null,timer=null,resolved=false;
+  try{
+    const mod=await import("https://esm.sh/@trystero-p2p/torrent"),joinRoom=mod.joinRoom;
+    probe=joinRoom({appId:"cronicas-de-nerdora-web-alpha-v03",trickleIce:true,relayConfig:{redundancy:3}},codeValue);
+    const check=probe.makeAction("roomcheck");
+    return await new Promise(function(resolve){
+      function finish(ok){if(resolved)return;resolved=true;clearTimeout(timer);try{probe&&probe.leave()}catch(e){}resolve(ok)}
+      check.onMessage=function(data){if(data&&data.kind==="pong"&&data.host===true)finish(true)};
+      probe.onPeerJoin=function(peerId){setTimeout(function(){check.send({kind:"ping",code:codeValue},{target:peerId})},80)};
+      timer=setTimeout(function(){finish(false)},4200);
+      setTimeout(function(){check.send({kind:"ping",code:codeValue})},500);
+    });
+  }catch(err){console.warn("Probe de sala",err);try{probe&&probe.leave()}catch(e){}return false}
+}
+async function roomExists(codeValue){
+  await ensureRoomDirectory();
+  if(roomFresh(availableRooms.get(codeValue)))return true;
+  if(directoryActions.query)directoryActions.query({at:Date.now(),code:codeValue});
+  await new Promise(function(r){setTimeout(r,850)});
+  if(roomFresh(availableRooms.get(codeValue)))return true;
+  return probeRoomHost(codeValue);
+}
+async function validateAndJoinRoom(rawCode){
+  const codeValue=normalizeRoomCode(rawCode);
+  if(!/^NRD-[A-Z0-9]{4}$/.test(codeValue)){
+    if(ui.roomValidationStatus)ui.roomValidationStatus.textContent="Código inválido. Use o formato NRD-AB12.";
+    return toast("Use um código no formato NRD-AB12.");
+  }
+  if(ui.roomCodeInput)ui.roomCodeInput.value=codeValue;
+  if(ui.roomValidationStatus){ui.roomValidationStatus.className="room-validation-status checking";ui.roomValidationStatus.textContent="Verificando se o anfitrião está online..."}
+  const exists=await roomExists(codeValue);
+  if(!exists){
+    if(ui.roomValidationStatus){ui.roomValidationStatus.className="room-validation-status error";ui.roomValidationStatus.textContent="Sala não encontrada ou anfitrião offline."}
+    return toast("Essa sala não existe ou já foi fechada.");
+  }
+  if(ui.roomValidationStatus){ui.roomValidationStatus.className="room-validation-status ok";ui.roomValidationStatus.textContent="Sala encontrada. Entrando..."}
+  await beginOnline(false,codeValue);
+}
+async function openRoomBrowser(){
+  mode="online";showScreen("roomBrowserScreen");renderAvailableRooms();await refreshAvailableRooms();
+}
+async function leaveGameRoom(opts){
+  opts=opts||{};stopRoomAdvertising();
+  if(room){try{room.leave()}catch(e){}}
+  room=null;p2pReady=false;hostPeerId=null;participants.clear();
+  remoteVoice.forEach(function(rec){rec.audio.srcObject=null;rec.audio.remove()});remoteVoice.clear();peerVoiceState.clear();peerStatsBaseline.clear();
+  clearInterval(voiceStatsTimer);voiceStatsTimer=null;
+  if(opts.keepDirectory===false&&directoryRoom){try{directoryRoom.leave()}catch(e){}directoryRoom=null;directoryReady=false}
+}
+async function prepareOnlineConnection(host,codeValue){
+  if(room)await leaveGameRoom({keepDirectory:true});
+  mode="online";isHost=host;roomId=codeValue;hostPeerId=host?"self":null;participants.clear();p2pReady=false;room=null;player=null;
+  const url=new URL(location.href);url.searchParams.set("room",roomId);history.replaceState({},"",url);
+  await connectP2P();
+}
+async function createOnlineRoom(){
+  mode="online";isHost=true;hostCampaignChosen=false;
+  const codeValue=randomCode();await prepareOnlineConnection(true,codeValue);
+  await ensureRoomDirectory();startRoomAdvertising();openMode("online");
+  if(ui.createdRoomCode)ui.createdRoomCode.textContent=roomId;
+}
+async function hostConfirmCampaign(){
+  if(!isHost||!roomId)return;
+  hostCampaignChosen=true;sendCampaignInfo();announceRoom();beginCharacter();
+}
 function renderCampaigns(){
   ui.campaignGrid.innerHTML="";
   Object.values(CAMPAIGNS).forEach(c=>{
