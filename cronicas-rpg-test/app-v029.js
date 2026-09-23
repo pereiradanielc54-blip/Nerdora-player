@@ -971,7 +971,7 @@ function changeCreationAttr(key,delta){
 function skillCard(skill,type="available",char=draft){
   const req=Object.entries(skill.req||{}).map(([a,v])=>`${a} ${v}`).join(" • ");
   const can=meetsReq(skill,char);
-  return `<article class="skill-card ${type} ${!can&&type==="available"?"locked":""}" data-skill="${skill.id}"><strong>${esc(skill.name)}</strong><p>${esc(skill.desc)}</p><div class="tags"><span>Nv. ${skill.level}</span><span>${esc(skill.cost)}</span>${req?`<span>${req}</span>`:""}</div>${type==="available"&&can?'<button title="Aprender">+</button>':""}</article>`;
+  return `<article class="skill-card ${type} ${!can&&type==="available"?"locked":""}" data-skill="${skill.id}"><div class="skill-icon">${skillIcon(skill)}</div><div class="skill-copy"><strong>${esc(skill.name)}</strong><p>${esc(skill.desc)}</p><div class="tags"><span>Nv. ${skill.level}</span><span>${esc(skill.cost)}</span>${req?`<span>${req}</span>`:""}</div></div>${type==="available"&&can?'<button title="Aprender">+</button>':""}</article>`;
 }
 function renderSkills(){
   if(!draft)return;
