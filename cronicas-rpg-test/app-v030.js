@@ -661,7 +661,7 @@ function renderWorldEventCards(){
   const cards=(state.worldEventLog||[]).slice(0,4);
   ui.worldEventCards.innerHTML=cards.length?cards.map(function(ev){
     const icon=ev.kind==="pressure"?"⏳":ev.kind==="location"?"⌖":"☾";
-    return "<article class='world-event-card "+esc(ev.kind)+"'><div class='event-seal'>"+icon+"</div><div><strong>"+esc(ev.title)+"</strong><small>"+esc(ev.location||"Vhalora")+"</small><p>"+esc(ev.text)+"</p></div></article>";
+    return "<article class='world-event-card "+esc(ev.kind)+"'><div class='event-thumb event-"+locationVisualKey(ev.location||state.location)+"'><span>"+icon+"</span></div><div><strong>"+esc(ev.title)+"</strong><small>"+esc(ev.location||"Vhalora")+"</small><p>"+esc(ev.text)+"</p></div></article>";
   }).join(""):"<p class='muted'>Nenhum evento mundial registrado ainda.</p>";
 }
 function directorSignature(){
@@ -818,7 +818,7 @@ const ui={};
 "campaignTitle","modeBadge","roomCode","copyInviteBtn","partyList","connectionStatus","voiceBtn","voiceStatus","selfAvatar","selfName","selfClass","selfStats",
 "hpBar","mpBar","hpText","mpText","locationName","worldDay","worldTime","storyLog","dicePrompt","dicePromptLabel","dicePromptHelp","interactiveDie",
 "quickActions","actionInput","speechBtn","freeRollBtn","sendActionBtn","objectiveText","clueList","mysteryLabel","mysteryBar","sheetSummary","sheetStats",
-"unspentBox","sheetSkills","sheetAvailableSkills","alphaLevelBtn","chatLog","chatInput","chatSendBtn","toast","diceOverlay","diceCard","diceWho","diceResult","diceFormula","audioMount","mobileGameNav","orientationHint","orientationLandscapeBtn","orientationContinueBtn","orientationDontShow","masterMemoryTitle","masterMemoryCount","masterMemoryInsight","masterMemoryList","evidenceList","importantPerson","characterFear","personalGoal","npcRelationList","sceneSigil","sceneBannerLabel","lobbyEmblem","campaignSeal","sceneBanner","worldEventCards"
+"unspentBox","sheetSkills","sheetAvailableSkills","alphaLevelBtn","chatLog","chatInput","chatSendBtn","toast","diceOverlay","diceCard","diceWho","diceResult","diceFormula","audioMount","mobileGameNav","orientationHint","orientationLandscapeBtn","orientationContinueBtn","orientationDontShow","masterMemoryTitle","masterMemoryCount","masterMemoryInsight","masterMemoryList","evidenceList","importantPerson","characterFear","personalGoal","npcRelationList","sceneSigil","sceneBannerLabel","lobbyEmblem","campaignSeal","sceneBanner","worldEventCards","sceneArtUse"
 ].forEach(k=>ui[k]=$(k));
 
 let mode="online";
@@ -874,14 +874,11 @@ function freshDraft(){
 function classSkills(cls=selectedClass){return SKILLS[cls]||[]}
 function getSkill(id,cls=player?.className||selectedClass){return classSkills(cls).find(s=>s.id===id)}
 function skillIcon(skill){
-  const id=skill?.id||"",n=norm(skill?.name||"");
-  if(id.startsWith("war_")){if(/aparar|guard|interpor/.test(n))return "🛡️";if(/investida|avanco/.test(n))return "⚡";if(/provocar/.test(n))return "🗯️";if(/folego/.test(n))return "❤️";return "⚔️"}
-  if(id.startsWith("mag_")){if(/barreira|selo/.test(n))return "🔷";if(/passo|tele/.test(n))return "🌀";if(/luz|leitura|sonda/.test(n))return "🔮";if(/contra/.test(n))return "✴️";return "✨"}
-  if(id.startsWith("ass_")){if(/veneno/.test(n))return "☠️";if(/sombra|fantasma|furt/.test(n))return "🌑";if(/exec/.test(n))return "🗡️";return "🎯"}
-  if(id.startsWith("cur_")){if(/cura|regenera/.test(n))return "💚";if(/purifica/.test(n))return "💧";if(/escudo|protec/.test(n))return "🕊️";if(/ressur/.test(n))return "✝️";return "✨"}
-  if(id.startsWith("inv_")){if(/familiar|invoc/.test(n))return "🐉";if(/pacto/.test(n))return "📜";if(/sacrificio/.test(n))return "🩸";return "👁️"}
-  if(id.startsWith("cac_")){if(/armadilha/.test(n))return "🪤";if(/olho|rastre/.test(n))return "👁️";if(/flecha|tiro/.test(n))return "🏹";return "🧭"}
-  return "✦";
+  const id=skill?.id||"";
+  return id?`<svg class="skill-svg" viewBox="0 0 32 32" aria-hidden="true"><use href="./assets/skill-icons.svg#${esc(id)}"></use></svg>`:"✦";
+}
+function assetSlug(value){
+  return norm(value||"").replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"");
 }
 function locationVisualKey(location){
   const n=norm(location||"");
@@ -894,14 +891,10 @@ function locationVisualKey(location){
   return "village";
 }
 function npcSigil(rel){
-  const role=norm(rel?.role||"");
-  if(/rainha|soberana|nobre/.test(role))return "♛";
-  if(/padre|igreja|sacerd/.test(role))return "✝";
-  if(/arquiv|escrib/.test(role))return "✒";
-  if(/curande/.test(role))return "✚";
-  if(/mina|capataz|forja/.test(role))return "⚒";
-  if(/entidade/.test(role))return "◉";
-  return (rel?.name||"?").slice(0,1).toUpperCase();
+  const known={colecionador:true,maeryn:true,ilyan:true,cassian:true,sera:true,borik:true,sella:true,yara:true,dorran:true};
+  const id=String(rel?.id||"");
+  if(known[id])return `<img src="./assets/npcs/${id}.svg" alt="" loading="lazy"/>`;
+  return esc((rel?.name||"?").slice(0,1).toUpperCase());
 }
 function meetsReq(skill,char=draft){
   return Object.entries(skill.req||{}).every(([a,v])=>(char.stats?.[a]||0)>=v);
@@ -1514,7 +1507,7 @@ function renderState(){
   const c=CAMPAIGNS[state.campaignId];
   setTheme(state.campaignId);ui.campaignTitle.textContent=c.title;ui.locationName.textContent=state.location;ui.objectiveText.textContent=state.objective;
   if(ui.sceneSigil)ui.sceneSigil.textContent=c.icon||"✦";if(ui.campaignSeal)ui.campaignSeal.textContent=c.icon||"✦";
-  if(ui.sceneBannerLabel)ui.sceneBannerLabel.textContent=(c.tone||"MESA DE AVENTURA").toUpperCase()+" • "+String(state.location||"").toUpperCase();if(ui.sceneBanner)ui.sceneBanner.className="scene-banner scene-"+locationVisualKey(state.location);
+  if(ui.sceneBannerLabel)ui.sceneBannerLabel.textContent=(c.tone||"MESA DE AVENTURA").toUpperCase()+" • "+String(state.location||"").toUpperCase();if(ui.sceneBanner)ui.sceneBanner.className="scene-banner scene-"+locationVisualKey(state.location);if(ui.sceneArtUse)ui.sceneArtUse.setAttribute("href","./assets/location-scenes.svg#"+assetSlug(state.location));
   const wt=worldTime();ui.worldDay.textContent="Dia "+wt.day;ui.worldTime.textContent=wt.time;
   const labels=state.campaignId==="vidro"?["Cerimônia","Rumores","Pressão","Alianças","Crise","Ruptura"]:state.campaignId==="coro"?["Sussurros","Canção","Contágio","Descida","Convergência","Assimilação"]:["Silêncio","Ecos","Substituições","Vazamento","Ancoragem","Propagação"];
   ui.mysteryLabel.textContent=labels[state.pressure]||labels[0];ui.mysteryBar.style.width=(8+state.pressure*18)+"%";
