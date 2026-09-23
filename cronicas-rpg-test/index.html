@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#090b12"/>
   <meta name="description" content="Crônicas de Nerdora — RPG narrativo multiplayer com Mestre Máquina."/>
   <title>Crônicas de Nerdora — Web Alpha 0.2</title>
-  <link rel="stylesheet" href="./styles-v026.css"/>
+  <link rel="stylesheet" href="./styles-v027.css"/>
 </head>
 <body data-theme="derenfall">
   <div class="ambient"></div><div class="noise"></div>
@@ -25,7 +25,7 @@
       <div class="intro-copy">
         <div class="brand-lockup">
           <div class="brand-rune">N</div>
-          <div><p class="eyebrow">NERDORA APRESENTA</p><span class="edition-chip">WEB ALPHA 0.2.6</span></div>
+          <div><p class="eyebrow">NERDORA APRESENTA</p><span class="edition-chip">WEB ALPHA 0.2.7</span></div>
         </div>
 
         <h1>Crônicas de <span>Nerdora</span></h1>
@@ -112,6 +112,14 @@
           <span class="field-label">Classe</span>
           <div id="classGrid" class="class-grid"></div>
           <div id="classAdvice" class="advice-card"></div>
+          <div class="backstory-builder">
+            <div class="backstory-head"><span class="field-label">Ganchos pessoais <small>opcional, mas recomendado</small></span><p>O Mestre pode usar essas informações mais tarde, sem revelar quando ou como.</p></div>
+            <div class="backstory-grid">
+              <label class="field"><span>Pessoa importante</span><input id="importantPerson" maxlength="50" placeholder="Ex.: minha irmã Lysa"/></label>
+              <label class="field"><span>Medo ou fraqueza</span><input id="characterFear" maxlength="60" placeholder="Ex.: perder minhas lembranças"/></label>
+              <label class="field full-span"><span>Objetivo pessoal</span><input id="personalGoal" maxlength="80" placeholder="Ex.: descobrir o que aconteceu com meu pai"/></label>
+            </div>
+          </div>
           <button id="toStatsBtn" class="btn primary next-btn">Distribuir atributos →</button>
         </div>
 
@@ -217,6 +225,10 @@
           <h4>Evidências guardadas</h4><div id="evidenceList" class="clue-list evidence-list"></div>
           <h4>Conclusões ligadas</h4><div id="clueList" class="clue-list"></div>
           <h4>Pressão da história</h4><div class="mystery-meter"><span id="mysteryLabel">Calma</span><i><b id="mysteryBar"></b></i></div>
+          <div class="npc-relations-card">
+            <div class="npc-relations-head"><span>RELAÇÕES ENCONTRADAS</span><small>NPCs lembram como foram tratados</small></div>
+            <div id="npcRelationList" class="npc-relation-list"><p class="muted">Nenhuma relação relevante ainda.</p></div>
+          </div>
           <div class="master-memory-card">
             <div class="master-memory-head"><div><span>MEMÓRIA DO MESTRE</span><strong id="masterMemoryTitle">Aprendendo seu estilo</strong></div><span id="masterMemoryCount" class="memory-count">0</span></div>
             <p id="masterMemoryInsight" class="master-memory-insight">O Mestre começa sem assumir preferências e aprende apenas com ações realizadas durante as partidas.</p>
@@ -259,6 +271,6 @@
   });
 </script>
 <div id="bootError" hidden style="position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;background:#26151b;border:1px solid #78404d;color:#ffe6eb;padding:10px 14px;border-radius:12px;font:12px system-ui;max-width:min(90vw,520px);text-align:center"></div>
-<script type="module" src="./app-v026.js"></script>
+<script type="module" src="./app-v027.js"></script>
 </body>
 </html>
