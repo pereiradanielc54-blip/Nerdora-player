@@ -947,7 +947,7 @@ const ui={};
 "campaignTitle","modeBadge","roomCode","copyInviteBtn","partyList","connectionStatus","voiceBtn","voiceStatus","selfAvatar","selfName","selfClass","selfStats",
 "hpBar","mpBar","hpText","mpText","locationName","worldDay","worldTime","storyLog","dicePrompt","dicePromptLabel","dicePromptHelp","interactiveDie",
 "quickActions","actionInput","speechBtn","freeRollBtn","sendActionBtn","objectiveText","clueList","mysteryLabel","mysteryBar","sheetSummary","sheetStats",
-"unspentBox","sheetSkills","sheetAvailableSkills","alphaLevelBtn","chatLog","chatInput","chatSendBtn","toast","diceOverlay","diceCard","diceWho","diceResult","diceFormula","audioMount","mobileGameNav","orientationHint","orientationLandscapeBtn","orientationContinueBtn","orientationDontShow","masterMemoryTitle","masterMemoryCount","masterMemoryInsight","masterMemoryList","evidenceList","importantPerson","characterFear","personalGoal","npcRelationList","sceneSigil","sceneBannerLabel","lobbyEmblem","campaignSeal","sceneBanner","worldEventCards","sceneArtUse","goldCount","equipmentSlots","inventoryList"
+"unspentBox","sheetSkills","sheetAvailableSkills","alphaLevelBtn","chatLog","chatInput","chatSendBtn","toast","diceOverlay","diceCard","diceWho","diceResult","diceFormula","audioMount","mobileGameNav","orientationHint","orientationLandscapeBtn","orientationContinueBtn","orientationDontShow","masterMemoryTitle","masterMemoryCount","masterMemoryInsight","masterMemoryList","evidenceList","importantPerson","characterFear","personalGoal","npcRelationList","sceneSigil","sceneBannerLabel","lobbyEmblem","campaignSeal","sceneBanner","worldEventCards","sceneArtUse","goldCount","equipmentSlots","inventoryList","campaignThreads"
 ].forEach(k=>ui[k]=$(k));
 
 let mode="online";
@@ -1761,6 +1761,26 @@ function resolveCampaignInvestigation(actor,r,cid,loc,text){
   advanceTime(r.success?6:8);updateCampaignObjective();
 }
 
+function renderCampaignThreads(){
+  if(!ui.campaignThreads||!state)return;
+  let threads=[];
+  if(state.campaignId==="vidro")threads=[
+    ["Aparição da Coroa",hasClue("vidroeco")],
+    ["Documentos oficiais",hasClue("vidroselos")||hasClue("vidrocustodia")],
+    ["Testemunhos",hasClue("vidrotestemunhas")||hasClue("vidroescriba")],
+    ["Genealogia",hasClue("vidrolinhagem")],
+    ["Jogo político",hasClue("vidroconcilio")||hasClue("vidrointeresse")]
+  ];
+  else if(state.campaignId==="coro")threads=[
+    ["Pacientes",hasClue("cororesp")||hasClue("corofebre")],
+    ["Geometria da mina",hasClue("coromapa")],
+    ["Ressonância",hasClue("corofrequencia")||hasClue("cororitmo")],
+    ["Ritual antigo",hasClue("coropedra")],
+    ["Memória mineral",hasClue("corominerio")||hasClue("coromemoria")||hasClue("corofonte")]
+  ];
+  else {ui.campaignThreads.innerHTML="";return}
+  ui.campaignThreads.innerHTML="<div class='threads-head'><span>FRENTES DA INVESTIGAÇÃO</span><small>"+threads.filter(function(x){return x[1]}).length+"/"+threads.length+" conectadas</small></div><div class='thread-grid'>"+threads.map(function(t){return "<div class='thread-chip "+(t[1]?"done":"open")+"'><i>"+(t[1]?"✓":"?")+"</i><span>"+esc(t[0])+"</span></div>"}).join("")+"</div>";
+}
 function renderState(){
   if(!state)return;
   ensureStateShape();tryResolveRevelations();
@@ -1771,7 +1791,7 @@ function renderState(){
   const wt=worldTime();ui.worldDay.textContent="Dia "+wt.day;ui.worldTime.textContent=wt.time;
   const labels=state.campaignId==="vidro"?["Cerimônia","Rumores","Pressão","Alianças","Crise","Ruptura"]:state.campaignId==="coro"?["Sussurros","Canção","Contágio","Descida","Convergência","Assimilação"]:["Silêncio","Ecos","Substituições","Vazamento","Ancoragem","Propagação"];
   ui.mysteryLabel.textContent=labels[state.pressure]||labels[0];ui.mysteryBar.style.width=(8+state.pressure*18)+"%";
-  discoverNpcsForLocation(state.location);renderStory();renderClues();renderQuickActions();renderCampaignMap();renderDicePrompt();renderSheet();renderNpcRelations();renderWorldEventCards();renderMasterMemory();checkLastRoll();
+  discoverNpcsForLocation(state.location);renderCampaignThreads();renderStory();renderClues();renderQuickActions();renderCampaignMap();renderDicePrompt();renderSheet();renderNpcRelations();renderWorldEventCards();renderMasterMemory();checkLastRoll();
 }
 function renderStory(){
   for(const e of state.story){
