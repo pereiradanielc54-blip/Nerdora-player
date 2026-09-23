@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#090b12"/>
   <meta name="description" content="Crônicas de Nerdora — RPG narrativo multiplayer com Mestre Máquina."/>
   <title>Crônicas de Nerdora — Web Alpha 0.2</title>
-  <link rel="stylesheet" href="./styles-v022.css"/>
+  <link rel="stylesheet" href="./styles-v023.css"/>
 </head>
 <body data-theme="derenfall">
   <div class="ambient"></div><div class="noise"></div>
@@ -25,7 +25,7 @@
       <div class="intro-copy">
         <div class="brand-lockup">
           <div class="brand-rune">N</div>
-          <div><p class="eyebrow">NERDORA APRESENTA</p><span class="edition-chip">WEB ALPHA 0.2.2</span></div>
+          <div><p class="eyebrow">NERDORA APRESENTA</p><span class="edition-chip">WEB ALPHA 0.2.3</span></div>
         </div>
 
         <h1>Crônicas de <span>Nerdora</span></h1>
@@ -187,6 +187,28 @@
           <div class="action-tools"><button id="speechBtn" class="tool-btn">🎤 Ditar</button><button id="freeRollBtn" class="tool-btn">🎲 D20 livre</button><button id="sendActionBtn" class="btn primary">Agir</button></div>
         </div>
       </section>
+  <nav id="mobileGameNav" class="mobile-game-nav" aria-label="Navegação da campanha">
+    <button class="mobile-nav-btn active" data-mobile-panel="story" type="button"><span>🎭</span><small>Mesa</small></button>
+    <button class="mobile-nav-btn" data-mobile-panel="party" type="button"><span>👥</span><small>Grupo</small></button>
+    <button class="mobile-nav-btn" data-mobile-panel="journal" type="button"><span>📖</span><small>Diário</small></button>
+    <button class="mobile-nav-btn" data-mobile-panel="character" type="button"><span>🧙</span><small>Ficha</small></button>
+    <button class="mobile-nav-btn" data-mobile-panel="chat" type="button"><span>💬</span><small>Chat</small></button>
+  </nav>
+
+  <div id="orientationHint" class="orientation-hint hidden" role="dialog" aria-modal="true" aria-labelledby="orientationTitle">
+    <div class="orientation-card">
+      <div class="rotate-phone" aria-hidden="true"><span>✦</span></div>
+      <p class="eyebrow">DICA PARA CELULAR</p>
+      <h3 id="orientationTitle">A mesa fica ainda melhor de lado</h3>
+      <p>Em <strong>paisagem</strong>, Companhia, aventura e ficha aparecem juntas como no computador. Em retrato, use a barra inferior para acessar as mesmas informações.</p>
+      <div class="orientation-actions">
+        <button id="orientationLandscapeBtn" class="btn primary" type="button">↻ Tentar modo paisagem</button>
+        <button id="orientationContinueBtn" class="btn secondary" type="button">Continuar em retrato</button>
+      </div>
+      <label class="orientation-never"><input id="orientationDontShow" type="checkbox"/> Não mostrar esta dica novamente</label>
+    </div>
+  </div>
+
 
       <aside class="panel info-panel">
         <div class="tabs"><button class="tab active" data-tab="journal">Diário</button><button class="tab" data-tab="character">Personagem</button><button class="tab" data-tab="chat">Chat</button></div>
@@ -222,6 +244,6 @@
   });
 </script>
 <div id="bootError" hidden style="position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;background:#26151b;border:1px solid #78404d;color:#ffe6eb;padding:10px 14px;border-radius:12px;font:12px system-ui;max-width:min(90vw,520px);text-align:center"></div>
-<script type="module" src="./app-v022.js"></script>
+<script type="module" src="./app-v023.js"></script>
 </body>
 </html>
