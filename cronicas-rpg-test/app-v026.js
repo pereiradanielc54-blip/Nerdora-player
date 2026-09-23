@@ -1203,7 +1203,7 @@ function resolveRollContext(actor,r,ctx){
   }
   if(ctx.kind==="deren_fenda"){
     addStory("master","Mestre Máquina",r.success?"Seguindo ecos que repetem nomes incompletos, vocês atravessam uma porta suspensa e alcançam um salão atravessado por fios de luz. Uma criatura feita de máscaras se ergue no centro.\n\n— Vocês ainda carregam seus nomes — ela diz. — Que desperdício.":"As ruas se repetem e tentam separar o grupo usando vozes conhecidas. Vocês permanecem juntos, mas chegam ao centro da anomalia depois de perder a noção de distância.",r.formula);
-    moveTo("Salão das Memórias");addClue("colecionador");state.objective="Decidir como recuperar as memórias de Derenfall.";return;
+    moveTo("Salão das Memórias");state.objective="Investigar a entidade, os fios e os moradores antes de decidir como agir.";return;
   }
   if(ctx.kind==="deren_seal"){
     if(r.success&&state.clues.includes("nhal")){addStory("master","Mestre Máquina","O padrão de Nhal funciona como âncora. Os fios de memória retornam aos moradores enquanto a Fenda perde forma.",r.formula);finishEnding("Selo de Nhal","Os moradores retornam com a maior parte das memórias preservada. A tecnologia descoberta pode atrair facções em campanhas futuras.")}
@@ -1225,19 +1225,22 @@ function resolveRollContext(actor,r,ctx){
 }
 function resolveDerenInvestigation(actor,r,loc,text){
   let result="";
-  if(loc==="Estrada de Derenfall"){result=r.success?"Na lama há marcas de carroça e passos interrompidos perto do portão. Ninguém parece ter fugido pela estrada.":"A chuva destruiu quase todos os rastros, mas não existem marcas suficientes para uma evacuação.";addClue("silencio")}
-  else if(loc==="Praça de Derenfall"){result=r.success?"A carroça caiu enquanto era descarregada. Nada foi saqueado. Tarefas em casas diferentes foram interrompidas quase no mesmo momento.":"O lugar parece congelado no meio de uma rotina. Não há sinais de batalha.";addClue("silencio")}
-  else if(loc==="Hospedaria"){result=r.success?"A última anotação do livro começa firme: 'Cobrei dois quartos. Preparei a ceia. Meu nome é...' Depois há dezenas de tentativas vazias.":"O livro confirma atividade recente, mas a última assinatura está estranhamente incompleta.";addClue("livro")}
-  else if(loc==="Igreja"){result=r.success?"Sob o altar, a pedra responde com eco oco. Um encaixe circular esconde uma abertura lacrada por símbolos quase apagados.":"O piso do altar não pertence à construção original. Há algo sob a igreja, mas o acesso ainda não está claro.";addClue("sino");if(r.success)addClue("fundacao")}
-  else if(loc==="Cemitério"){result=r.success?"As fissuras partem de dentro das letras das lápides, como se a pedra tivesse esquecido quem deveria registrar.":"Vários nomes estão parcialmente apagados de modo impossível para ferramentas comuns.";addClue("lapides")}
-  else if(loc==="Escola"){result=r.success?"As datas mostram que a 'casa com céu dentro' começou a aparecer semanas antes do desaparecimento. Crianças diferentes desenharam a mesma figura de muitos rostos.":"Desenhos repetem a mesma arquitetura impossível vezes demais para ser coincidência.";addClue("desenhos")}
-  else if(loc==="Capela Antiga"){result=r.success?"O símbolo corresponde a técnicas de Nhal para separar memória de matéria. Uma linha aponta para a fundação da igreja.":"O símbolo é pré-Ruptura e foi coberto deliberadamente por reformas.";addClue("nhal");if(r.success)addClue("fundacao")}
-  else if(loc==="Poço"){result=r.success?"O som não nasce do fundo. A voz se forma acima da água como lembrança reproduzida no lugar errado.":"A voz imita alguém importante, mas erra detalhes íntimos.";addClue("memoria")}
-  else if(loc==="Fenda Memorial"){result=r.success?"As ruas repetidas estão ligadas a memórias dos moradores. Silhuetas humanas caminham sem reconhecer as próprias casas.":"Vocês encontram moradores vivos, mas eles olham seus lares como cenários desconhecidos.";addClue("memoria")}
-  else if(loc==="Salão das Memórias"){result=r.success?"Fios luminosos conectam máscaras do Colecionador às lembranças humanas. Destruí-lo sem preparar a devolução pode romper vínculos.":"O Colecionador não apenas guarda memórias; ele depende delas.";addClue("colecionador")}
-  else result=r.success?"A investigação encontra uma evidência útil que reduz hipóteses possíveis.":"A busca revela apenas sinais incompletos, mas não bloqueia a continuação.";
-  if(r.critical)result+=" Um segundo detalhe aparece com clareza extraordinária.";
-  if(r.fumble)result+=" A busca também causa ruído, atraso ou deixa um sinal da presença do grupo.";
+  if(!r.success){
+    result="A investigação encontra sinais incompletos, mas ainda não há base suficiente para formar uma conclusão. A evidência continua disponível para ser cruzada depois.";
+    addStory("master","Mestre Máquina",result,r.formula);advanceTime(6);return;
+  }
+  if(loc==="Estrada de Derenfall"){addEvidence("ev_no_exodus",loc);result="Os rastros chegam à vila, mas não registram uma saída coletiva pela estrada."}
+  else if(loc==="Praça de Derenfall"){addEvidence("ev_square_interrupt",loc);result="Carga, objetos e tarefas foram interrompidos na praça sem sinais claros de luta."}
+  else if(loc==="Hospedaria"){addEvidence("ev_inn_times",loc);result="Os horários do livro e da cozinha cessam quase juntos, mas isso sozinho ainda não explica o desaparecimento."}
+  else if(loc==="Igreja"){addEvidence("ev_hollow_altar",loc);result="O piso do altar esconde uma estrutura mais antiga. Sua função ainda não está determinada."}
+  else if(loc==="Cemitério"){addEvidence("ev_names_erasing",loc);result="As inscrições apresentam um apagamento impossível, mas a causa permanece desconhecida."}
+  else if(loc==="Escola"){addEvidence("ev_drawings",loc);result="Desenhos de crianças diferentes repetem formas e lugares semelhantes."}
+  else if(loc==="Capela Antiga"){addEvidence("ev_nhal_symbol",loc);result="Os símbolos podem ser identificados como geometria de Nhal, mas ainda falta contexto para saber por que estão aqui."}
+  else if(loc==="Poço"){addEvidence("ev_wrong_voice",loc);result="A voz reproduz informações corretas e incorretas ao mesmo tempo. O fenômeno fica registrado sem interpretação definitiva."}
+  else if(loc==="Fenda Memorial"){addEvidence("ev_residents_identity",loc);result="Os moradores estão vivos, porém demonstram falhas claras de identidade e reconhecimento."}
+  else if(loc==="Salão das Memórias"){addEvidence("ev_entity_threads",loc);result="A entidade está fisicamente conectada à rede luminosa, mas isso ainda não explica sua origem ou intenção."}
+  else result="A investigação produz uma observação concreta, mas ainda não existem peças suficientes para uma conclusão.";
+  if(r.critical)result+=" Um detalhe adicional fica registrado para comparação futura.";
   addStory("master","Mestre Máquina",result,r.formula);advanceTime(7);
 }
 function resolveCampaignInvestigation(actor,r,cid,loc,text){
