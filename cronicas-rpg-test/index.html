@@ -6,28 +6,62 @@
   <meta name="theme-color" content="#090b12"/>
   <meta name="description" content="Crônicas de Nerdora — RPG narrativo multiplayer com Mestre Máquina."/>
   <title>Crônicas de Nerdora — Web Alpha 0.2</title>
-  <link rel="stylesheet" href="./styles.css"/>
+  <link rel="stylesheet" href="./styles-v021.css"/>
 </head>
 <body data-theme="derenfall">
   <div class="ambient"></div><div class="noise"></div>
 
   <section id="introScreen" class="screen active intro-screen">
     <div class="kingdom-bg" aria-hidden="true">
-      <div class="moon"></div><div class="mountains"></div><div class="castle"><i></i><i></i><i></i><b></b></div><div class="fog"></div>
+      <div class="sky-stars"></div>
+      <div class="moon"></div>
+      <div class="mountains"></div>
+      <div class="castle"><i></i><i></i><i></i><b></b></div>
+      <div class="road"></div>
+      <div class="fog"></div>
     </div>
-    <div class="intro-content">
-      <div class="brand-rune">N</div>
-      <p class="eyebrow">NERDORA APRESENTA</p>
-      <h1>Crônicas de <span>Nerdora</span></h1>
-      <p class="intro-lead">Um RPG de mesa digital em Vhalora. Crie seu aventureiro, reúna sua companhia e enfrente histórias que mudam de acordo com as decisões do grupo.</p>
-      <div class="lore-strip">
-        <span>⚔️ Escolhas livres</span><span>🎲 D20 e atributos</span><span>🎙️ Mesa por voz</span><span>🧠 Mestre Máquina</span>
+
+    <div class="intro-frame">
+      <div class="intro-copy">
+        <div class="brand-lockup">
+          <div class="brand-rune">N</div>
+          <div><p class="eyebrow">NERDORA APRESENTA</p><span class="edition-chip">WEB ALPHA 0.2.1</span></div>
+        </div>
+
+        <h1>Crônicas de <span>Nerdora</span></h1>
+        <p class="intro-kicker">Toda escolha deixa uma marca.</p>
+        <p class="intro-lead">Entre em Vhalora, crie um aventureiro único e viva campanhas conduzidas por um Mestre Máquina que reage às decisões da companhia — sem uma rota única obrigatória.</p>
+
+        <div class="world-note">
+          <span class="world-note-icon">✦</span>
+          <div><strong>Vhalora • 487 Após a Ruptura</strong><p>Reinos disputam poder enquanto Fendas, Éter e memórias antigas remodelam o mundo.</p></div>
+        </div>
+
+        <div class="lore-strip">
+          <span>⚔️ Escolhas livres</span><span>🎲 D20 interativo</span><span>🎙️ Mesa por voz</span><span>🧠 Mestre Máquina</span>
+        </div>
       </div>
-      <div class="intro-actions">
-        <button id="onlineBtn" class="btn primary large">🌐 Jogar Online</button>
-        <button id="soloBtn" class="btn secondary large">🗡️ Campanha Solo</button>
-      </div>
-      <p class="fineprint">Web Alpha 0.2 • versão de testes antes da integração ao Nerdora</p>
+
+      <aside class="entry-panel">
+        <p class="eyebrow">COMECE SUA JORNADA</p>
+        <h2>Como você quer jogar?</h2>
+        <p class="entry-sub">Escolha um modo. O personagem será criado na próxima etapa.</p>
+
+        <button id="onlineBtn" class="mode-card mode-online" type="button">
+          <span class="mode-icon">🌐</span>
+          <span class="mode-copy"><strong>Companhia Online</strong><small>Crie uma sala ou entre com um código. A campanha começa com 2 jogadores ou mais.</small></span>
+          <span class="mode-arrow">→</span>
+        </button>
+
+        <button id="soloBtn" class="mode-card mode-solo" type="button">
+          <span class="mode-icon">🗡️</span>
+          <span class="mode-copy"><strong>Campanha Solo</strong><small>Entre sozinho em Vhalora e deixe o Mestre Máquina conduzir sua aventura.</small></span>
+          <span class="mode-arrow">→</span>
+        </button>
+
+        <div class="entry-divider"></div>
+        <div class="entry-status"><span class="status-pulse"></span><span>Protótipo de testes • progresso local no navegador</span></div>
+      </aside>
     </div>
   </section>
 
@@ -177,6 +211,17 @@
   <div id="toast" class="toast"></div>
   <div id="diceOverlay" class="dice-overlay hidden"><div id="diceCard" class="dice-card"><span id="diceWho">Rolagem</span><strong id="diceResult">20</strong><small id="diceFormula">1d20</small></div></div>
   <div id="audioMount" class="audio-mount"></div>
-  <script type="module" src="./app.js"></script>
+  <script>
+  window.addEventListener("error", function (event) {
+    const box = document.getElementById("bootError");
+    if (box) {
+      box.hidden = false;
+      box.textContent = "Falha ao iniciar a interface. Atualize a página para carregar a versão mais recente.";
+    }
+    console.error("Crônicas de Nerdora:", event.error || event.message);
+  });
+</script>
+<div id="bootError" hidden style="position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;background:#26151b;border:1px solid #78404d;color:#ffe6eb;padding:10px 14px;border-radius:12px;font:12px system-ui;max-width:min(90vw,520px);text-align:center"></div>
+<script type="module" src="./app-v021.js"></script>
 </body>
 </html>
