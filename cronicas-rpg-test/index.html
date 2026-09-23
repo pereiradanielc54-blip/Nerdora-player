@@ -6,7 +6,13 @@
   <meta name="theme-color" content="#090b12"/>
   <meta name="description" content="Crônicas de Nerdora — RPG narrativo multiplayer com Mestre Máquina."/>
   <title>Crônicas de Nerdora — Web Alpha 0.2</title>
-  <link rel="stylesheet" href="./styles-v033.css"/>
+  <link rel="stylesheet" href="./styles-v034.css"/>
+  <link rel="manifest" href="./manifest.webmanifest"/>
+  <meta name="theme-color" content="#17100d"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <link rel="icon" href="./assets/app-icon.svg" type="image/svg+xml"/>
 </head>
 <body data-theme="derenfall">
   <div class="ambient"></div><div class="noise"></div><div class="tabletop-grain" aria-hidden="true"></div><div class="corner-runes rune-a" aria-hidden="true">✦</div><div class="corner-runes rune-b" aria-hidden="true">✧</div>
@@ -25,7 +31,7 @@
       <div class="intro-copy">
         <div class="brand-lockup">
           <div class="brand-rune">N</div>
-          <div><p class="eyebrow">NERDORA APRESENTA</p><span class="edition-chip">WEB ALPHA 0.3.3</span></div>
+          <div><p class="eyebrow">NERDORA APRESENTA</p><span class="edition-chip">WEB ALPHA 0.3.4</span></div>
         </div>
 
         <h1>Crônicas de <span>Nerdora</span></h1>
@@ -59,10 +65,37 @@
           <span class="mode-arrow">→</span>
         </button>
 
-        <div class="entry-divider"></div>
+        <button id="installAppBtn" class="install-app-btn" type="button"><span>⬇</span><div><strong>Instalar no celular</strong><small>Abra Crônicas de Nerdora pela tela inicial, como um app.</small></div></button><div class="entry-divider"></div>
         <div class="entry-status"><span class="status-pulse"></span><span>Protótipo de testes • progresso local no navegador</span></div>
       </aside>
     </div>
+  </section>
+
+  <section id="roomBrowserScreen" class="screen setup-screen room-browser-screen">
+    <header class="setup-head"><button id="roomBrowserBackBtn" class="back-btn">←</button><div><p class="eyebrow">COMPANHIA ONLINE</p><h2>Escolha uma sala</h2></div></header>
+    <main class="room-browser-shell">
+      <section class="room-choice-grid">
+        <article class="setup-card room-choice-card">
+          <span class="room-choice-icon">✦</span>
+          <h3>Criar uma sala</h3>
+          <p>Primeiro criamos a sala e o código. Depois você escolhe qual campanha a companhia vai jogar.</p>
+          <button id="createRoomBtn" class="btn primary full">Criar sala</button>
+        </article>
+        <article class="setup-card room-choice-card">
+          <span class="room-choice-icon">⌁</span>
+          <h3>Entrar em uma sala</h3>
+          <p>O código só será aceito se o anfitrião estiver realmente com a sala aberta.</p>
+          <label class="field"><span>Código da sala</span><input id="roomCodeInput" maxlength="12" placeholder="NRD-AB12" autocapitalize="characters"/></label>
+          <button id="joinRoomBtn" class="btn secondary full">Verificar e entrar</button>
+          <div id="roomValidationStatus" class="room-validation-status"></div>
+        </article>
+      </section>
+      <section class="available-rooms-card">
+        <div class="available-rooms-head"><div><p class="eyebrow">SALAS DISPONÍVEIS</p><h3>Companhias aguardando jogadores</h3></div><button id="refreshRoomsBtn" class="btn secondary">↻ Atualizar</button></div>
+        <p class="muted">A lista mostra apenas anfitriões que estão anunciando uma sala aberta neste momento.</p>
+        <div id="availableRoomsList" class="available-rooms-list"><div class="rooms-loading">Procurando salas abertas...</div></div>
+      </section>
+    </main>
   </section>
 
   <section id="modeScreen" class="screen setup-screen">
@@ -74,12 +107,11 @@
         <div id="campaignGrid" class="campaign-grid"></div>
       </section>
       <aside id="onlineControls" class="setup-card">
-        <h3>Reunir companhia</h3>
-        <p>Crie uma sala nova ou entre usando o código de outro jogador.</p>
-        <button id="createRoomBtn" class="btn primary full">Criar sala</button>
-        <div class="divider"><span>ou</span></div>
-        <label class="field"><span>Código da sala</span><input id="roomCodeInput" maxlength="12" placeholder="NRD-AB12" autocapitalize="characters"/></label>
-        <button id="joinRoomBtn" class="btn secondary full">Entrar na sala</button>
+        <p class="eyebrow">SALA CRIADA</p>
+        <h3>Agora escolha a campanha</h3>
+        <p>O código já está ativo. Depois de escolher a campanha, crie seu personagem e aguarde a companhia.</p>
+        <div class="created-room-code"><span>SALA</span><strong id="createdRoomCode">—</strong></div>
+        <button id="hostCampaignContinueBtn" class="btn primary full">Escolher esta campanha →</button>
       </aside>
       <aside id="soloControls" class="setup-card hidden">
         <h3>Aventura individual</h3>
@@ -300,6 +332,6 @@
   });
 </script>
 <div id="bootError" hidden style="position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;background:#26151b;border:1px solid #78404d;color:#ffe6eb;padding:10px 14px;border-radius:12px;font:12px system-ui;max-width:min(90vw,520px);text-align:center"></div>
-<script type="module" src="./app-v033.js"></script>
+<script type="module" src="./app-v034.js"></script>
 </body>
 </html>
