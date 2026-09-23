@@ -630,12 +630,12 @@ function campaignCaseReady(cid=state?.campaignId){
   if(cid==="vidro"){
     const core=hasClue("vidroeco")&&hasClue("vidroselos")&&hasClue("vidrolinhagem");
     const secondary=["vidrotestemunhas","vidrocustodia","vidroescriba","vidroconcilio","vidrointeresse"].filter(hasClue).length;
-    return core&&secondary>=2;
+    return core&&secondary>=3;
   }
   if(cid==="coro"){
     const core=hasClue("cororesp")&&hasClue("corominerio")&&hasClue("coropedra");
     const secondary=["corofebre","cororitmo","coromapa","corofrequencia","coromemoria","corofonte"].filter(hasClue).length;
-    return core&&secondary>=2;
+    return core&&secondary>=3;
   }
   return false;
 }
@@ -1611,7 +1611,7 @@ function resolveGenericCampaign(actor,text){
   const action=findCampaignAction(text);
   if(action){requestRoll(actor,action.stat,action.df,action.label,{kind:"campaign_action",campaignId:state.campaignId,actionId:action.id});return}
   if(state.campaignId==="vidro"&&/apresentar as provas|provas a coroa|expor os documentos|confrontar a coroa/.test(n)){
-    if(!campaignCaseReady("vidro")){addStory("master","Mestre Máquina","Vocês já possuem peças importantes, mas ainda há brechas que a corte poderia explorar. Falta ligar a linhagem apagada ao encobrimento e cruzar pelo menos duas frentes independentes da investigação.");updateCampaignObjective();return}
+    if(!campaignCaseReady("vidro")){addStory("master","Mestre Máquina","Vocês já possuem peças importantes, mas ainda há brechas que a corte poderia explorar. Falta ligar a linhagem apagada ao encobrimento e cruzar pelo menos três frentes independentes da investigação.");updateCampaignObjective();return}
     const df=hasItem("archive_seal")?11:13;requestRoll(actor,"PRE",df,"Expor a verdade dinástica",{kind:"vidro_verdict"});return;
   }
   if(state.campaignId==="vidro"&&/vazar os dossies|publicar as provas|entregar a sera/.test(n)){
@@ -1619,7 +1619,7 @@ function resolveGenericCampaign(actor,text){
     requestRoll(actor,"PRE",12,"Publicar o dossiê dinástico",{kind:"vidro_leak"});return;
   }
   if(state.campaignId==="coro"&&/harmonizar o coro|harmonizar a rede|desviar o canto|responder ao coro/.test(n)){
-    if(!campaignCaseReady("coro")){addStory("master","Mestre Máquina","Interferir agora seria adivinhar. Vocês ainda precisam entender a memória da pedra, o ritual antigo e pelo menos duas peças sobre como a rede alcança os vivos.");updateCampaignObjective();return}
+    if(!campaignCaseReady("coro")){addStory("master","Mestre Máquina","Interferir agora seria adivinhar. Vocês ainda precisam entender a memória da pedra, o ritual antigo e pelo menos três peças sobre como a rede alcança os vivos.");updateCampaignObjective();return}
     const df=hasItem("khar_tuning_fork")?12:14;requestRoll(actor,"INT",df,"Harmonizar o Coro",{kind:"coro_harmonize"});return;
   }
   if(state.campaignId==="coro"&&/selar o nucleo|silenciar o nucleo|fechar o nucleo/.test(n)){
