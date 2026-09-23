@@ -983,6 +983,7 @@ let lastLocalSpeaking=false;
 let lastVoiceStateKey="";
 let peerStatsBaseline=new Map();
 let tunedPeerConnections=new WeakSet();
+let voiceAutoplayWarned=false;
 let participants=new Map();
 let actions={};
 let renderedStoryIds=new Set();
@@ -2056,7 +2057,7 @@ function updatePeerVoiceDom(peerId){
     const st=peerVoiceState.get(peerId)||{},rec=remoteVoice.get(peerId);
     el.classList.toggle("speaking",!!st.speaking&&!st.muted);
     el.classList.toggle("voice-muted",!!st.muted);
-    const q=el.querySelector(".peer-quality");if(q)q.textContent=peerQualityLabel(peerId);
+    const q=el.querySelector(".peer-quality");if(q){q.textContent=peerQualityLabel(peerId);q.title=st.ping!=null?("Ping "+Math.round(st.ping)+" ms • perda "+((st.loss||0)*100).toFixed(1)+"% • jitter "+Math.round(st.jitter||0)+" ms"):"Aguardando diagnóstico";}
     const b=el.querySelector("[data-peer-mute]");if(b)b.textContent=rec?.muted?"🔇":"🔊";
     const v=el.querySelector("[data-peer-volume]");if(v&&document.activeElement!==v)v.value=String(Math.round((rec?.volume??1)*100));
   });
@@ -2160,7 +2161,7 @@ function attachRemoteVoice(stream,peerId,metadata){
     track.onunmute=()=>{const st=peerVoiceState.get(peerId)||{};peerVoiceState.set(peerId,{...st,muted:false});updatePeerVoiceDom(peerId)};
     track.onended=()=>{const st=peerVoiceState.get(peerId)||{};peerVoiceState.set(peerId,{...st,active:false,speaking:false});updatePeerVoiceDom(peerId)};
   });
-  rec.audio.play().then(()=>{rec.blocked=false}).catch(()=>{rec.blocked=true});
+  rec.audio.play().then(()=>{rec.blocked=false}).catch(()=>{rec.blocked=true;if(!voiceAutoplayWarned){voiceAutoplayWarned=true;toast("Toque na tela para liberar o áudio da mesa.")}});
   const st=peerVoiceState.get(peerId)||{};peerVoiceState.set(peerId,{...st,active:true});updatePeerVoiceDom(peerId);
 }
 function resumeBlockedVoice(){
@@ -2229,7 +2230,9 @@ async function connectP2P(){
   ui.connectionStatus.textContent="conectando";
   try{
     const {joinRoom}=await import("https://esm.sh/@trystero-p2p/torrent");
-    room=joinRoom({appId:"cronicas-de-nerdora-web-alpha-v03"},roomId);
+    const roomConfig={appId:"cronicas-de-nerdora-web-alpha-v03",trickleIce:true,relayConfig:{redundancy:3}};
+    if(Array.isArray(window.CRONICAS_TURN_SERVERS)&&window.CRONICAS_TURN_SERVERS.length)roomConfig.turnConfig=window.CRONICAS_TURN_SERVERS;
+    room=joinRoom(roomConfig,roomId,{onJoinError:details=>{console.warn("Falha WebRTC",details);ui.connectionStatus.textContent="conexão limitada";toast("Não foi possível conectar a um jogador. Uma rede restrita pode exigir relay TURN.")}});
     const helloA=room.makeAction("hello"),campaignA=room.makeAction("campaign"),startA=room.makeAction("start"),stateA=room.makeAction("state"),intentA=room.makeAction("intent"),chatA=room.makeAction("chat"),rollA=room.makeAction("rolltap"),voiceA=room.makeAction("voice");
     actions={
       sendHello:(d,t)=>helloA.send(d,t?{target:t}:undefined),sendCampaign:(d,t)=>campaignA.send(d,t?{target:t}:undefined),sendStart:(d,t)=>startA.send(d,t?{target:t}:undefined),
