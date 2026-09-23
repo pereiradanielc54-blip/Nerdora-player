@@ -804,7 +804,7 @@ const ui={};
 "campaignTitle","modeBadge","roomCode","copyInviteBtn","partyList","connectionStatus","voiceBtn","voiceStatus","selfAvatar","selfName","selfClass","selfStats",
 "hpBar","mpBar","hpText","mpText","locationName","worldDay","worldTime","storyLog","dicePrompt","dicePromptLabel","dicePromptHelp","interactiveDie",
 "quickActions","actionInput","speechBtn","freeRollBtn","sendActionBtn","objectiveText","clueList","mysteryLabel","mysteryBar","sheetSummary","sheetStats",
-"unspentBox","sheetSkills","sheetAvailableSkills","alphaLevelBtn","chatLog","chatInput","chatSendBtn","toast","diceOverlay","diceCard","diceWho","diceResult","diceFormula","audioMount","mobileGameNav","orientationHint","orientationLandscapeBtn","orientationContinueBtn","orientationDontShow","masterMemoryTitle","masterMemoryCount","masterMemoryInsight","masterMemoryList","evidenceList","importantPerson","characterFear","personalGoal","npcRelationList"
+"unspentBox","sheetSkills","sheetAvailableSkills","alphaLevelBtn","chatLog","chatInput","chatSendBtn","toast","diceOverlay","diceCard","diceWho","diceResult","diceFormula","audioMount","mobileGameNav","orientationHint","orientationLandscapeBtn","orientationContinueBtn","orientationDontShow","masterMemoryTitle","masterMemoryCount","masterMemoryInsight","masterMemoryList","evidenceList","importantPerson","characterFear","personalGoal","npcRelationList","sceneSigil","sceneBannerLabel"
 ].forEach(k=>ui[k]=$(k));
 
 let mode="online";
@@ -1468,6 +1468,8 @@ function renderState(){
   ensureStateShape();tryResolveRevelations();
   const c=CAMPAIGNS[state.campaignId];
   setTheme(state.campaignId);ui.campaignTitle.textContent=c.title;ui.locationName.textContent=state.location;ui.objectiveText.textContent=state.objective;
+  if(ui.sceneSigil)ui.sceneSigil.textContent=c.icon||"✦";
+  if(ui.sceneBannerLabel)ui.sceneBannerLabel.textContent=(c.tone||"MESA DE AVENTURA").toUpperCase()+" • "+String(state.location||"").toUpperCase();
   const wt=worldTime();ui.worldDay.textContent="Dia "+wt.day;ui.worldTime.textContent=wt.time;
   const labels=state.campaignId==="vidro"?["Cerimônia","Rumores","Pressão","Alianças","Crise","Ruptura"]:state.campaignId==="coro"?["Sussurros","Canção","Contágio","Descida","Convergência","Assimilação"]:["Silêncio","Ecos","Substituições","Vazamento","Ancoragem","Propagação"];
   ui.mysteryLabel.textContent=labels[state.pressure]||labels[0];ui.mysteryBar.style.width=(8+state.pressure*18)+"%";
@@ -1480,8 +1482,16 @@ function renderStory(){
   }
 }
 async function appendStoryEntry(e,animate){
-  const div=document.createElement("article");div.className="story-entry "+e.type;
-  div.innerHTML=`<div class="entry-head"><strong>${esc(e.who)}</strong><span>${new Date(e.ts||Date.now()).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</span></div><p></p>${e.roll?`<span class="roll-line">${esc(e.roll)}</span>`:""}`;
+  const div=document.createElement("article");
+  let extra="";
+  const who=norm(e.who||"");
+  if(who.includes("evidencia guardada"))extra=" evidence-entry";
+  else if(who.includes("conexao compreendida"))extra=" conclusion-entry";
+  else if(who.includes("o mundo continua")||who.includes("evento do local"))extra=" world-event-entry";
+  else if(who.includes("diretor narrativo")||who.includes("mestre adaptativo"))extra=" director-entry";
+  div.className="story-entry "+e.type+extra;
+  const icon=e.type==="player"?"◆":e.type==="master"?"✦":extra.includes("world-event")?"☾":extra.includes("conclusion")?"✧":extra.includes("evidence")?"◌":"•";
+  div.innerHTML=`<div class="entry-head"><strong><span class="entry-icon">${icon}</span>${esc(e.who)}</strong><span>${new Date(e.ts||Date.now()).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</span></div><p></p>${e.roll?`<span class="roll-line">${esc(e.roll)}</span>`:""}`;
   ui.storyLog.appendChild(div);const p=div.querySelector("p");
   if(!animate){p.textContent=e.text;ui.storyLog.scrollTop=ui.storyLog.scrollHeight;return}
   p.classList.add("cursor-word");const words=String(e.text).split(/(\s+)/);let out="";
@@ -1516,7 +1526,7 @@ function renderQuickActions(){
   if((state.director?.restNeed||0)>=5)list.push({label:"Fazer uma pausa com a companhia",type:"action"});
   ui.quickActions.innerHTML="";
   list.forEach(function(item){
-    const b=document.createElement("button");b.textContent=item.label;
+    const b=document.createElement("button");b.classList.add(item.type==="travel"?"travel-token":"action-token");b.textContent=(item.type==="travel"?"↟ ":"✦ ")+item.label;
     b.onclick=function(){if(item.type==="travel")travelFromMap(item.dest);else submitIntent(item.label)};
     ui.quickActions.appendChild(b);
   });
