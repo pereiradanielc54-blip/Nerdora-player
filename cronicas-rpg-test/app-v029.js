@@ -804,7 +804,7 @@ const ui={};
 "campaignTitle","modeBadge","roomCode","copyInviteBtn","partyList","connectionStatus","voiceBtn","voiceStatus","selfAvatar","selfName","selfClass","selfStats",
 "hpBar","mpBar","hpText","mpText","locationName","worldDay","worldTime","storyLog","dicePrompt","dicePromptLabel","dicePromptHelp","interactiveDie",
 "quickActions","actionInput","speechBtn","freeRollBtn","sendActionBtn","objectiveText","clueList","mysteryLabel","mysteryBar","sheetSummary","sheetStats",
-"unspentBox","sheetSkills","sheetAvailableSkills","alphaLevelBtn","chatLog","chatInput","chatSendBtn","toast","diceOverlay","diceCard","diceWho","diceResult","diceFormula","audioMount","mobileGameNav","orientationHint","orientationLandscapeBtn","orientationContinueBtn","orientationDontShow","masterMemoryTitle","masterMemoryCount","masterMemoryInsight","masterMemoryList","evidenceList","importantPerson","characterFear","personalGoal","npcRelationList","sceneSigil","sceneBannerLabel","lobbyEmblem","campaignSeal"
+"unspentBox","sheetSkills","sheetAvailableSkills","alphaLevelBtn","chatLog","chatInput","chatSendBtn","toast","diceOverlay","diceCard","diceWho","diceResult","diceFormula","audioMount","mobileGameNav","orientationHint","orientationLandscapeBtn","orientationContinueBtn","orientationDontShow","masterMemoryTitle","masterMemoryCount","masterMemoryInsight","masterMemoryList","evidenceList","importantPerson","characterFear","personalGoal","npcRelationList","sceneSigil","sceneBannerLabel","lobbyEmblem","campaignSeal","sceneBanner","worldEventCards"
 ].forEach(k=>ui[k]=$(k));
 
 let mode="online";
@@ -859,6 +859,36 @@ function freshDraft(){
 }
 function classSkills(cls=selectedClass){return SKILLS[cls]||[]}
 function getSkill(id,cls=player?.className||selectedClass){return classSkills(cls).find(s=>s.id===id)}
+function skillIcon(skill){
+  const id=skill?.id||"",n=norm(skill?.name||"");
+  if(id.startsWith("war_")){if(/aparar|guard|interpor/.test(n))return "🛡️";if(/investida|avanco/.test(n))return "⚡";if(/provocar/.test(n))return "🗯️";if(/folego/.test(n))return "❤️";return "⚔️"}
+  if(id.startsWith("mag_")){if(/barreira|selo/.test(n))return "🔷";if(/passo|tele/.test(n))return "🌀";if(/luz|leitura|sonda/.test(n))return "🔮";if(/contra/.test(n))return "✴️";return "✨"}
+  if(id.startsWith("ass_")){if(/veneno/.test(n))return "☠️";if(/sombra|fantasma|furt/.test(n))return "🌑";if(/exec/.test(n))return "🗡️";return "🎯"}
+  if(id.startsWith("cur_")){if(/cura|regenera/.test(n))return "💚";if(/purifica/.test(n))return "💧";if(/escudo|protec/.test(n))return "🕊️";if(/ressur/.test(n))return "✝️";return "✨"}
+  if(id.startsWith("inv_")){if(/familiar|invoc/.test(n))return "🐉";if(/pacto/.test(n))return "📜";if(/sacrificio/.test(n))return "🩸";return "👁️"}
+  if(id.startsWith("cac_")){if(/armadilha/.test(n))return "🪤";if(/olho|rastre/.test(n))return "👁️";if(/flecha|tiro/.test(n))return "🏹";return "🧭"}
+  return "✦";
+}
+function locationVisualKey(location){
+  const n=norm(location||"");
+  if(/fenda|salao das memorias|tunel impossivel|nucleo|coro/.test(n))return "anomaly";
+  if(/igreja|capela|catedral|cripta|santuario/.test(n))return "sacred";
+  if(/bosque|floresta|jardins/.test(n))return "wild";
+  if(/palacio|juramentos|casas|arquivos|escribas|mercado/.test(n))return "court";
+  if(/moinho|mina|galeria|forja|poco profundo|reservatorio/.test(n))return "mine";
+  if(/estrada|portao|porto|acampamento/.test(n))return "road";
+  return "village";
+}
+function npcSigil(rel){
+  const role=norm(rel?.role||"");
+  if(/rainha|soberana|nobre/.test(role))return "♛";
+  if(/padre|igreja|sacerd/.test(role))return "✝";
+  if(/arquiv|escrib/.test(role))return "✒";
+  if(/curande/.test(role))return "✚";
+  if(/mina|capataz|forja/.test(role))return "⚒";
+  if(/entidade/.test(role))return "◉";
+  return (rel?.name||"?").slice(0,1).toUpperCase();
+}
 function meetsReq(skill,char=draft){
   return Object.entries(skill.req||{}).every(([a,v])=>(char.stats?.[a]||0)>=v);
 }
