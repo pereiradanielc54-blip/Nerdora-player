@@ -422,44 +422,89 @@ function hello(target=null){
 async function connectP2P(){
   ui.connectionStatus.textContent="conectando";
   try{
-    const {joinRoom}=await import("https://esm.sh/trystero/torrent");
+    const {joinRoom}=await import("https://esm.sh/@trystero-p2p/torrent");
     room=joinRoom({appId:"cronicas-de-nerdora-web-alpha-v01"},roomId);
-    const [sendHello,onHello]=room.makeAction("hello");
-    const [sendState,onState]=room.makeAction("state");
-    const [sendIntent,onIntent]=room.makeAction("intent");
-    const [sendChat,onChat]=room.makeAction("chat");
-    const [sendRoll,onRoll]=room.makeAction("roll");
-    actions={sendHello,sendState,sendIntent,sendChat,sendRoll};
-    p2pReady=true;
-    ui.connectionStatus.textContent="online";ui.connectionStatus.classList.add("online");
 
-    room.onPeerJoin(peerId=>{
-      if(isHost){hostPeerId="self";setTimeout(()=>broadcastState(peerId),200);setTimeout(()=>hello(peerId),250)}
-      else setTimeout(()=>hello(peerId),200);
-    });
-    room.onPeerLeave(peerId=>{participants.delete(peerId);renderParty();toast("Um jogador saiu da sala.");});
-    onHello((data,peerId)=>{
+    const helloAction=room.makeAction("hello");
+    const stateAction=room.makeAction("state");
+    const intentAction=room.makeAction("intent");
+    const chatAction=room.makeAction("chat");
+    const rollAction=room.makeAction("roll");
+
+    actions={
+      sendHello:(data,target)=>helloAction.send(data,target?{target}:undefined),
+      sendState:(data,target)=>stateAction.send(data,target?{target}:undefined),
+      sendIntent:(data,target)=>intentAction.send(data,target?{target}:undefined),
+      sendChat:(data,target)=>chatAction.send(data,target?{target}:undefined),
+      sendRoll:(data,target)=>rollAction.send(data,target?{target}:undefined)
+    };
+
+    p2pReady=true;
+    ui.connectionStatus.textContent="online";
+    ui.connectionStatus.classList.add("online");
+
+    room.onPeerJoin = peerId=>{
+      if(isHost){
+        hostPeerId="self";
+        setTimeout(()=>broadcastState(peerId),200);
+        setTimeout(()=>hello(peerId),250);
+      }else{
+        setTimeout(()=>hello(peerId),200);
+      }
+      if(localStream) room.addStream(localStream,{target:peerId});
+    };
+
+    room.onPeerLeave = peerId=>{
+      participants.delete(peerId);
+      renderParty();
+      toast("Um jogador saiu da sala.");
+    };
+
+    helloAction.onMessage = (data,{peerId})=>{
       participants.set(peerId,{...data,peerId});
       if(data.isHost)hostPeerId=peerId;
       renderParty();
       if(isHost)broadcastState(peerId);
-    });
-    onState((incoming,peerId)=>{
+    };
+
+    stateAction.onMessage = (incoming,{peerId})=>{
       if(isHost)return;
       if(hostPeerId&&peerId!==hostPeerId)return;
-      hostPeerId=peerId;state=incoming;renderState();
-    });
-    onIntent((data,peerId)=>{
-      if(isHost){const p=participants.get(peerId);processIntent({text:data.text,player:{...(data.player||p||{}),name:(data.player?.name||p?.name||"Aventureiro")}})}
-    });
-    onChat((data,peerId)=>appendChat(data.name||participants.get(peerId)?.name||"Jogador",data.text,false));
-    onRoll((data)=>showDice(data.who,data.result,data.formula));
+      hostPeerId=peerId;
+      state=incoming;
+      renderState();
+    };
 
-    room.onPeerStream((stream,peerId)=>{
+    intentAction.onMessage = (data,{peerId})=>{
+      if(isHost){
+        const p=participants.get(peerId);
+        processIntent({
+          text:data.text,
+          player:{...(data.player||p||{}),name:(data.player?.name||p?.name||"Aventureiro")}
+        });
+      }
+    };
+
+    chatAction.onMessage = (data,{peerId})=>{
+      appendChat(data.name||participants.get(peerId)?.name||"Jogador",data.text,false);
+    };
+
+    rollAction.onMessage = data=>{
+      showDice(data.who,data.result,data.formula);
+    };
+
+    room.onPeerStream = (stream,peerId)=>{
       let audio=document.querySelector(`audio[data-peer="${peerId}"]`);
-      if(!audio){audio=document.createElement("audio");audio.autoplay=true;audio.playsInline=true;audio.dataset.peer=peerId;ui.audioMount.appendChild(audio)}
+      if(!audio){
+        audio=document.createElement("audio");
+        audio.autoplay=true;
+        audio.playsInline=true;
+        audio.dataset.peer=peerId;
+        ui.audioMount.appendChild(audio);
+      }
       audio.srcObject=stream;
-    });
+      audio.play?.().catch(()=>{});
+    };
 
     hello();
     if(isHost)broadcastState();
