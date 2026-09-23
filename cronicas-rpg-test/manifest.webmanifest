@@ -1,0 +1,19 @@
+{
+  "name": "Crônicas de Nerdora",
+  "short_name": "Nerdora RPG",
+  "description": "RPG de mesa digital no mundo de Vhalora.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0807",
+  "theme_color": "#17100d",
+  "icons": [
+    {
+      "src": "./assets/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
