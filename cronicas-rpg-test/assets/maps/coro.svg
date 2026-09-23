@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 320">
+    <rect width="800" height="320" fill="#bda978"/>
+    <g opacity=".18" fill="#725640">
+      <path d="M0 250 L80 180 L145 205 L240 105 L330 190 L450 110 L545 200 L660 95 L800 175 L800 320 L0 320Z"/>
+      <path d="M0 80 C120 20 210 90 320 45 C450 0 540 75 800 25 L800 0 L0 0Z"/>
+    </g>
+    <g stroke="#5a452d" stroke-width="3" stroke-dasharray="8 7" fill="none" opacity=".7">
+      <path d="M80 210 C210 180 280 155 360 150 C470 140 545 115 680 125"/>
+      <path d="M360 150 C410 200 500 235 650 230"/>
+      <path d="M360 150 C340 100 310 75 250 65"/>
+    </g>
+    <g><circle cx="120" cy="100" r="10" fill="#c76b4d" stroke="#3f2d1e" stroke-width="3"/><text x="135" y="104" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3a2b1e">Acampamento</text><circle cx="270" cy="70" r="10" fill="#c76b4d" stroke="#3f2d1e" stroke-width="3"/><text x="285" y="74" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3a2b1e">Forja</text><circle cx="400" cy="125" r="10" fill="#c76b4d" stroke="#3f2d1e" stroke-width="3"/><text x="415" y="129" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3a2b1e">Galeria</text><circle cx="390" cy="235" r="10" fill="#c76b4d" stroke="#3f2d1e" stroke-width="3"/><text x="405" y="239" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3a2b1e">Reservatório</text><circle cx="560" cy="235" r="10" fill="#c76b4d" stroke="#3f2d1e" stroke-width="3"/><text x="575" y="239" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3a2b1e">Santuário</text><circle cx="690" cy="140" r="10" fill="#c76b4d" stroke="#3f2d1e" stroke-width="3"/><text x="705" y="144" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3a2b1e">Núcleo</text></g>
+    <g stroke="#4a3522" fill="none" opacity=".35"><circle cx="72" cy="62" r="28"/><path d="M72 25v74M35 62h74M52 42l40 40M92 42L52 82"/></g>
+  </svg>
