@@ -214,6 +214,103 @@ Object.assign(CLUES,{
   sino_token:{title:"Fragmento do sino antigo",text:"Uma peça enterrada no cemitério reage à mesma ressonância do sino da igreja."}
 });
 
+
+const EVIDENCE={
+  ev_no_exodus:{title:"Rastros que não saem da vila",text:"Pegadas e marcas chegam ao portão, mas não formam uma rota de evacuação."},
+  ev_locked_inside:{title:"Travas abandonadas por dentro",text:"O portão não apresenta sinais de arrombamento ou abertura apressada para uma fuga coletiva."},
+  ev_square_interrupt:{title:"Tarefa interrompida na praça",text:"Carga e objetos foram abandonados no meio de uma rotina comum."},
+  ev_inn_times:{title:"Horários interrompidos na hospedaria",text:"Registros mostram atividades normais cessando num intervalo muito curto."},
+  ev_house_interrupt:{title:"Rotinas domésticas interrompidas",text:"Casas diferentes foram abandonadas durante tarefas cotidianas."},
+  ev_bell_foundation:{title:"Ressonância sob a praça",text:"O som do sino parece viajar pelas fundações em vez de apenas pelo ar."},
+  ev_bell_mechanism:{title:"Sino mecanicamente imóvel",text:"Corda e engrenagens não explicam os toques ou vibrações observados."},
+  ev_bell_response:{title:"Bronze reage a lembranças",text:"O sino vibra quando nomes e memórias pessoais são mencionados."},
+  ev_hollow_altar:{title:"Estrutura sob o altar",text:"O piso da igreja esconde um encaixe e uma cavidade mais antiga que a construção."},
+  ev_parish_names:{title:"Nomes cruzados na paróquia",text:"Registros religiosos conectam famílias da vila a escola, hospedaria e cemitério."},
+  ev_drawings:{title:"Desenhos repetidos",text:"Crianças diferentes desenharam a mesma casa impossível e as mesmas árvores."},
+  ev_school_names:{title:"Lista escolar preservada",text:"Alguns nomes ainda aparecem inteiros na escola enquanto falham em outros lugares."},
+  ev_map_pattern:{title:"Padrão entre os desenhos",text:"Ao sobrepor páginas, caminhos e árvores formam uma disposição repetível."},
+  ev_wrong_voice:{title:"Voz com lembrança incorreta",text:"A voz do poço imita alguém conhecido, mas erra detalhes íntimos."},
+  ev_well_channel:{title:"Abertura lateral no poço",text:"Há um canal antigo ligando o poço a estruturas sob a vila."},
+  ev_wrong_reflection:{title:"Reflexo que não pertence ao observador",text:"A água mostra rostos e cenas que não correspondem a quem está diante dela."},
+  ev_names_erasing:{title:"Nomes desaparecendo da pedra",text:"Inscrições funerárias se apagam de dentro para fora."},
+  ev_bronze_resonance:{title:"Fragmento de bronze ressonante",text:"Um pedaço antigo de sino enterrado reage à torre da igreja."},
+  ev_nhal_symbol:{title:"Geometria de Nhal",text:"O padrão da capela corresponde a técnicas antigas de separação entre matéria e memória."},
+  ev_tunnel_church:{title:"Passagem entre capela e igreja",text:"Fundações antigas conectam fisicamente os dois edifícios."},
+  ev_personal_objects:{title:"Objetos preservam detalhes",text:"Presentes, brinquedos e lembranças pessoais mantêm informações que documentos começam a perder."},
+  ev_mill_delivery:{title:"Entregas ligam moinho e vila",text:"Registros de carga conectam moinho, hospedaria e igreja pouco antes do desaparecimento."},
+  ev_mill_time:{title:"Anomalias anteriores no moinho",text:"A engrenagem registra pequenos comportamentos impossíveis anteriores ao desaparecimento geral."},
+  ev_mill_channel:{title:"Canal do moinho cruza estruturas antigas",text:"A água passa perto do poço e da capela por uma rede anterior à vila."},
+  ev_forest_echo:{title:"Vozes fora de ordem no bosque",text:"As vozes repetem cenas coerentes, mas em tempos e contextos misturados."},
+  ev_animals_avoid:{title:"Animais contornam um limite",text:"Rastros animais evitam sistematicamente uma área do bosque."},
+  ev_residents_identity:{title:"Moradores vivos sem identidade completa",text:"Pessoas desaparecidas estão presentes na Fenda, mas não reconhecem nomes, casas ou parentes."},
+  ev_luminous_links:{title:"Fios ligam pessoas a objetos e nomes",text:"Conexões luminosas partem dos moradores para elementos significativos de suas vidas."},
+  ev_entity_threads:{title:"Entidade conectada aos fios",text:"A criatura do salão está ligada à rede luminosa que atravessa o local."},
+  ev_entity_statement:{title:"A entidade admite dependência",text:"O Colecionador afirma que deixar os fios desaparecerem ameaça a própria estabilidade."}
+};
+const REVELATION_RULES=[
+  {id:"silencio",allEvidence:["ev_no_exodus"],anyEvidence:["ev_locked_inside","ev_square_interrupt"]},
+  {id:"simultaneo",minEvidence:{ids:["ev_square_interrupt","ev_inn_times","ev_house_interrupt"],count:2}},
+  {id:"sino",allEvidence:["ev_bell_mechanism"],anyEvidence:["ev_bell_foundation","ev_bell_response","ev_bronze_resonance"]},
+  {id:"fundacao",allEvidence:["ev_hollow_altar"],anyEvidence:["ev_bell_foundation","ev_nhal_symbol","ev_tunnel_church","ev_bronze_resonance"]},
+  {id:"paroquia",allEvidence:["ev_parish_names"]},
+  {id:"desenhos",allEvidence:["ev_drawings"]},
+  {id:"lista",allEvidence:["ev_school_names"]},
+  {id:"mapa_memoria",allEvidence:["ev_map_pattern"],requiresCluesAll:["desenhos"],requiresCluesAny:["lista","paroquia"]},
+  {id:"memoria",minEvidence:{ids:["ev_wrong_voice","ev_wrong_reflection","ev_forest_echo","ev_names_erasing","ev_residents_identity"],count:2}},
+  {id:"canal",minEvidence:{ids:["ev_well_channel","ev_mill_channel","ev_tunnel_church"],count:2}},
+  {id:"nhal",allEvidence:["ev_nhal_symbol"]},
+  {id:"lapides",allEvidence:["ev_names_erasing"]},
+  {id:"sino_token",allEvidence:["ev_bronze_resonance"]},
+  {id:"moinho",minEvidence:{ids:["ev_mill_delivery","ev_mill_time"],count:1}},
+  {id:"eco_relogio",allEvidence:["ev_mill_time"]},
+  {id:"tunel_igreja",allEvidence:["ev_tunnel_church"]},
+  {id:"moradores",allEvidence:["ev_residents_identity"]},
+  {id:"afetos",allEvidence:["ev_personal_objects"],requiresCluesAny:["memoria","lapides","moradores"]},
+  {id:"ancoras",allEvidence:["ev_luminous_links"],requiresCluesAll:["moradores"],requiresCluesAny:["afetos","lista","paroquia","livro"]},
+  {id:"colecionador",allEvidence:["ev_entity_threads","ev_entity_statement"]}
+];
+function evidenceIds(){if(!state||!Array.isArray(state.rawEvidence))return[];return state.rawEvidence.map(function(e){return typeof e==="string"?e:e.id})}
+function hasEvidence(id){return evidenceIds().includes(id)}
+function addEvidence(id,source){
+  ensureStateShapeBase();
+  if(!EVIDENCE[id]||hasEvidence(id))return false;
+  state.rawEvidence.push({id:id,source:source||state.location||null,at:Date.now()});
+  const e=EVIDENCE[id];
+  addStory("system","Evidência guardada",e.title+": "+e.text);
+  tryResolveRevelations();
+  return true;
+}
+function revelationReady(rule){
+  if(!(rule.allEvidence||[]).every(hasEvidence))return false;
+  if(rule.anyEvidence&&rule.anyEvidence.length&&!rule.anyEvidence.some(hasEvidence))return false;
+  if(rule.minEvidence){
+    const count=(rule.minEvidence.ids||[]).filter(hasEvidence).length;
+    if(count<(rule.minEvidence.count||1))return false;
+  }
+  if(rule.requiresCluesAll&&!(rule.requiresCluesAll||[]).every(hasClue))return false;
+  if(rule.requiresCluesAny&&rule.requiresCluesAny.length&&!rule.requiresCluesAny.some(hasClue))return false;
+  return true;
+}
+function revealClue(id){
+  if(!CLUES[id]||hasClue(id))return false;
+  state.clues.push(id);
+  const c=CLUES[id];
+  addStory("system","Conexão compreendida",c.title+": "+c.text);
+  return true;
+}
+function tryResolveRevelations(){
+  if(!state)return;
+  let changed=true,safety=0;
+  while(changed&&safety++<8){
+    changed=false;
+    REVELATION_RULES.forEach(function(rule){
+      if(!hasClue(rule.id)&&revelationReady(rule)){
+        if(revealClue(rule.id))changed=true;
+      }
+    });
+  }
+}
+
 const WORLD_MAPS={
   derenfall:{
     title:"Derenfall e arredores",
@@ -520,7 +617,7 @@ const ui={};
 "campaignTitle","modeBadge","roomCode","copyInviteBtn","partyList","connectionStatus","voiceBtn","voiceStatus","selfAvatar","selfName","selfClass","selfStats",
 "hpBar","mpBar","hpText","mpText","locationName","worldDay","worldTime","storyLog","dicePrompt","dicePromptLabel","dicePromptHelp","interactiveDie",
 "quickActions","actionInput","speechBtn","freeRollBtn","sendActionBtn","objectiveText","clueList","mysteryLabel","mysteryBar","sheetSummary","sheetStats",
-"unspentBox","sheetSkills","sheetAvailableSkills","alphaLevelBtn","chatLog","chatInput","chatSendBtn","toast","diceOverlay","diceCard","diceWho","diceResult","diceFormula","audioMount","mobileGameNav","orientationHint","orientationLandscapeBtn","orientationContinueBtn","orientationDontShow","masterMemoryTitle","masterMemoryCount","masterMemoryInsight","masterMemoryList"
+"unspentBox","sheetSkills","sheetAvailableSkills","alphaLevelBtn","chatLog","chatInput","chatSendBtn","toast","diceOverlay","diceCard","diceWho","diceResult","diceFormula","audioMount","mobileGameNav","orientationHint","orientationLandscapeBtn","orientationContinueBtn","orientationDontShow","masterMemoryTitle","masterMemoryCount","masterMemoryInsight","masterMemoryList","evidenceList"
 ].forEach(k=>ui[k]=$(k));
 
 let mode="online";
@@ -715,7 +812,7 @@ function createInitialState(campaignId){
   if(campaignId==="derenfall")unlocked=["Estrada de Derenfall","Portão de Derenfall"];
   else if(map)unlocked=Object.values(map.nodes).map(function(n){return n.name});
   return {version:"0.3",campaignId:campaignId,campaign:c.title,location:c.location,worldMinutes:18*60+40,day:1,pressure:0,
-    clues:[],objective:c.objective,ended:false,ending:null,pendingRoll:null,lastRoll:null,completedActions:[],failedActions:{},
+    clues:[],rawEvidence:[],objective:c.objective,ended:false,ending:null,pendingRoll:null,lastRoll:null,completedActions:[],failedActions:{},
     routeFlags:[],eventFired:[],unlockedLocations:unlocked,visitedLocations:visited,
     story:c.opening.map(function(text,i){return {id:uid(),type:i===0?"system":"master",who:i===0?"Prólogo":"Mestre Máquina",text:text,ts:Date.now()+i}})
   };
@@ -723,6 +820,7 @@ function createInitialState(campaignId){
 function ensureStateShape(){
   if(!state)return;
   if(!Array.isArray(state.completedActions))state.completedActions=[];
+  if(!Array.isArray(state.rawEvidence))state.rawEvidence=[];
   if(!state.failedActions)state.failedActions={};
   if(!Array.isArray(state.routeFlags))state.routeFlags=[];
   if(!Array.isArray(state.eventFired))state.eventFired=[];
@@ -763,7 +861,8 @@ function addStory(type,who,text,roll=null){
   if(state.story.length>220)state.story=state.story.slice(-220);
 }
 function addClue(id){
-  if(!state.clues.includes(id)){state.clues.push(id);const c=CLUES[id];if(c)addStory("system","Pista descoberta",c.title+": "+c.text)}
+  ensureStateShapeBase();
+  if(revealClue(id))tryResolveRevelations();
 }
 function finishEnding(title,text){
   state.ended=true;state.ending=title;state.objective="Desfecho alcançado: "+title;addStory("system","DESFECHO — "+title,text);rememberCampaignEnding(title);
