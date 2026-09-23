@@ -47,13 +47,13 @@
         <h2>Como você quer jogar?</h2>
         <p class="entry-sub">Escolha um modo. O personagem será criado na próxima etapa.</p>
 
-        <button id="onlineBtn" class="mode-card mode-online" type="button">
+        <button id="onlineBtn" class="mode-card mode-online" type="button" onclick="window.CN_openMode && window.CN_openMode('online')">
           <span class="mode-icon">🌐</span>
           <span class="mode-copy"><strong>Companhia Online</strong><small>Crie uma sala ou entre com um código. A campanha começa com 2 jogadores ou mais.</small></span>
           <span class="mode-arrow">→</span>
         </button>
 
-        <button id="soloBtn" class="mode-card mode-solo" type="button">
+        <button id="soloBtn" class="mode-card mode-solo" type="button" onclick="window.CN_openMode && window.CN_openMode('solo')">
           <span class="mode-icon">🗡️</span>
           <span class="mode-copy"><strong>Campanha Solo</strong><small>Entre sozinho em Vhalora e deixe o Mestre Máquina conduzir sua aventura.</small></span>
           <span class="mode-arrow">→</span>
