@@ -901,3 +901,15 @@ body[data-theme="coro"] .campaign-map{background-image:linear-gradient(rgba(230,
 .inventory-item button{border:1px solid #685139;background:#2d2119;color:#ead8b8;border-radius:8px;padding:6px 7px;font:700 6.5px Georgia,serif}
 .rarity-raro{border-color:#506d84}.rarity-raro .item-icon{border-color:#5f85a5;color:#b6daf3}.rarity-epico{border-color:#725b91}.rarity-epico .item-icon{border-color:#8a6aae;color:#d5b9f5}
 @media(max-width:760px){.equipment-slots{grid-template-columns:1fr}.inventory-item{grid-template-columns:34px minmax(0,1fr) auto}}
+
+/* ===== FRENTES DA INVESTIGAÇÃO / ALPHA 0.3.2 ===== */
+.campaign-threads{margin:8px 0 13px;padding:9px;border-radius:11px;border:1px solid #493a2d;background:linear-gradient(180deg,#1c1714,#12100e)}
+.campaign-threads:empty{display:none}
+.threads-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+.threads-head span{font:700 6.5px Georgia,serif;letter-spacing:.12em;color:#aa9678}.threads-head small{font-size:6px;color:#756a59}
+.thread-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.thread-chip{display:flex;align-items:center;gap:6px;padding:6px 7px;border-radius:8px;border:1px solid #403429;background:#171310;color:#887c69;font-size:6.8px}
+.thread-chip i{width:16px;height:16px;border-radius:50%;display:grid;place-items:center;font-style:normal;border:1px solid #514333;background:#211a15;color:#8d7f6a}
+.thread-chip.done{border-color:#5b6845;color:#c8d3a5;background:linear-gradient(180deg,#1c2116,#13160f)}
+.thread-chip.done i{border-color:#748255;background:#2b331e;color:#d8e7ae}
+@media(max-width:760px){.thread-grid{grid-template-columns:1fr}}
