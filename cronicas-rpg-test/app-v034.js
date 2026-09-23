@@ -1285,10 +1285,8 @@ async function probeRoomHost(codeValue){
 }
 async function roomExists(codeValue){
   await ensureRoomDirectory();
-  if(roomFresh(availableRooms.get(codeValue)))return true;
   if(directoryActions.query)directoryActions.query({at:Date.now(),code:codeValue});
-  await new Promise(function(r){setTimeout(r,850)});
-  if(roomFresh(availableRooms.get(codeValue)))return true;
+  if(!roomFresh(availableRooms.get(codeValue)))await new Promise(function(r){setTimeout(r,650)});
   return probeRoomHost(codeValue);
 }
 async function validateAndJoinRoom(rawCode){
