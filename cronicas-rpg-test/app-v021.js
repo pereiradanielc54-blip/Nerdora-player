@@ -284,7 +284,8 @@ function renderCampaigns(){
     ui.campaignGrid.appendChild(b);
   });
 }
-window.CN_openMode = which => openMode(which);\nfunction openMode(which){
+window.CN_openMode = which => openMode(which);
+function openMode(which){
   mode=which;setTheme(selectedCampaign);
   ui.modeTitle.textContent=which==="solo"?"Campanha Solo":"Campanha Online";
   ui.onlineControls.classList.toggle("hidden",which!=="online");
@@ -751,6 +752,7 @@ function bind(){
   ui.chatSendBtn.onclick=sendChat;ui.chatInput.addEventListener("keydown",e=>{if(e.key==="Enter")sendChat()});ui.alphaLevelBtn.onclick=levelUpAlpha;ui.diceOverlay.onclick=()=>ui.diceOverlay.classList.add("hidden");setupTabs();
 }
 function boot(){
+  window.__CN_BOOT_OK = true;
   bind();renderCampaigns();setTheme(selectedCampaign);
   const incoming=roomFromUrl();if(incoming){mode="online";ui.roomCodeInput.value=incoming;openMode("online");toast("Convite detectado. Crie seu personagem e entre na sala "+incoming)}
 }
