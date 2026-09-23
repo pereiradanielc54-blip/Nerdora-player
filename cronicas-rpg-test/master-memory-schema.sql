@@ -105,3 +105,58 @@ create table if not exists master_story_insights (
 --    resultados de dados, HP, inventário ou fatos permanentes sem autorização.
 -- 5. Dados agregados devem orientar diversidade e reduzir loops, nunca limitar
 --    escolhas do jogador a um perfil previsto.
+
+
+-- Narrative Director / relationships — v0.2
+create table if not exists master_npc_relationships (
+  campaign_instance_id uuid not null,
+  npc_id text not null,
+  player_id text,
+  trust integer not null default 0,
+  respect integer not null default 0,
+  fear integer not null default 0,
+  suspicion integer not null default 0,
+  notes jsonb not null default '[]'::jsonb,
+  updated_at timestamptz not null default now(),
+  primary key (campaign_instance_id, npc_id, player_id)
+);
+
+create table if not exists master_director_state (
+  campaign_instance_id uuid primary key,
+  beats integer not null default 0,
+  stagnation integer not null default 0,
+  tension integer not null default 1,
+  rest_need integer not null default 0,
+  last_style text,
+  style_streak integer not null default 0,
+  last_intervention_beat integer not null default -99,
+  world_beat integer not null default 0,
+  personal_hook_used boolean not null default false,
+  state jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists master_world_events (
+  id uuid primary key,
+  campaign_instance_id uuid not null,
+  campaign_id text not null,
+  event_key text not null,
+  event_type text not null,
+  location_id text,
+  payload jsonb not null default '{}'::jsonb,
+  fired_at timestamptz not null default now(),
+  unique(campaign_instance_id, event_key)
+);
+
+create table if not exists master_character_hooks (
+  character_id text primary key,
+  player_id text not null,
+  important_person text,
+  fear text,
+  personal_goal text,
+  updated_at timestamptz not null default now()
+);
+
+-- The Director uses these tables to preserve continuity and pacing.
+-- It may change presentation, event timing, NPC reactions and route emphasis.
+-- It must not secretly change dice, canonical facts, HP, inventory or rules.
