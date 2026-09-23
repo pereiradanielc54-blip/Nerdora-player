@@ -804,7 +804,7 @@ const ui={};
 "campaignTitle","modeBadge","roomCode","copyInviteBtn","partyList","connectionStatus","voiceBtn","voiceStatus","selfAvatar","selfName","selfClass","selfStats",
 "hpBar","mpBar","hpText","mpText","locationName","worldDay","worldTime","storyLog","dicePrompt","dicePromptLabel","dicePromptHelp","interactiveDie",
 "quickActions","actionInput","speechBtn","freeRollBtn","sendActionBtn","objectiveText","clueList","mysteryLabel","mysteryBar","sheetSummary","sheetStats",
-"unspentBox","sheetSkills","sheetAvailableSkills","alphaLevelBtn","chatLog","chatInput","chatSendBtn","toast","diceOverlay","diceCard","diceWho","diceResult","diceFormula","audioMount","mobileGameNav","orientationHint","orientationLandscapeBtn","orientationContinueBtn","orientationDontShow","masterMemoryTitle","masterMemoryCount","masterMemoryInsight","masterMemoryList","evidenceList","importantPerson","characterFear","personalGoal","npcRelationList","sceneSigil","sceneBannerLabel"
+"unspentBox","sheetSkills","sheetAvailableSkills","alphaLevelBtn","chatLog","chatInput","chatSendBtn","toast","diceOverlay","diceCard","diceWho","diceResult","diceFormula","audioMount","mobileGameNav","orientationHint","orientationLandscapeBtn","orientationContinueBtn","orientationDontShow","masterMemoryTitle","masterMemoryCount","masterMemoryInsight","masterMemoryList","evidenceList","importantPerson","characterFear","personalGoal","npcRelationList","sceneSigil","sceneBannerLabel","lobbyEmblem","campaignSeal"
 ].forEach(k=>ui[k]=$(k));
 
 let mode="online";
@@ -1468,7 +1468,7 @@ function renderState(){
   ensureStateShape();tryResolveRevelations();
   const c=CAMPAIGNS[state.campaignId];
   setTheme(state.campaignId);ui.campaignTitle.textContent=c.title;ui.locationName.textContent=state.location;ui.objectiveText.textContent=state.objective;
-  if(ui.sceneSigil)ui.sceneSigil.textContent=c.icon||"✦";
+  if(ui.sceneSigil)ui.sceneSigil.textContent=c.icon||"✦";if(ui.campaignSeal)ui.campaignSeal.textContent=c.icon||"✦";
   if(ui.sceneBannerLabel)ui.sceneBannerLabel.textContent=(c.tone||"MESA DE AVENTURA").toUpperCase()+" • "+String(state.location||"").toUpperCase();
   const wt=worldTime();ui.worldDay.textContent="Dia "+wt.day;ui.worldTime.textContent=wt.time;
   const labels=state.campaignId==="vidro"?["Cerimônia","Rumores","Pressão","Alianças","Crise","Ruptura"]:state.campaignId==="coro"?["Sussurros","Canção","Contágio","Descida","Convergência","Assimilação"]:["Silêncio","Ecos","Substituições","Vazamento","Ancoragem","Propagação"];
@@ -1638,7 +1638,7 @@ async function toggleVoice(){
   try{localStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true},video:false});if(room)room.addStream(localStream);ui.voiceBtn.classList.add("active");ui.lobbyVoiceBtn.classList.add("active");ui.voiceStatus.textContent="Microfone ativo";ui.lobbyVoiceStatus.textContent="Microfone ativo";hello()}catch{toast("Não foi possível acessar o microfone.")}
 }
 function showLobby(){
-  setTheme(selectedCampaign);ui.lobbyCampaign.textContent=CAMPAIGNS[selectedCampaign].title;ui.lobbyCode.textContent=roomId;ui.lobbyPremise.textContent=CAMPAIGNS[selectedCampaign].premise;showScreen("lobbyScreen");renderLobby();
+  setTheme(selectedCampaign);ui.lobbyCampaign.textContent=CAMPAIGNS[selectedCampaign].title;ui.lobbyCode.textContent=roomId;ui.lobbyPremise.textContent=CAMPAIGNS[selectedCampaign].premise;if(ui.lobbyEmblem)ui.lobbyEmblem.textContent=CAMPAIGNS[selectedCampaign].icon||"⚔";showScreen("lobbyScreen");renderLobby();
 }
 function allLobbyPlayers(){return player?[{...player,isHost},...Array.from(participants.values()).filter(p=>p.characterReady)]:Array.from(participants.values()).filter(p=>p.characterReady)}
 function renderLobby(){
