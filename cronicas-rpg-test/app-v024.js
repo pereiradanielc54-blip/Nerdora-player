@@ -541,7 +541,17 @@ function ensureStateShape(){
   if(!Array.isArray(state.visitedLocations))state.visitedLocations=[state.location];
   if(state.campaignId==="derenfall"){
     unlockLocations("Estrada de Derenfall","Portão de Derenfall");
+    if(state.location==="Portão de Derenfall")unlockLocations("Praça de Derenfall");
     if(state.location!=="Estrada de Derenfall"&&state.location!=="Portão de Derenfall")unlockDerenSurface();
+    if(state.location==="Fenda Memorial"){
+      unlockLocations("Fenda Memorial");
+      if(!state.routeFlags.some(function(flag){return /^route_(igreja|capela|bosque|poco)$/.test(flag)}))addRouteFlag("route_igreja");
+    }
+    if(state.location==="Salão das Memórias"){
+      unlockLocations("Fenda Memorial","Salão das Memórias");
+      addRouteFlag("route_hall");
+      if(!state.routeFlags.some(function(flag){return /^route_(igreja|capela|bosque|poco)$/.test(flag)}))addRouteFlag("route_igreja");
+    }
   }else{
     const map=WORLD_MAPS[state.campaignId];
     if(map)Object.values(map.nodes).forEach(function(n){if(!state.unlockedLocations.includes(n.name))state.unlockedLocations.push(n.name)});
@@ -573,6 +583,7 @@ function moveTo(dest,text=null){
   ensureStateShape();unlockLocations(dest);state.location=dest;
   if(!state.visitedLocations.includes(dest))state.visitedLocations.push(dest);
   advanceTime(6);
+  if(state.campaignId==="derenfall"&&dest==="Portão de Derenfall")unlockLocations("Praça de Derenfall");
   if(state.campaignId==="derenfall"&&dest==="Praça de Derenfall")unlockDerenSurface();
   addStory("master","Mestre Máquina",text||(state.campaignId==="derenfall"?derenfallArrival(dest):"A companhia segue para "+dest+". O lugar muda as pessoas, informações e riscos disponíveis."));
   triggerLocationEvent(dest);
