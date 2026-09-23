@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#090b12"/>
   <meta name="description" content="Crônicas de Nerdora — RPG narrativo multiplayer com Mestre Máquina."/>
   <title>Crônicas de Nerdora — Web Alpha 0.2</title>
-  <link rel="stylesheet" href="./styles-v023.css"/>
+  <link rel="stylesheet" href="./styles-v024.css"/>
 </head>
 <body data-theme="derenfall">
   <div class="ambient"></div><div class="noise"></div>
@@ -25,7 +25,7 @@
       <div class="intro-copy">
         <div class="brand-lockup">
           <div class="brand-rune">N</div>
-          <div><p class="eyebrow">NERDORA APRESENTA</p><span class="edition-chip">WEB ALPHA 0.2.3</span></div>
+          <div><p class="eyebrow">NERDORA APRESENTA</p><span class="edition-chip">WEB ALPHA 0.2.4</span></div>
         </div>
 
         <h1>Crônicas de <span>Nerdora</span></h1>
@@ -211,11 +211,20 @@
 
 
       <aside class="panel info-panel">
-        <div class="tabs"><button class="tab active" data-tab="journal">Diário</button><button class="tab" data-tab="character">Personagem</button><button class="tab" data-tab="chat">Chat</button></div>
+        <div class="tabs"><button class="tab active" data-tab="journal">Diário</button><button class="tab" data-tab="map">Mapa</button><button class="tab" data-tab="character">Personagem</button><button class="tab" data-tab="chat">Chat</button></div>
         <div id="tab-journal" class="tab-content active">
           <div class="objective-card"><span>OBJETIVO ATUAL</span><strong id="objectiveText"></strong></div>
           <h4>Pistas descobertas</h4><div id="clueList" class="clue-list"></div>
           <h4>Pressão da história</h4><div class="mystery-meter"><span id="mysteryLabel">Calma</span><i><b id="mysteryBar"></b></i></div>
+        </div>
+        <div id="tab-map" class="tab-content">
+          <div class="map-head">
+            <div><p class="eyebrow">MAPA DA CAMPANHA</p><strong id="mapTitle">Região</strong></div>
+            <span id="mapProgress" class="map-progress">0 locais</span>
+          </div>
+          <div id="campaignMap" class="campaign-map"></div>
+          <div class="map-legend"><span><i class="lg current"></i> Atual</span><span><i class="lg visited"></i> Visitado</span><span><i class="lg open"></i> Acessível</span></div>
+          <p id="mapPathHint" class="map-path-hint">Descubra pistas para abrir novas rotas.</p>
         </div>
         <div id="tab-character" class="tab-content">
           <div id="sheetSummary"></div>
@@ -244,6 +253,6 @@
   });
 </script>
 <div id="bootError" hidden style="position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;background:#26151b;border:1px solid #78404d;color:#ffe6eb;padding:10px 14px;border-radius:12px;font:12px system-ui;max-width:min(90vw,520px);text-align:center"></div>
-<script type="module" src="./app-v023.js"></script>
+<script type="module" src="./app-v024.js"></script>
 </body>
 </html>
