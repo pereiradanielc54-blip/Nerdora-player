@@ -84,6 +84,22 @@ jobs:
           grep -q 'versionName = "0.6.1"' extracted_project/app/build.gradle.kts
           echo "Associação de DOCX/XLSX/PPTX/PDF e documentos de texto aplicada."
 
+      - name: Inspecionar base v0.6.1 para v0.7.0
+        shell: bash
+        run: |
+          echo "=== FILES_SCREEN_BEGIN ==="
+          sed -n '1,700p' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          echo "=== FILES_SCREEN_END ==="
+          echo "=== DOC_VIEWER_BEGIN ==="
+          sed -n '1,900p' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          echo "=== DOC_VIEWER_END ==="
+          echo "=== APP_BEGIN ==="
+          sed -n '1,420p' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          echo "=== APP_END ==="
+          echo "=== PREFS_BEGIN ==="
+          grep -R -n -A 260 -B 10 "object PlayerPreferences" extracted_project/app/src/main/java/com/nerdora/player || true
+          echo "=== PREFS_END ==="
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
