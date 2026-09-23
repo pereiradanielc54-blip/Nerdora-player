@@ -552,7 +552,13 @@ function worldTime(){
   const total=state.worldMinutes,extra=Math.floor(total/1440),m=total%1440;
   return {day:state.day+extra,time:String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0")};
 }
-function advanceTime(n=5){if(state){state.worldMinutes+=n;state.pressure=Math.min(5,Math.max(state.pressure,Math.floor(Math.max(0,state.worldMinutes-(18*60+40))/95)))}}
+function advanceTime(n=5){
+  if(!state)return;
+  const before=state.pressure||0;
+  state.worldMinutes+=n;
+  state.pressure=Math.min(5,Math.max(before,Math.floor(Math.max(0,state.worldMinutes-(18*60+40))/95)));
+  if(state.campaignId==="derenfall"&&state.pressure>before)triggerDerenPressureEvent(state.pressure);
+}
 function addStory(type,who,text,roll=null){
   state.story.push({id:uid(),type,who,text,roll,ts:Date.now()});
   if(state.story.length>220)state.story=state.story.slice(-220);
@@ -605,36 +611,249 @@ function findActorById(id){
   return null;
 }
 
+function unlockLocations(){
+  ensureStateShapeBase();
+  for(let i=0;i<arguments.length;i++){
+    const name=arguments[i];if(name&&!state.unlockedLocations.includes(name))state.unlockedLocations.push(name);
+  }
+}
+function ensureStateShapeBase(){
+  if(!state)return;
+  if(!Array.isArray(state.completedActions))state.completedActions=[];
+  if(!state.failedActions)state.failedActions={};
+  if(!Array.isArray(state.routeFlags))state.routeFlags=[];
+  if(!Array.isArray(state.eventFired))state.eventFired=[];
+  if(!Array.isArray(state.unlockedLocations))state.unlockedLocations=[state.location];
+  if(!Array.isArray(state.visitedLocations))state.visitedLocations=[state.location];
+}
+function unlockDerenSurface(){
+  ensureStateShapeBase();
+  ["Praça de Derenfall","Igreja","Hospedaria","Escola","Poço","Cemitério","Casas Periféricas"].forEach(function(n){
+    if(!state.unlockedLocations.includes(n))state.unlockedLocations.push(n);
+  });
+}
+function addRouteFlag(flag){ensureStateShapeBase();if(flag&&!state.routeFlags.includes(flag))state.routeFlags.push(flag)}
+function hasClue(id){return !!state&&Array.isArray(state.clues)&&state.clues.includes(id)}
+function hasFlag(id){return !!state&&Array.isArray(state.routeFlags)&&state.routeFlags.includes(id)}
+function completeAction(id){ensureStateShapeBase();if(!state.completedActions.includes(id))state.completedActions.push(id)}
+function actionAvailable(a){
+  ensureStateShapeBase();
+  if(a.once&&state.completedActions.includes(a.id))return false;
+  if(a.requiresCluesAll&&!a.requiresCluesAll.every(hasClue))return false;
+  if(a.requiresAnyClue&&!a.requiresAnyClue.some(hasClue))return false;
+  if(a.requiresFlagsAll&&!a.requiresFlagsAll.every(hasFlag))return false;
+  if(a.requiresAnyFlag&&!a.requiresAnyFlag.some(hasFlag))return false;
+  return true;
+}
+function currentDerenActions(){
+  ensureStateShapeBase();
+  return DEREN_ACTIONS.filter(function(a){return a.location===state.location&&actionAvailable(a)});
+}
+function findDerenAction(text){
+  const n=norm(text),list=currentDerenActions();
+  let exact=list.find(function(a){return norm(a.label)===n});if(exact)return exact;
+  return list.find(function(a){return (a.keywords||[]).some(function(k){return n.includes(norm(k))})})||null;
+}
+function mapForCampaign(){return WORLD_MAPS[state?.campaignId]||null}
+function mapNodeByName(name){
+  const map=mapForCampaign();if(!map)return null;
+  return Object.values(map.nodes).find(function(n){return n.name===name})||null;
+}
+function edgeIsOpen(edge){
+  const flag=edge[2];return !flag||hasFlag(flag);
+}
+function connectedLocations(name){
+  const map=mapForCampaign();if(!map)return[];
+  const out=[];
+  map.edges.forEach(function(e){
+    if(!edgeIsOpen(e))return;
+    if(e[0]===name)out.push(e[1]);else if(e[1]===name)out.push(e[0]);
+  });
+  return out.filter(function(n){return state.unlockedLocations.includes(n)});
+}
+function canTravelTo(dest){return connectedLocations(state.location).includes(dest)}
+function travelFromMap(dest){
+  if(!state||dest===state.location)return;
+  if(!state.unlockedLocations.includes(dest))return toast("Esse local ainda não foi descoberto.");
+  if(!canTravelTo(dest))return toast("Não há uma rota direta aberta daqui. Use o mapa para seguir pelos locais conectados.");
+  moveTo(dest,state.campaignId==="derenfall"?derenfallArrival(dest):null);
+  saveHostState();renderState();broadcastState();
+}
+function triggerLocationEvent(dest){
+  if(!state||state.campaignId!=="derenfall")return;
+  const key="visit:"+dest;if(state.eventFired.includes(key))return;state.eventFired.push(key);
+  const events={
+    "Portão de Derenfall":"A corrente do portão está caída do lado de dentro. Seja o que for que aconteceu, não parece uma evacuação organizada.",
+    "Praça de Derenfall":"Uma bola de madeira rola sozinha por dois metros e para. Logo depois, o sino da igreja vibra uma única vez.",
+    "Hospedaria":"No andar superior, uma porta bate. Quando vocês olham, todas continuam abertas.",
+    "Escola":"O giz no quadro está quebrado no meio de uma palavra: 'lembr...'.",
+    "Poço":"O reflexo na água demora uma fração de segundo para imitar os movimentos de quem olha.",
+    "Cemitério":"Uma das lápides ainda tem flores frescas. O nome, porém, está quase apagado.",
+    "Casas Periféricas":"Em várias casas, objetos pessoais foram deixados juntos perto das portas, como se alguém tentasse lembrar a quem pertenciam.",
+    "Moinho Velho":"A roda está parada apesar da correnteza. Um único dente da engrenagem gira para trás a cada poucos segundos.",
+    "Bosque da Lembrança":"O vento traz vozes da vila, mas cada frase parece pertencer a um dia diferente.",
+    "Capela Antiga":"As pedras da capela vibram no mesmo ritmo distante do sino da igreja.",
+    "Fenda Memorial":"Aqui a chuva cai para cima em alguns trechos, e ruas conhecidas terminam em lembranças que não pertencem a vocês.",
+    "Salão das Memórias":"O Colecionador não avança. Ele observa a companhia como alguém avaliando quais histórias valem ser guardadas."
+  };
+  if(events[dest])addStory("system","Evento do local",events[dest]);
+}
+function triggerDerenPressureEvent(level){
+  if(!state||state.campaignId!=="derenfall")return;
+  const key="pressure:"+level;if(state.eventFired.includes(key))return;state.eventFired.push(key);
+  const events={
+    1:"O sino toca duas vezes. Em algum lugar da vila, uma voz começa a repetir um nome que nenhum de vocês conhece.",
+    2:"Reflexos em janelas passam a mostrar moradores por um instante, sempre realizando a última tarefa que lembravam.",
+    3:"A anomalia começa a vazar para as bordas da vila. Placas de rua perdem letras e pequenas lembranças parecem fora de lugar.",
+    4:"Objetos ligados a memórias fortes começam a emitir um brilho violeta discreto. A Fenda está procurando novas âncoras.",
+    5:"Ao longe, além do portão, um viajante para na estrada e pergunta qual é o próprio nome. O problema começou a se espalhar."
+  };
+  if(events[level])addStory("system","O mundo avança",events[level]);
+}
+function updateDerenObjective(){
+  if(!state||state.campaignId!=="derenfall"||state.ended)return;
+  if(state.location==="Salão das Memórias"){state.objective="Entender o que o Colecionador quer e escolher como devolver as identidades de Derenfall.";return}
+  if(state.location==="Fenda Memorial"){state.objective="Encontrar os moradores, compreender as âncoras e localizar o centro da Fenda.";return}
+  if(state.unlockedLocations.includes("Fenda Memorial")){state.objective="Escolher um dos acessos descobertos e entrar na Fenda Memorial.";return}
+  const strong=["fundacao","nhal","mapa_memoria","memoria","canal"].filter(hasClue).length;
+  if(strong>=2){state.objective="Cruzar as pistas e abrir uma rota até a origem da anomalia.";return}
+  if(state.location==="Estrada de Derenfall"||state.location==="Portão de Derenfall"){state.objective="Entrar na vila e descobrir se os moradores fugiram ou desapareceram.";return}
+  state.objective="Investigar locais diferentes e cruzar pistas sobre o desaparecimento de Derenfall.";
+}
+function actionFailureNarrative(a){
+  const fail=state.failedActions[a.id]||0;
+  const suffix=fail>1?" A tentativa anterior, porém, ajuda a entender melhor o problema; outra abordagem pode funcionar.":" A ação continua disponível porque a falha não encerrou essa possibilidade.";
+  return "A tentativa não resolve "+a.label.toLowerCase()+". Ainda assim, vocês percebem um detalhe incompleto que confirma que há algo ali."+suffix;
+}
+function executeDerenAction(actor,a){
+  const fails=state.failedActions[a.id]||0;
+  const effective=Math.max(8,a.df-Math.min(1,fails));
+  requestRoll(actor,a.stat,effective,a.label,{kind:"deren_action",actionId:a.id});
+}
+function resolveDerenActionRoll(actor,r,actionId){
+  const a=DEREN_ACTIONS.find(function(x){return x.id===actionId});if(!a)return;
+  if(!r.success){
+    state.failedActions[a.id]=(state.failedActions[a.id]||0)+1;
+    addStory("master","Mestre Máquina",actionFailureNarrative(a),r.formula);advanceTime(4);return;
+  }
+  completeAction(a.id);applyDerenActionSuccess(actor,a,r);updateDerenObjective();
+}
+function applyDerenActionSuccess(actor,a,r){
+  let text="";
+  switch(a.id){
+    case "road_tracks": addClue("silencio");unlockLocations("Portão de Derenfall");text="Os rastros chegam até o portão, mas não continuam pela estrada. Nenhuma multidão deixou Derenfall por aqui.";break;
+    case "road_marker": addRouteFlag("road_symbol");text="Um marco antigo sob o musgo exibe geometria pré-Ruptura. O símbolo não explica o desaparecimento, mas prova que a região já era importante antes da vila existir.";break;
+    case "gate_lock": addClue("portao");unlockLocations("Praça de Derenfall");text="As travas foram soltas por dentro e depois simplesmente abandonadas. Não há sinais de pânico, multidão ou arrombamento.";break;
+    case "gate_cart": addClue("moinho");unlockLocations("Moinho Velho");text="Sacos rasgados carregam o selo do Moinho Velho. A carga chegou poucas horas antes do silêncio.";break;
+    case "square_cart": addClue("simultaneo");unlockDerenSurface();text="A carroça caiu no meio do descarregamento. Pela posição dos objetos e das casas ao redor, muitas tarefas pararam praticamente ao mesmo tempo.";break;
+    case "square_sound": addClue("sino");unlockLocations("Igreja");text="O som não vem apenas da torre: ele parece viajar pelas fundações da vila, como se pedra e metal compartilhassem a mesma vibração.";break;
+    case "square_routes": unlockDerenSurface();text="Do centro, vocês identificam rotas claras para igreja, hospedaria, escola, poço, cemitério e casas periféricas.";break;
+    case "church_bell": addClue("sino");text="O mecanismo não poderia tocar o sino. Quando um de vocês lembra em voz alta o nome de alguém importante, o bronze responde com uma vibração própria.";break;
+    case "church_altar": addClue("fundacao");text="Sob o altar existe um encaixe circular muito mais antigo que a igreja. O piso esconde uma estrutura subterrânea.";break;
+    case "church_records": addClue("paroquia");unlockLocations("Escola","Cemitério","Hospedaria");text="Os registros conectam famílias da vila a escola, cemitério e hospedaria. Alguns nomes começam a desaparecer de documentos diferentes na mesma ordem.";break;
+    case "church_passage": addRouteFlag("route_igreja");unlockLocations("Fenda Memorial");text="O encaixe cede. A escada sob o altar desce mais do que a profundidade da igreja permitiria. Vocês abriram uma rota direta para a Fenda.";break;
+    case "inn_ledger": addClue("livro");unlockLocations("Moinho Velho");text="A última anotação termina antes do nome do próprio autor. Entre as despesas do dia há uma entrega do moinho e hospedagem de um viajante cuja assinatura também sumiu.";break;
+    case "inn_rooms": addClue("botas");unlockLocations("Moinho Velho","Casas Periféricas");text="Num quarto, botas ainda molhadas carregam barro escuro e palha do caminho do moinho. O hóspede esteve lá pouco antes de desaparecer.";break;
+    case "inn_kitchen": addClue("agua_espelho");unlockLocations("Poço");text="A água do jarro reflete por um instante o rosto de outra pessoa. O balde ao lado traz a marca do poço da praça.";break;
+    case "inn_compare": addClue("simultaneo");text="Ao cruzar horários, fica claro que pessoas em pontos distantes perderam a continuidade da própria rotina quase no mesmo minuto.";break;
+    case "school_drawings": addClue("desenhos");unlockLocations("Bosque da Lembrança");text="Quando os desenhos são colocados lado a lado, portas e árvores se repetem. O Bosque da Lembrança aparece como referência constante.";break;
+    case "school_register": addClue("lista");unlockLocations("Cemitério","Hospedaria");text="A lista de presença preservou nomes que já estão falhando em outros documentos. Ela pode servir como âncora para reconstruir identidades.";break;
+    case "school_decode": addClue("mapa_memoria");unlockLocations("Bosque da Lembrança");text="Sobrepostos, os desenhos formam um mapa simbólico. Um arco de árvores leva a um ponto marcado como 'casa com céu dentro'.";break;
+    case "well_voice": addClue("memoria");unlockLocations("Bosque da Lembrança");text="A voz não é uma pessoa presa no fundo. É uma lembrança tentando se completar com informações de quem escuta.";break;
+    case "well_rope": addClue("canal");unlockLocations("Moinho Velho","Capela Antiga");text="A corda alcança uma abertura lateral. O poço se conecta a um canal antigo que corre na direção do moinho e da capela.";break;
+    case "well_reflection": addRouteFlag("route_poco");unlockLocations("Fenda Memorial");text="O reflexo se abre como uma superfície profunda. Por alguns segundos, o poço se torna uma passagem estável para a Fenda Memorial.";break;
+    case "cemetery_graves": addClue("lapides");unlockLocations("Capela Antiga");text="As letras racham de dentro para fora. A trilha das fissuras aponta para pedras mais antigas junto à Capela Antiga.";break;
+    case "cemetery_tracks": addClue("animais");unlockLocations("Bosque da Lembrança");text="Animais passaram pelo cemitério, mas todos desviaram da mesma direção: o bosque. O padrão é deliberado demais para ser acaso.";break;
+    case "cemetery_token": addClue("sino_token");unlockLocations("Igreja");text="Sob a lápide sem nome há um fragmento de bronze. Ao segurá-lo, o sino da igreja vibra à distância.";break;
+    case "chapel_seal": addClue("nhal");text="O selo pertence a Nhal e descreve uma técnica para separar memória, identidade e matéria sem destruir nenhuma das três.";break;
+    case "chapel_crypt": addClue("tunel_igreja");addRouteFlag("route_tunnel");unlockLocations("Igreja");text="Uma passagem estreita segue sob o terreno até as fundações da igreja. Capela e altar faziam parte do mesmo sistema antigo.";break;
+    case "chapel_activate": addRouteFlag("route_capela");unlockLocations("Fenda Memorial");text="O mecanismo reconhece as pistas reunidas e abre uma dobra silenciosa entre a capela e a Fenda.";break;
+    case "outskirts_houses": addClue("simultaneo");text="Panelas, ferramentas e cartas foram abandonadas em estágios quase idênticos. A vila inteira foi atingida em uma janela muito curta.";break;
+    case "outskirts_belongings": addClue("afetos");unlockLocations("Bosque da Lembrança");text="Fotos, brinquedos e presentes mantêm detalhes que documentos perderam. Afeto parece funcionar como uma âncora de memória.";break;
+    case "outskirts_tracks": unlockLocations("Moinho Velho","Bosque da Lembrança");text="Pegadas isoladas seguem para o moinho e depois se perdem na borda do bosque. Não parecem uma fuga coletiva.";break;
+    case "mill_ledger": addClue("moinho");unlockLocations("Igreja","Hospedaria");text="O registro confirma entregas para igreja e hospedaria no mesmo horário em que os relatos começaram a falhar.";break;
+    case "mill_wheel": addClue("eco_relogio");text="As marcas da engrenagem mostram inversões pequenas ocorridas antes do desaparecimento. A anomalia vinha crescendo havia dias.";break;
+    case "mill_channel": addClue("canal");unlockLocations("Poço","Capela Antiga");text="O canal passa sob a vila e toca estruturas antigas perto do poço e da capela. A água atravessa parte do mesmo sistema de Éter.";break;
+    case "grove_animals": addClue("animais");unlockLocations("Capela Antiga");text="Os animais contornam um ponto específico e depois seguem para a capela, como se evitassem atravessar uma fronteira invisível.";break;
+    case "grove_echoes": addClue("memoria");text="As vozes do bosque repetem lembranças autênticas, mas fora de ordem. Uma delas descreve moradores entrando numa 'rua atrás das árvores'.";break;
+    case "grove_threshold": addRouteFlag("route_bosque");unlockLocations("Fenda Memorial");text="O padrão dos desenhos coincide com as árvores. Ao repetir a sequência correta, o espaço entre dois troncos se abre para a Fenda.";break;
+    case "fenda_residents": addClue("moradores");text="Vocês encontram moradores vivos. Eles sabem falar e agir, mas muitos não reconhecem o próprio nome, casa ou família.";break;
+    case "fenda_anchors": addClue("ancoras");text="Objetos de afeto, nomes preservados e lugares significativos mantêm fios luminosos ligados aos moradores. Essas âncoras podem devolver identidades.";break;
+    case "fenda_voices": addRouteFlag("route_hall");unlockLocations("Salão das Memórias");text="As vozes convergem. Seguindo o padrão, vocês encontram uma porta feita de lembranças sobrepostas.";moveTo("Salão das Memórias",derenfallArrival("Salão das Memórias"));break;
+    case "hall_observe": addClue("colecionador");text="Os fios mostram a verdade: o Colecionador não criou todas as memórias, mas aprendeu a sobreviver armazenando as que a Fenda arrancou.";break;
+    case "hall_talk": addRouteFlag("colecionador_dialogo");text="A entidade admite que libertar todos sem substituir as âncoras ameaça sua existência. Ela aceita discutir preço, pacto ou outra forma de estabilização.";break;
+    case "hall_negotiate": text="Usando as âncoras reunidas, vocês oferecem ao Colecionador um pacto: memórias serão devolvidas e a entidade permanecerá vinculada a lembranças doadas voluntariamente, não roubadas.";addStory("master","Mestre Máquina",text,r.formula);finishEnding("Pacto das Memórias","Derenfall retorna. O Colecionador continua existindo sob regras novas, e a vila passa a guardar um ritual voluntário de memória para manter a Fenda adormecida.");return;
+    case "hall_reconstruct": text="Vocês usam nomes, objetos e registros como uma rede de referências. Um por um, os moradores reconhecem pessoas, casas e histórias, retirando do Colecionador a necessidade de segurá-las.";addStory("master","Mestre Máquina",text,r.formula);finishEnding("A Vila Reensinada","Derenfall é recuperada sem destruir a entidade. A restauração leva tempo e algumas lembranças voltam por caminhos inesperados, criando futuros ganchos.");return;
+    case "hall_seal": text="O padrão de Nhal usa as âncoras como ponte. As memórias retornam aos moradores enquanto a Fenda se fecha ao redor do Colecionador.";addStory("master","Mestre Máquina",text,r.formula);finishEnding("Selo de Nhal","A maioria das lembranças retorna intacta. O grupo, porém, agora carrega conhecimento de uma tecnologia que várias facções desejariam controlar.");return;
+    case "hall_attack": addRouteFlag("colecionador_ferido");text="O golpe rompe parte do núcleo e os fios ficam instáveis. A entidade está vulnerável, mas destruí-la agora pode arrancar memórias ainda não ancoradas.";break;
+    case "hall_break": text="Com o núcleo já exposto, o golpe final desfaz o Colecionador. As memórias sem âncora se espalham como faíscas antes que a Fenda comece a colapsar.";addStory("master","Mestre Máquina",text,r.formula);finishEnding("Ruptura do Colecionador","Os moradores retornam, mas algumas lembranças nunca encontram o caminho de volta. Derenfall sobrevive carregando lacunas reais.");return;
+    case "hall_offer": text="A lembrança escolhida é entregue voluntariamente. O Colecionador cumpre o acordo e solta os fios que mantinham a vila presa.";addStory("master","Mestre Máquina",text,r.formula);finishEnding("O Preço de uma Lembrança","Derenfall retorna quase inteira. Um aventureiro deixa a Fenda sabendo que algo importante existiu, mas sem conseguir mais recordá-lo.");return;
+  }
+  addStory("master","Mestre Máquina",text,r.formula);advanceTime(5);
+}
+function renderCampaignMap(){
+  const root=$("campaignMap"),title=$("mapTitle"),progress=$("mapProgress"),hint=$("mapPathHint");if(!root||!state)return;
+  ensureStateShape();const map=WORLD_MAPS[state.campaignId];if(!map){root.innerHTML="<p class='muted'>Mapa indisponível.</p>";return}
+  title.textContent=map.title;
+  const visible=Object.values(map.nodes).filter(function(n){return state.unlockedLocations.includes(n.name)||n.name===state.location});
+  const byName={};Object.values(map.nodes).forEach(function(n){byName[n.name]=n});
+  let svg="<svg class='map-lines' viewBox='0 0 100 100' preserveAspectRatio='none'>";
+  map.edges.forEach(function(e){
+    const a=byName[e[0]],b=byName[e[1]];if(!a||!b||!edgeIsOpen(e))return;
+    if(!visible.includes(a)||!visible.includes(b))return;
+    const active=e[0]===state.location||e[1]===state.location;
+    svg+="<line x1='"+a.x+"' y1='"+a.y+"' x2='"+b.x+"' y2='"+b.y+"' class='"+(active?"active":"")+"'/>";
+  });
+  svg+="</svg>";
+  let nodes=visible.map(function(n){
+    const current=n.name===state.location,visited=state.visitedLocations.includes(n.name),open=canTravelTo(n.name);
+    const cls=current?"current":visited?"visited":open?"open":"known";
+    return "<button class='map-node "+cls+"' style='left:"+n.x+"%;top:"+n.y+"%' data-map-dest='"+esc(n.name)+"' "+(current||!open?"disabled":"")+"><span>"+n.icon+"</span><small>"+esc(n.name)+"</small></button>";
+  }).join("");
+  root.innerHTML="<div class='map-canvas'>"+svg+nodes+"</div>";
+  root.querySelectorAll("[data-map-dest]:not([disabled])").forEach(function(b){b.onclick=function(){travelFromMap(b.dataset.mapDest)}});
+  progress.textContent=state.visitedLocations.length+" visitados • "+visible.length+" descobertos";
+  if(state.campaignId==="derenfall"){
+    const routes=["route_igreja","route_capela","route_bosque","route_poco"].filter(hasFlag).length;
+    hint.textContent=routes?"Rotas conhecidas para a Fenda: "+routes+"/4. Você pode continuar investigando mesmo após encontrar um acesso.":"Pistas de lugares diferentes podem se cruzar e abrir rotas secretas para a mesma origem.";
+  }else hint.textContent="Clique em um local conectado para viajar. Cada região da campanha possui acontecimentos próprios.";
+}
 function resolveDerenfall(actor,text){
-  const n=norm(text),loc=state.location;
-  if(/sair da vila|ir embora|abandonar derenfall|seguir viagem/.test(n)){state.pressure=Math.min(5,state.pressure+1);advanceTime(75);addStory("master","Mestre Máquina","Vocês deixam Derenfall. O mundo permite a escolha. Horas depois, porém, um viajante cruza a estrada sem lembrar de onde veio. A anomalia não ficou confinada à vila.");state.objective="Decidir se retornam a Derenfall ou acompanham a propagação da anomalia.";return}
-  if(loc==="Estrada de Derenfall"&&/entrar|vila|portao|praça|praca/.test(n)){moveTo("Praça de Derenfall","Ao atravessar o portão, a sensação piora. Uma carroça tombada bloqueia parte da praça. Comida ainda está servida em uma casa aberta. Então o sino da igreja toca uma vez — embora ninguém esteja na torre.");return}
-  if(loc==="Igreja"&&/tocar|puxar.*sino/.test(n)){advanceTime(3);addClue("sino");addStory("master","Mestre Máquina","O sino toca sem que o badalo se mova. Por um instante, cada aventureiro se lembra de uma casa da infância. Sob o altar, alguma coisa responde com três batidas abafadas.");addClue("fundacao");return}
-  if(/descer|entrar.*passagem|subsolo|cripta|abrir.*fundacao/.test(n)&&(loc==="Igreja"||loc==="Capela Antiga")){
-    if(state.clues.includes("fundacao")){moveTo("Fenda Memorial","A passagem não termina em terra. Ela se abre para ruas de Derenfall repetidas como lembranças imperfeitas, portas suspensas no vazio e vozes que chamam nomes esquecidos.");state.objective="Encontrar os moradores e descobrir quem controla a Fenda.";addClue("memoria")}else addStory("master","Mestre Máquina","Vocês suspeitam de uma estrutura subterrânea, mas ainda não identificaram o acesso. A igreja e a capela antiga oferecem pistas.");return}
-  if(loc==="Fenda Memorial"&&/seguir|vozes|morador|chamar|avancar|avançar|responsavel/.test(n)){requestRoll(actor,"PER",11,"Encontrar o coração da Fenda",{kind:"deren_fenda"});return}
-  if(loc==="Salão das Memórias"){
-    if(/negoci|acordo|convers|pergunt|falar/.test(n)){advanceTime(4);addStory("master","Colecionador","— Posso devolver cada pessoa. Posso devolver quase tudo. Mas uma memória que realmente tenha peso deve ficar comigo. Uma lembrança oferecida por alguém que ainda sabe quem é.");state.objective="Escolher entre negociar, selar a Fenda ou enfrentar o Colecionador.";return}
-    if(/selar|ritual|selo/.test(n)){requestRoll(actor,"INT",16,"Selar a Fenda",{kind:"deren_seal"});return}
-    if(/atac|destruir|matar|golpe/.test(n)){requestRoll(actor,"FOR",14,"Romper o núcleo do Colecionador",{kind:"deren_attack"});return}
-    if(/ofere|memoria|lembranca|sacrific/.test(n)){addStory("master","Mestre Máquina","O Colecionador aceita a oferta. Um fio de luz deixa o aventureiro e centenas de moradores começam a lembrar seus nomes. A lembrança oferecida, porém, não volta.");finishEnding("O Preço de uma Lembrança","Derenfall retorna quase inteira, mas uma ausência pessoal acompanha a companhia para histórias futuras.");return}
+  ensureStateShape();const n=norm(text);
+  if(/sair da vila|ir embora|abandonar derenfall|seguir viagem/.test(n)){
+    state.pressure=Math.min(5,state.pressure+1);advanceTime(75);
+    addStory("master","Mestre Máquina","Vocês deixam Derenfall. O mundo não impede a escolha. Horas depois, um viajante cruza a estrada sem lembrar de onde veio — a anomalia começou a ultrapassar a vila.");
+    state.objective="Decidir se retornam a Derenfall ou investigam a propagação da anomalia.";return;
   }
   const dest=inferDestination("derenfall",text);
-  if(dest&&dest!==loc&&(/ir|entrar|seguir|andar|voltar|visitar|aproxim/.test(n)||n.includes(norm(dest)))){moveTo(dest,derenfallArrival(dest));return}
-  if(/investig|procur|exam|observar|rastre|escut|ler|analis|vasculh/.test(n)){requestRoll(actor,statFor(text),12,"Investigar "+loc,{kind:"deren_investigate",location:loc,text});return}
-  if(/tentar|forcar|forçar|convenc|saltar|escalar|arrombar|enganar/.test(n)){requestRoll(actor,statFor(text),12,"Resolver a ação",{kind:"generic",text});return}
-  advanceTime(2);addStory("master","Mestre Máquina","A ação é possível e altera a posição da companhia. O ambiente responde sem forçar um caminho único. O que vocês fazem com essa nova situação?");
+  if(dest&&dest!==state.location&&(/ir|entrar|seguir|andar|voltar|visitar|aproxim|portao|praça|praca/.test(n)||n===norm(dest))){
+    if(canTravelTo(dest)){moveTo(dest,derenfallArrival(dest));return}
+    if(state.unlockedLocations.includes(dest)){addStory("master","Mestre Máquina","Esse lugar já é conhecido, mas não há uma rota direta aberta a partir daqui. O mapa mostra os pontos intermediários.");return}
+  }
+  const action=findDerenAction(text);if(action){executeDerenAction(actor,action);return}
+  if(/investig|procur|exam|observar|rastre|escut|ler|analis|vasculh/.test(n)){
+    const available=currentDerenActions();if(available.length){executeDerenAction(actor,available[0]);return}
+  }
+  if(/tentar|forcar|forçar|convenc|saltar|escalar|arrombar|enganar|atacar/.test(n)){requestRoll(actor,statFor(text),12,"Resolver a ação",{kind:"generic",text:text});return}
+  advanceTime(2);addStory("master","Mestre Máquina","A ação é possível e muda a situação local. O Mestre registra a consequência sem empurrar a companhia para uma rota predeterminada.");
 }
 function derenfallArrival(dest){
-  return {
-    "Igreja":"A igreja está vazia. Três cordas descem da torre, mas uma está rompida e as engrenagens parecem travadas. Mesmo assim, o bronze vibra suavemente.",
-    "Hospedaria":"Canecas ainda contêm bebida. Um prato de ensopado está morno. Sobre o balcão, o livro-caixa permanece aberto.",
-    "Cemitério":"A chuva corre pelas lápides. Algumas inscrições parecem estranhamente incompletas, como se nomes estivessem desaparecendo da pedra.",
-    "Escola":"Carteiras pequenas permanecem alinhadas. Dezenas de desenhos infantis mostram a mesma casa com um céu violeta no lugar do teto.",
-    "Poço":"A água está imóvel. Ao se aproximarem, uma voz familiar sobe da escuridão — mas erra um detalhe que essa pessoa jamais erraria.",
-    "Capela Antiga":"Atrás do cemitério, raízes cobrem uma estrutura mais antiga que a vila. Sob o musgo existe geometria pré-Ruptura.",
-    "Praça de Derenfall":"A praça continua congelada no meio de tarefas interrompidas."
-  }[dest]||`Vocês chegam a ${dest}.`;
+  const texts={
+    "Portão de Derenfall":"O portão está entreaberto. Correntes e travas permanecem do lado de dentro, e uma carroça de mantimentos foi deixada atravessada perto da muralha.",
+    "Praça de Derenfall":"A praça está congelada no meio de tarefas comuns. Uma carroça tombada, portas abertas e o sino distante transformam o silêncio em algo deliberado.",
+    "Igreja":"A igreja está vazia. Uma corda do sino está rompida e as engrenagens não poderiam movê-lo, mas o bronze vibra como se escutasse.",
+    "Hospedaria":"Canecas ainda contêm bebida e um prato continua morno. No balcão, o livro-caixa está aberto em uma página cheia de nomes incompletos.",
+    "Cemitério":"A chuva corre pelas lápides. Algumas inscrições estão rachando de dentro para fora, apagando nomes em ritmos diferentes.",
+    "Escola":"Carteiras permanecem alinhadas. Desenhos infantis mostram uma casa impossível, árvores repetidas e um céu violeta no lugar do teto.",
+    "Poço":"A água está imóvel demais. Uma voz familiar sobe da escuridão, mas conta uma lembrança com um detalhe errado.",
+    "Casas Periféricas":"Aqui o abandono parece íntimo: cartas abertas, brinquedos, ferramentas e roupas deixadas como se os moradores fossem retornar em minutos.",
+    "Moinho Velho":"A corrente passa forte sob o moinho, mas a roda não acompanha. Registros de entrega ainda estão presos por um prego junto à porta.",
+    "Bosque da Lembrança":"O bosque começa comum e rapidamente deixa de obedecer distância. Vozes aparecem entre árvores que vocês juram já ter passado.",
+    "Capela Antiga":"Raízes cobrem uma construção anterior à vila. Símbolos geométricos sobrevivem sob reformas mais recentes.",
+    "Fenda Memorial":"A passagem abre para ruas de Derenfall reconstruídas por lembranças imperfeitas. Portas levam a dias diferentes e moradores caminham sem reconhecer suas próprias casas.",
+    "Salão das Memórias":"Fios luminosos cruzam um salão impossível. No centro, uma figura feita de máscaras incompletas organiza lembranças como um bibliotecário diante de um arquivo vivo."
+  };
+  return texts[dest]||"Vocês chegam a "+dest+".";
 }
 function resolveGenericCampaign(actor,text){
   const c=CAMPAIGNS[state.campaignId],n=norm(text),dest=inferDestination(state.campaignId,text);
@@ -645,13 +864,19 @@ function resolveGenericCampaign(actor,text){
   advanceTime(3);addStory("master","Mestre Máquina",`A ação muda o contexto em ${state.location}. O Mestre mantém o foco da campanha — ${c.tone} — mas aceita a direção escolhida pela companhia e apresenta uma consequência observável.`);
 }
 function inferDestination(campaignId,text){
-  const n=norm(text),c=CAMPAIGNS[campaignId];
-  for(const loc of Object.keys(c.locations)){if(n.includes(norm(loc)))return loc}
-  if(campaignId==="derenfall"){
-    if(/igreja|altar|sino/.test(n))return "Igreja";if(/hosped|taverna|estalagem/.test(n))return "Hospedaria";if(/cemiter|lapide/.test(n))return "Cemitério";if(/escola|desenho/.test(n))return "Escola";if(/poco/.test(n))return "Poço";if(/capela/.test(n))return "Capela Antiga";if(/praca|centro/.test(n))return "Praça de Derenfall";
+  const n=norm(text),map=WORLD_MAPS[campaignId],c=CAMPAIGNS[campaignId];
+  if(map){
+    const found=Object.values(map.nodes).find(function(node){return n.includes(norm(node.name))});
+    if(found)return found.name;
   }
-  if(campaignId==="vidro"){if(/arquivo/.test(n))return "Arquivos Reais";if(/casa|distrito/.test(n))return "Distrito das Casas";if(/cripta/.test(n))return "Cripta Dinástica";if(/salao|salão|coroa/.test(n))return "Salão dos Juramentos"}
-  if(campaignId==="coro"){if(/acamp/.test(n))return "Acampamento de Khar-Dor";if(/galeria|mina principal/.test(n))return "Galeria Principal";if(/tunel|túnel/.test(n))return "Túnel Impossível";if(/camara|câmara|coro/.test(n))return "Câmara do Coro"}
+  if(c&&c.locations){for(const loc of Object.keys(c.locations)){if(n.includes(norm(loc)))return loc}}
+  if(campaignId==="derenfall"){
+    if(/portao/.test(n))return "Portão de Derenfall";if(/igreja|altar|sino/.test(n))return "Igreja";
+    if(/hosped|taverna|estalagem/.test(n))return "Hospedaria";if(/cemiter|lapide/.test(n))return "Cemitério";
+    if(/escola|desenho/.test(n))return "Escola";if(/poco/.test(n))return "Poço";if(/capela/.test(n))return "Capela Antiga";
+    if(/moinho/.test(n))return "Moinho Velho";if(/bosque|floresta/.test(n))return "Bosque da Lembrança";
+    if(/casa|perifer/.test(n))return "Casas Periféricas";if(/praca|centro/.test(n))return "Praça de Derenfall";
+  }
   return null;
 }
 function processIntent(actor,text){
@@ -663,6 +888,7 @@ function processIntent(actor,text){
 }
 function resolveRollContext(actor,r,ctx){
   if(!ctx)return;
+  if(ctx.kind==="deren_action"){resolveDerenActionRoll(actor,r,ctx.actionId);return;}
   if(ctx.kind==="generic"){
     addStory("master","Mestre Máquina",r.success?"A tentativa funciona. O resultado altera a cena a favor da companhia, respeitando o método descrito.":"A tentativa não alcança o objetivo completo. Em vez de bloquear a aventura, surge um custo, atraso ou nova pressão.",r.formula);advanceTime(5);return;
   }
@@ -720,12 +946,13 @@ function resolveCampaignInvestigation(actor,r,cid,loc,text){
 
 function renderState(){
   if(!state)return;
+  ensureStateShape();
   const c=CAMPAIGNS[state.campaignId];
   setTheme(state.campaignId);ui.campaignTitle.textContent=c.title;ui.locationName.textContent=state.location;ui.objectiveText.textContent=state.objective;
   const wt=worldTime();ui.worldDay.textContent="Dia "+wt.day;ui.worldTime.textContent=wt.time;
   const labels=state.campaignId==="vidro"?["Cerimônia","Rumores","Pressão","Alianças","Crise","Ruptura"]:state.campaignId==="coro"?["Sussurros","Canção","Contágio","Descida","Convergência","Assimilação"]:["Silêncio","Ecos","Substituições","Vazamento","Ancoragem","Propagação"];
   ui.mysteryLabel.textContent=labels[state.pressure]||labels[0];ui.mysteryBar.style.width=(8+state.pressure*18)+"%";
-  renderStory();renderClues();renderQuickActions();renderDicePrompt();renderSheet();checkLastRoll();
+  renderStory();renderClues();renderQuickActions();renderCampaignMap();renderDicePrompt();renderSheet();checkLastRoll();
 }
 function renderStory(){
   for(const e of state.story){
@@ -747,8 +974,23 @@ function renderClues(){
   ui.clueList.innerHTML=arr.length?arr.map(c=>`<div class="clue"><b>✦ ${esc(c.title)}</b>${esc(c.text)}</div>`).join(""):'<p class="muted">Nenhuma pista registrada ainda.</p>';
 }
 function renderQuickActions(){
-  const list=CAMPAIGNS[state.campaignId].locations[state.location]||["Observar ao redor","Conversar com a companhia","Investigar"];
-  ui.quickActions.innerHTML="";list.forEach(label=>{const b=document.createElement("button");b.textContent=label;b.onclick=()=>submitIntent(label);ui.quickActions.appendChild(b)});
+  ensureStateShape();let list=[];
+  if(state.campaignId==="derenfall"){
+    list=currentDerenActions().map(function(a){return {label:a.label,type:"action"}});
+    connectedLocations(state.location).forEach(function(dest){list.push({label:"Ir para "+dest,type:"travel",dest:dest})});
+  }else{
+    const base=CAMPAIGNS[state.campaignId].locations[state.location]||["Observar ao redor","Conversar com a companhia","Investigar"];
+    list=base.map(function(label){return {label:label,type:"action"}});
+    connectedLocations(state.location).forEach(function(dest){
+      if(!list.some(function(x){return norm(x.label).includes(norm(dest))}))list.push({label:"Ir para "+dest,type:"travel",dest:dest});
+    });
+  }
+  ui.quickActions.innerHTML="";
+  list.forEach(function(item){
+    const b=document.createElement("button");b.textContent=item.label;
+    b.onclick=function(){if(item.type==="travel")travelFromMap(item.dest);else submitIntent(item.label)};
+    ui.quickActions.appendChild(b);
+  });
 }
 function renderDicePrompt(){
   const p=state.pendingRoll;if(!p){ui.dicePrompt.classList.add("hidden");return}
