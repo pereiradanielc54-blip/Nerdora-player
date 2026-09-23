@@ -1059,9 +1059,9 @@ function applyDerenActionSuccess(actor,a,r){
     case "inn_kitchen": addEvidence("ev_wrong_reflection","Hospedaria");unlockLocations("Poço");text="A água do jarro reflete por um instante o rosto de outra pessoa. O balde ao lado traz a marca do poço da praça.";break;
     case "inn_compare": addEvidence("ev_inn_times","Hospedaria");text="Ao cruzar horários, fica claro que pessoas em pontos distantes perderam a continuidade da própria rotina quase no mesmo minuto.";break;
     case "school_drawings": addEvidence("ev_drawings","Escola");unlockLocations("Bosque da Lembrança");text="Quando os desenhos são colocados lado a lado, portas e árvores se repetem. O Bosque da Lembrança aparece como referência constante.";break;
-    case "school_register": addEvidence("ev_school_names","Escola");unlockLocations("Cemitério","Hospedaria");text="A lista de presença preservou nomes que já estão falhando em outros documentos. Ela pode servir como âncora para reconstruir identidades.";break;
+    case "school_register": addEvidence("ev_school_names","Escola");unlockLocations("Cemitério","Hospedaria");text="A lista de presença preservou nomes que já estão falhando em outros documentos. Por enquanto, ela oferece apenas uma referência confiável para comparação.";break;
     case "school_decode": addEvidence("ev_map_pattern","Escola");unlockLocations("Bosque da Lembrança");text="Sobrepostos, os desenhos formam um mapa simbólico. Um arco de árvores leva a um ponto marcado como 'casa com céu dentro'.";break;
-    case "well_voice": addEvidence("ev_wrong_voice","Poço");unlockLocations("Bosque da Lembrança");text="A voz não é uma pessoa presa no fundo. É uma lembrança tentando se completar com informações de quem escuta.";break;
+    case "well_voice": addEvidence("ev_wrong_voice","Poço");unlockLocations("Bosque da Lembrança");text="A voz mistura detalhes corretos e erros impossíveis. Ela parece recombinar informações de quem escuta, mas a origem ainda não está clara.";break;
     case "well_rope": addEvidence("ev_well_channel","Poço");unlockLocations("Moinho Velho","Capela Antiga");text="A corda alcança uma abertura lateral. O poço se conecta a um canal antigo que corre na direção do moinho e da capela.";break;
     case "well_reflection": addRouteFlag("route_poco");unlockLocations("Fenda Memorial");text="O reflexo se abre como uma superfície profunda. Por alguns segundos, o poço se torna uma passagem estável para a Fenda Memorial.";break;
     case "cemetery_graves": addEvidence("ev_names_erasing","Cemitério");unlockLocations("Capela Antiga");text="As letras racham de dentro para fora. A trilha das fissuras aponta para pedras mais antigas junto à Capela Antiga.";break;
@@ -1071,19 +1071,19 @@ function applyDerenActionSuccess(actor,a,r){
     case "chapel_crypt": addEvidence("ev_tunnel_church","Capela Antiga");addRouteFlag("route_tunnel");unlockLocations("Igreja");text="Uma passagem estreita segue sob o terreno até as fundações da igreja. Capela e altar faziam parte do mesmo sistema antigo.";break;
     case "chapel_activate": addRouteFlag("route_capela");unlockLocations("Fenda Memorial");text="O mecanismo reconhece as pistas reunidas e abre uma dobra silenciosa entre a capela e a Fenda.";break;
     case "outskirts_houses": addEvidence("ev_house_interrupt","Casas Periféricas");text="Panelas, ferramentas e cartas foram abandonadas em estágios quase idênticos. A vila inteira foi atingida em uma janela muito curta.";break;
-    case "outskirts_belongings": addEvidence("ev_personal_objects","Casas Periféricas");unlockLocations("Bosque da Lembrança");text="Fotos, brinquedos e presentes mantêm detalhes que documentos perderam. Afeto parece funcionar como uma âncora de memória.";break;
+    case "outskirts_belongings": addEvidence("ev_personal_objects","Casas Periféricas");unlockLocations("Bosque da Lembrança");text="Fotos, brinquedos e presentes mantêm detalhes que documentos perderam. O padrão é real, mas ainda não há informação suficiente para explicar por quê.";break;
     case "outskirts_tracks": unlockLocations("Moinho Velho","Bosque da Lembrança");text="Pegadas isoladas seguem para o moinho e depois se perdem na borda do bosque. Não parecem uma fuga coletiva.";break;
     case "mill_ledger": addEvidence("ev_mill_delivery","Moinho Velho");unlockLocations("Igreja","Hospedaria");text="O registro confirma entregas para igreja e hospedaria no mesmo horário em que os relatos começaram a falhar.";break;
-    case "mill_wheel": addEvidence("ev_mill_time","Moinho Velho");text="As marcas da engrenagem mostram inversões pequenas ocorridas antes do desaparecimento. A anomalia vinha crescendo havia dias.";break;
-    case "mill_channel": addEvidence("ev_mill_channel","Moinho Velho");unlockLocations("Poço","Capela Antiga");text="O canal passa sob a vila e toca estruturas antigas perto do poço e da capela. A água atravessa parte do mesmo sistema de Éter.";break;
+    case "mill_wheel": addEvidence("ev_mill_time","Moinho Velho");text="As marcas da engrenagem mostram pequenas inversões ocorridas antes do desaparecimento. Algo estranho já acontecia ali havia dias, mas sua relação com a vila ainda é incerta.";break;
+    case "mill_channel": addEvidence("ev_mill_channel","Moinho Velho");unlockLocations("Poço","Capela Antiga");text="O canal passa sob a vila e toca estruturas antigas perto do poço e da capela. As construções parecem relacionadas, mas ainda não está claro qual era sua função.";break;
     case "grove_animals": addEvidence("ev_animals_avoid","Bosque da Lembrança");addClue("animais");unlockLocations("Capela Antiga");text="Os animais contornam um ponto específico e depois seguem para a capela, como se evitassem atravessar uma fronteira invisível.";break;
-    case "grove_echoes": addEvidence("ev_forest_echo","Bosque da Lembrança");text="As vozes do bosque repetem lembranças autênticas, mas fora de ordem. Uma delas descreve moradores entrando numa 'rua atrás das árvores'.";break;
+    case "grove_echoes": addEvidence("ev_forest_echo","Bosque da Lembrança");text="As vozes do bosque repetem cenas e nomes fora de ordem. Uma delas descreve moradores entrando numa 'rua atrás das árvores', mas vocês ainda não sabem o que essas vozes representam.";break;
     case "grove_threshold": addRouteFlag("route_bosque");unlockLocations("Fenda Memorial");text="O padrão dos desenhos coincide com as árvores. Ao repetir a sequência correta, o espaço entre dois troncos se abre para a Fenda.";break;
     case "fenda_residents": addEvidence("ev_residents_identity","Fenda Memorial");text="Vocês encontram moradores vivos. Eles sabem falar e agir, mas muitos não reconhecem o próprio nome, casa ou família.";break;
-    case "fenda_anchors": addEvidence("ev_luminous_links","Fenda Memorial");text="Objetos de afeto, nomes preservados e lugares significativos mantêm fios luminosos ligados aos moradores. Essas âncoras podem devolver identidades.";break;
+    case "fenda_anchors": addEvidence("ev_luminous_links","Fenda Memorial");text="Fios luminosos ligam alguns moradores a objetos, nomes e lugares. O padrão é consistente, mas sua função ainda precisa ser compreendida.";break;
     case "fenda_voices": addRouteFlag("route_hall");unlockLocations("Salão das Memórias");text="As vozes convergem. Seguindo o padrão, vocês encontram uma porta feita de lembranças sobrepostas.";moveTo("Salão das Memórias",derenfallArrival("Salão das Memórias"));break;
-    case "hall_observe": addEvidence("ev_entity_threads","Salão das Memórias");text="Os fios mostram a verdade: o Colecionador não criou todas as memórias, mas aprendeu a sobreviver armazenando as que a Fenda arrancou.";break;
-    case "hall_talk": addEvidence("ev_entity_statement","Salão das Memórias");addRouteFlag("colecionador_dialogo");text="A entidade admite que libertar todos sem substituir as âncoras ameaça sua existência. Ela aceita discutir preço, pacto ou outra forma de estabilização.";break;
+    case "hall_observe": addEvidence("ev_entity_threads","Salão das Memórias");text="Os fios do salão convergem na entidade, mas também seguem de volta até os moradores. Isso prova uma ligação direta, não ainda a origem nem a intenção do fenômeno.";break;
+    case "hall_talk": addEvidence("ev_entity_statement","Salão das Memórias");addRouteFlag("colecionador_dialogo");text="A entidade admite que romper todos os fios ameaça sua existência. Ela aceita conversar sobre preço, pacto ou outra forma de manter-se estável.";break;
     case "hall_negotiate": text="Usando as âncoras reunidas, vocês oferecem ao Colecionador um pacto: memórias serão devolvidas e a entidade permanecerá vinculada a lembranças doadas voluntariamente, não roubadas.";addStory("master","Mestre Máquina",text,r.formula);finishEnding("Pacto das Memórias","Derenfall retorna. O Colecionador continua existindo sob regras novas, e a vila passa a guardar um ritual voluntário de memória para manter a Fenda adormecida.");return;
     case "hall_reconstruct": text="Vocês usam nomes, objetos e registros como uma rede de referências. Um por um, os moradores reconhecem pessoas, casas e histórias, retirando do Colecionador a necessidade de segurá-las.";addStory("master","Mestre Máquina",text,r.formula);finishEnding("A Vila Reensinada","Derenfall é recuperada sem destruir a entidade. A restauração leva tempo e algumas lembranças voltam por caminhos inesperados, criando futuros ganchos.");return;
     case "hall_seal": text="O padrão de Nhal usa as âncoras como ponte. As memórias retornam aos moradores enquanto a Fenda se fecha ao redor do Colecionador.";addStory("master","Mestre Máquina",text,r.formula);finishEnding("Selo de Nhal","A maioria das lembranças retorna intacta. O grupo, porém, agora carrega conhecimento de uma tecnologia que várias facções desejariam controlar.");return;
@@ -1254,7 +1254,7 @@ function resolveCampaignInvestigation(actor,r,cid,loc,text){
 
 function renderState(){
   if(!state)return;
-  ensureStateShape();
+  ensureStateShape();tryResolveRevelations();
   const c=CAMPAIGNS[state.campaignId];
   setTheme(state.campaignId);ui.campaignTitle.textContent=c.title;ui.locationName.textContent=state.location;ui.objectiveText.textContent=state.objective;
   const wt=worldTime();ui.worldDay.textContent="Dia "+wt.day;ui.worldTime.textContent=wt.time;
@@ -1278,8 +1278,17 @@ async function appendStoryEntry(e,animate){
   p.classList.remove("cursor-word");ui.storyLog.scrollTop=ui.storyLog.scrollHeight;
 }
 function renderClues(){
-  const arr=state.clues.map(id=>CLUES[id]).filter(Boolean);
-  ui.clueList.innerHTML=arr.length?arr.map(c=>`<div class="clue"><b>✦ ${esc(c.title)}</b>${esc(c.text)}</div>`).join(""):'<p class="muted">Nenhuma pista registrada ainda.</p>';
+  ensureStateShapeBase();
+  const evidence=(state.rawEvidence||[]).map(function(item){return EVIDENCE[typeof item==="string"?item:item.id]}).filter(Boolean);
+  if(ui.evidenceList){
+    ui.evidenceList.innerHTML=evidence.length
+      ? evidence.map(function(e){return "<div class='clue evidence'><b>◌ "+esc(e.title)+"</b>"+esc(e.text)+"</div>"}).join("")
+      : "<p class='muted'>Nenhuma evidência registrada ainda.</p>";
+  }
+  const arr=state.clues.map(function(id){return CLUES[id]}).filter(Boolean);
+  ui.clueList.innerHTML=arr.length
+    ? arr.map(function(c){return "<div class='clue conclusion'><b>✦ "+esc(c.title)+"</b>"+esc(c.text)+"</div>"}).join("")
+    : "<p class='muted'>Ainda não há informações suficientes para formar uma conclusão.</p>";
 }
 function renderQuickActions(){
   ensureStateShape();let list=[];
