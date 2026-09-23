@@ -76,7 +76,7 @@ jobs:
         shell: bash
         run: |
           cp .github/overlays/v0.6.1/DocumentOpenActivity.kt extracted_project/app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
-          python3 -c 'from pathlib import Path; p=Path("extracted_project/app/src/main/AndroidManifest.xml"); t=p.read_text(encoding="utf-8"); a=Path(".github/overlays/v0.6.1/document-activity.xml").read_text(encoding="utf-8"); m="        <service\\n            android:name=\".playback.PlaybackService\""; assert m in t, "Ponto de inserção não encontrado"; p.write_text(t if "android:name=\".DocumentOpenActivity\"" in t else t.replace(m, a+"\\n"+m, 1), encoding="utf-8")'
+          python3 -c 'from pathlib import Path; p=Path("extracted_project/app/src/main/AndroidManifest.xml"); t=p.read_text(encoding="utf-8"); a=Path(".github/overlays/v0.6.1/document-activity.xml").read_text(encoding="utf-8"); m="    </application>"; assert m in t, "Fechamento de application não encontrado"; p.write_text(t if "android:name=\".DocumentOpenActivity\"" in t else t.replace(m, a+"\\n"+m, 1), encoding="utf-8")'
           sed -i -E 's/versionCode = [0-9]+/versionCode = 31/' extracted_project/app/build.gradle.kts
           sed -i -E 's/versionName = "[^"]+"/versionName = "0.6.1"/' extracted_project/app/build.gradle.kts
           grep -q 'android:name=".DocumentOpenActivity"' extracted_project/app/src/main/AndroidManifest.xml
