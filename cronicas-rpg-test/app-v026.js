@@ -920,6 +920,7 @@ function unlockLocations(){
 function ensureStateShapeBase(){
   if(!state)return;
   if(!Array.isArray(state.completedActions))state.completedActions=[];
+  if(!Array.isArray(state.rawEvidence))state.rawEvidence=[];
   if(!state.failedActions)state.failedActions={};
   if(!Array.isArray(state.routeFlags))state.routeFlags=[];
   if(!Array.isArray(state.eventFired))state.eventFired=[];
