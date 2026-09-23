@@ -885,3 +885,19 @@ body[data-theme="coro"] .campaign-map{background-image:linear-gradient(rgba(230,
 
 /* Home gets a real fantasy scene instead of pure gradients */
 .intro-screen:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(6,6,8,.18),rgba(6,6,8,.58) 62%,rgba(6,6,8,.76)),url("./assets/scenes/court.svg");background-size:cover;background-position:center;opacity:.7}
+
+/* ===== INVENTÁRIO, EQUIPAMENTO E LOOT / ALPHA 0.3.1 ===== */
+.inventory-head{display:flex;align-items:end;justify-content:space-between;gap:10px;margin:16px 0 8px}
+.inventory-head h4{margin:0!important}.inventory-head small{display:block;margin-top:3px;font-size:6.8px;color:#807564}
+.gold-count{padding:6px 8px;border:1px solid #765d36;border-radius:999px;background:#20170f;color:#e5c274;font:700 8px Georgia,serif;white-space:nowrap}
+.equipment-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.equip-slot{padding:8px;border-radius:9px;border:1px solid #4d3d2f;background:linear-gradient(180deg,#201915,#14110f);min-width:0}
+.equip-slot small{display:block;font-size:5.8px;letter-spacing:.09em;color:#776b5b;margin-bottom:3px}
+.equip-slot strong{display:block;font-size:7.2px;color:#e4d3b7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inventory-list{display:flex;flex-direction:column;gap:6px}
+.inventory-item{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px;border-radius:10px;border:1px solid #4e3e30;background:linear-gradient(180deg,#201915,#13100e);box-shadow:0 5px 12px rgba(0,0,0,.16)}
+.item-icon{width:34px;height:34px;display:grid;place-items:center;border-radius:9px;background:#2c2119;border:1px solid #654c32;font:700 16px Georgia,serif;color:#edd6ae}
+.inventory-item strong{display:block;font-size:8px;color:#ecdfc8}.inventory-item small{display:block;font-size:6px;color:#8b7f6d;margin-top:1px}.inventory-item p{margin:3px 0 0;font-size:6.7px;line-height:1.35;color:#a99e8c}
+.inventory-item button{border:1px solid #685139;background:#2d2119;color:#ead8b8;border-radius:8px;padding:6px 7px;font:700 6.5px Georgia,serif}
+.rarity-raro{border-color:#506d84}.rarity-raro .item-icon{border-color:#5f85a5;color:#b6daf3}.rarity-epico{border-color:#725b91}.rarity-epico .item-icon{border-color:#8a6aae;color:#d5b9f5}
+@media(max-width:760px){.equipment-slots{grid-template-columns:1fr}.inventory-item{grid-template-columns:34px minmax(0,1fr) auto}}
