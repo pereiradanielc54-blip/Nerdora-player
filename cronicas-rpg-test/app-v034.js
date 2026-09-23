@@ -1334,17 +1334,18 @@ function renderCampaigns(){
   Object.values(CAMPAIGNS).forEach(c=>{
     const b=document.createElement("button");b.className="campaign-card"+(c.id===selectedCampaign?" active":"");
     b.innerHTML=`<span class="campaign-icon">${c.icon}</span><small>${esc(c.tone)}</small><strong>${esc(c.title)}</strong><p>${esc(c.summary)}</p>`;
-    b.onclick=()=>{selectedCampaign=c.id;setTheme(c.id);renderCampaigns()};
+    b.onclick=()=>{selectedCampaign=c.id;setTheme(c.id);renderCampaigns();if(isHost&&roomId)announceRoom()};
     ui.campaignGrid.appendChild(b);
   });
 }
 window.CN_openMode = which => openMode(which);
 function openMode(which){
   mode=which;setTheme(selectedCampaign);
-  ui.modeTitle.textContent=which==="solo"?"Campanha Solo":"Campanha Online";
+  ui.modeTitle.textContent=which==="solo"?"Campanha Solo":"Escolha a campanha da sala";
   ui.onlineControls.classList.toggle("hidden",which!=="online");
   ui.soloControls.classList.toggle("hidden",which!=="solo");
   renderCampaigns();showScreen("modeScreen");
+  if(which==="online"&&ui.createdRoomCode)ui.createdRoomCode.textContent=roomId||"—";
 }
 
 function resetDraft(){
@@ -2142,14 +2143,12 @@ function hello(target=null){
   actions.sendHello(data,target);
 }
 function sendCampaignInfo(target=null){if(isHost&&actions.sendCampaign)actions.sendCampaign({campaignId:selectedCampaign,title:CAMPAIGNS[selectedCampaign].title},target)}
-async function beginOnline(host,code){
-  if(room){try{room.leave()}catch{}}
-  remoteVoice.forEach(function(rec){rec.audio.srcObject=null;rec.audio.remove()});remoteVoice.clear();peerVoiceState.clear();peerStatsBaseline.clear();participants.clear();
-  clearInterval(voiceStatsTimer);voiceStatsTimer=null;
-  mode="online";isHost=host;roomId=code;hostPeerId=host?"self":null;p2pReady=false;room=null;player=null;
-  const url=new URL(location.href);url.searchParams.set("room",roomId);history.replaceState({},"",url);
-  await connectP2P();beginCharacter();
+async function beginOnline(host,codeValue){
+  await prepareOnlineConnection(host,codeValue);
+  if(host){await ensureRoomDirectory();startRoomAdvertising()}
+  beginCharacter();
 }
+
 
 function supportedVoiceConstraints(){
   const sup=navigator.mediaDevices?.getSupportedConstraints?.()||{};
@@ -2424,11 +2423,11 @@ async function connectP2P(){
     const roomConfig={appId:"cronicas-de-nerdora-web-alpha-v03",trickleIce:true,relayConfig:{redundancy:3}};
     if(Array.isArray(window.CRONICAS_TURN_SERVERS)&&window.CRONICAS_TURN_SERVERS.length)roomConfig.turnConfig=window.CRONICAS_TURN_SERVERS;
     room=joinRoom(roomConfig,roomId,{onJoinError:details=>{console.warn("Falha WebRTC",details);ui.connectionStatus.textContent="conexão limitada";toast("Não foi possível conectar a um jogador. Uma rede restrita pode exigir relay TURN.")}});
-    const helloA=room.makeAction("hello"),campaignA=room.makeAction("campaign"),startA=room.makeAction("start"),stateA=room.makeAction("state"),intentA=room.makeAction("intent"),chatA=room.makeAction("chat"),rollA=room.makeAction("rolltap"),voiceA=room.makeAction("voice");
+    const helloA=room.makeAction("hello"),campaignA=room.makeAction("campaign"),startA=room.makeAction("start"),stateA=room.makeAction("state"),intentA=room.makeAction("intent"),chatA=room.makeAction("chat"),rollA=room.makeAction("rolltap"),voiceA=room.makeAction("voice"),roomCheckA=room.makeAction("roomcheck");
     actions={
       sendHello:(d,t)=>helloA.send(d,t?{target:t}:undefined),sendCampaign:(d,t)=>campaignA.send(d,t?{target:t}:undefined),sendStart:(d,t)=>startA.send(d,t?{target:t}:undefined),
       sendState:(d,t)=>stateA.send(d,t?{target:t}:undefined),sendIntent:(d,t)=>intentA.send(d,t?{target:t}:undefined),sendChat:(d,t)=>chatA.send(d,t?{target:t}:undefined),sendRollTap:(d,t)=>rollA.send(d,t?{target:t}:undefined),
-      sendVoice:(d,t)=>voiceA.send(d,t?{target:t}:undefined)
+      sendVoice:(d,t)=>voiceA.send(d,t?{target:t}:undefined),sendRoomCheck:(d,t)=>roomCheckA.send(d,t?{target:t}:undefined)
     };
     p2pReady=true;ui.connectionStatus.textContent="online";ui.connectionStatus.classList.add("online");
     room.onPeerJoin=peerId=>{
@@ -2436,18 +2435,19 @@ async function connectP2P(){
       if(isHost){setTimeout(()=>sendCampaignInfo(peerId),120);if(state)setTimeout(()=>broadcastState(peerId),180)}
       setTimeout(()=>hello(peerId),220);
       if(localStream)room.addStream(localStream,{target:peerId,metadata:{kind:"voice",version:3}});
-      setTimeout(()=>{tunePeerAudio(peerId);sendVoiceState(true)},350);
+      setTimeout(()=>{tunePeerAudio(peerId);sendVoiceState(true);if(isHost)announceRoom()},350);
     };
-    room.onPeerLeave=peerId=>{participants.delete(peerId);cleanupPeerVoice(peerId);renderLobby();renderParty();toast("Um jogador saiu da sala.")};
+    room.onPeerLeave=peerId=>{participants.delete(peerId);cleanupPeerVoice(peerId);renderLobby();renderParty();if(isHost)announceRoom();toast("Um jogador saiu da sala.")};
     helloA.onMessage=(data,{peerId})=>{
       participants.set(peerId,{...data,peerId});if(data.isHost)hostPeerId=peerId;
       const st=peerVoiceState.get(peerId)||{};peerVoiceState.set(peerId,{...st,active:!!data.voice,muted:!!data.voiceMuted,mode:data.voiceMode||"open"});
       renderLobby();renderParty();if(isHost&&state)broadcastState(peerId);registerPeerConnection(peerId);
     };
+    roomCheckA.onMessage=(data,{peerId})=>{if(isHost&&data?.kind==="ping")roomCheckA.send({kind:"pong",host:true,code:roomId},{target:peerId})};
     voiceA.onMessage=(data,{peerId})=>{
       const st=peerVoiceState.get(peerId)||{};peerVoiceState.set(peerId,{...st,...data});updatePeerVoiceDom(peerId);
     };
-    campaignA.onMessage=(data,{peerId})=>{if(isHost)return;hostPeerId=peerId;selectedCampaign=data.campaignId||"derenfall";setTheme(selectedCampaign);if(ui.lobbyCampaign)ui.lobbyCampaign.textContent=CAMPAIGNS[selectedCampaign].title};
+    campaignA.onMessage=(data,{peerId})=>{if(isHost)return;hostPeerId=peerId;hostCampaignChosen=true;selectedCampaign=data.campaignId||"derenfall";setTheme(selectedCampaign);if(ui.lobbyCampaign)ui.lobbyCampaign.textContent=CAMPAIGNS[selectedCampaign].title};
     startA.onMessage=(payload,{peerId})=>{if(isHost)return;hostPeerId=peerId;selectedCampaign=payload.campaignId;state=payload.state;enterGameScreen()};
     stateA.onMessage=(incoming,{peerId})=>{if(isHost)return;if(hostPeerId&&peerId!==hostPeerId)return;hostPeerId=peerId;state=incoming;if(ui.gameScreen.classList.contains("active"))renderState()};
     intentA.onMessage=(data,{peerId})=>{if(!isHost)return;const p=participants.get(peerId);const actor={...(p||{}),...(data.player||{})};processIntent(actor,data.text)};
@@ -2478,7 +2478,7 @@ function renderLobby(){
 function toggleReady(){player.ready=!player.ready;persistCharacter();renderLobby();hello()}
 function hostStartCampaign(){
   if(!isHost)return;const all=allLobbyPlayers();if(all.length<2||!all.every(p=>p.ready))return;
-  state=loadHostState()||createInitialState(selectedCampaign);saveHostState();actions.sendStart({campaignId:selectedCampaign,state});enterGameScreen();broadcastState();
+  stopRoomAdvertising(true);state=loadHostState()||createInitialState(selectedCampaign);saveHostState();actions.sendStart({campaignId:selectedCampaign,state});enterGameScreen();broadcastState();
 }
 function startSoloCampaign(){
   mode="solo";isHost=true;roomId="SOLO";state=createInitialState(selectedCampaign);enterGameScreen();
@@ -2547,12 +2547,16 @@ function copyInvite(){
 function setupTabs(){document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".tab-content").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("tab-"+b.dataset.tab).classList.add("active");if(isPhoneViewport())setMobileGamePanel(b.dataset.tab)})}
 
 function bind(){
-  ui.onlineBtn.onclick=()=>openMode("online");ui.soloBtn.onclick=()=>openMode("solo");
-  document.querySelectorAll("[data-back='introScreen']").forEach(b=>b.onclick=()=>showScreen("introScreen"));
-  ui.createRoomBtn.onclick=()=>beginOnline(true,randomCode());
-  ui.joinRoomBtn.onclick=()=>{const c=ui.roomCodeInput.value.toUpperCase().trim();if(!/^NRD-[A-Z0-9]{4}$/.test(c))return toast("Use um código no formato NRD-AB12.");beginOnline(false,c)};
+  ui.onlineBtn.onclick=openRoomBrowser;ui.soloBtn.onclick=()=>openMode("solo");
+  document.querySelectorAll("[data-back='introScreen']").forEach(b=>b.onclick=()=>{if(mode==="online"&&isHost&&roomId){leaveGameRoom({keepDirectory:true});openRoomBrowser()}else showScreen("introScreen")});
+  ui.createRoomBtn.onclick=createOnlineRoom;
+  ui.joinRoomBtn.onclick=()=>validateAndJoinRoom(ui.roomCodeInput.value);
+  ui.refreshRoomsBtn.onclick=refreshAvailableRooms;
+  ui.roomBrowserBackBtn.onclick=()=>showScreen("introScreen");
+  ui.hostCampaignContinueBtn.onclick=hostConfirmCampaign;
+  ui.installAppBtn.onclick=installApp;
   ui.startSoloCreateBtn.onclick=()=>beginCharacter();
-  ui.charBackBtn.onclick=()=>currentCharStep>1?goCharStep(currentCharStep-1):showScreen("modeScreen");
+  ui.charBackBtn.onclick=()=>{if(currentCharStep>1)return goCharStep(currentCharStep-1);if(mode==="online"&&!isHost){leaveGameRoom({keepDirectory:true});openRoomBrowser()}else showScreen("modeScreen")};
   ui.charName.oninput=renderPreview;ui.toStatsBtn.onclick=()=>{if(validateIdentity())goCharStep(2)};ui.backIdentityBtn.onclick=()=>goCharStep(1);ui.toSkillsBtn.onclick=()=>{if(validateStats())goCharStep(3)};ui.backStatsBtn.onclick=()=>goCharStep(2);ui.finishCharacterBtn.onclick=finishCharacter;
   ui.copyLobbyBtn.onclick=copyInvite;ui.readyBtn.onclick=toggleReady;ui.startCampaignBtn.onclick=hostStartCampaign;ui.lobbyVoiceBtn.onclick=toggleVoice;
   ui.copyInviteBtn.onclick=copyInvite;ui.voiceBtn.onclick=toggleVoice;
@@ -2584,7 +2588,7 @@ ui.sendActionBtn.onclick=()=>submitIntent();ui.actionInput.addEventListener("key
 }
 function boot(){
   window.__CN_BOOT_OK = true;
-  bind();renderCampaigns();setTheme(selectedCampaign);syncVoiceControls();
-  const incoming=roomFromUrl();if(incoming){mode="online";ui.roomCodeInput.value=incoming;openMode("online");toast("Convite detectado. Crie seu personagem e entre na sala "+incoming)}
+  bind();renderCampaigns();setTheme(selectedCampaign);syncVoiceControls();registerPWA();ensureRoomDirectory();
+  const incoming=roomFromUrl();if(incoming){mode="online";if(ui.roomCodeInput)ui.roomCodeInput.value=incoming;openRoomBrowser();setTimeout(()=>validateAndJoinRoom(incoming),700)}
 }
 boot();
