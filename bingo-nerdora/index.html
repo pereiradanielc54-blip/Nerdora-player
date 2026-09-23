@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10091d">
+<title>Bingo Nerdora</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header><div class="brand"><b>N</b><span>Bingo Nerdora<small>Protótipo multiplayer</small></span></div><div id="net" class="pill">○ offline</div></header>
+
+<section id="home" class="home">
+  <div class="panel hero">
+    <div class="eyebrow">NERDORA GAMES</div>
+    <h1><i>Bingo</i><br>Nerdora</h1>
+    <p>Crie uma sala, envie o código para seus amigos e joguem em tempo real. Cada pessoa recebe uma cartela diferente.</p>
+    <label>SEU NOME</label>
+    <input id="name" maxlength="24" placeholder="Ex.: Daniel">
+    <div class="actions"><button id="create" class="primary">Criar sala</button><button id="openJoin">Entrar em sala</button></div>
+    <div id="joinBox" class="join hidden"><label>CÓDIGO DA SALA</label><div class="actions"><input id="roomInput" maxlength="6" placeholder="ABC123"><button id="join" class="green">Entrar</button></div></div>
+  </div>
+  <div class="panel how">
+    <div class="eyebrow">CARTELA 5×5</div>
+    <h2>B • I • N • G • O</h2>
+    <div class="mini"><span>7</span><span>22</span><span>38</span><span>49</span><span>67</span><span>3</span><span>29</span><span>41</span><span>58</span><span>72</span><span>11</span><span>19</span><span>★</span><span>52</span><span>64</span><span>14</span><span>26</span><span>35</span><span>60</span><span>74</span><span>5</span><span>17</span><span>44</span><span>47</span><span>69</span></div>
+    <p class="note">B 1–15 · I 16–30 · N 31–45 · G 46–60 · O 61–75. O centro é livre.</p>
+  </div>
+</section>
+
+<section id="game" class="game hidden">
+  <aside class="panel">
+    <label>SALA</label><div id="code" class="code">------</div><div id="role" class="muted"></div>
+    <div class="actions small"><button id="copyCode">Copiar código</button><button id="copyLink">Copiar convite</button></div>
+    <h3>Jogadores</h3><div id="players"></div>
+    <h3>Conexão</h3><div id="status" class="status">Preparando...</div>
+    <button id="leave" class="danger wide">Sair da sala</button>
+  </aside>
+
+  <main class="panel main">
+    <div class="gameHead"><div><div class="eyebrow">SUA CARTELA</div><h2 id="title">Aguardando sorteio</h2><span id="count" class="muted">0 de 75 bolas</span></div><div id="last" class="ball">—</div></div>
+    <div class="letters"><b>B</b><b>I</b><b>N</b><b>G</b><b>O</b></div>
+    <div id="card" class="card"></div>
+    <div class="actions center"><button id="draw" class="primary hidden">Sortear próxima</button><button id="bingo" class="green">BINGO!</button></div>
+    <div id="winner" class="winner hidden"></div>
+  </main>
+
+  <aside class="panel">
+    <label>BOLAS SORTEADAS</label><div id="history" class="history"></div>
+    <h3>Regra desta versão</h3><p class="note">Marque somente números já sorteados. Vale linha horizontal, vertical ou diagonal. O host valida o Bingo.</p>
+  </aside>
+</section>
+</div>
+<div id="toast" class="toast"></div>
+<div id="modal" class="modal hidden"><div class="modalBox"><div class="emoji">🎉🏆🎉</div><h2>Temos Bingo!</h2><p id="modalText"></p><button id="closeModal" class="primary wide">Continuar</button></div></div>
+<script src="app.js"></script>
+</body>
+</html>
