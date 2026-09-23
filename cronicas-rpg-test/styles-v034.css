@@ -964,3 +964,38 @@ body.local-speaking .voice-main .icon-btn.active{box-shadow:0 0 0 2px rgba(91,18
   .peer-voice-controls{grid-template-columns:26px minmax(54px,1fr) 42px}
   .lobby-player .peer-voice-controls{max-width:none}
 }
+
+/* ===== SALAS ONLINE + PWA / ALPHA 0.3.4 ===== */
+.install-app-btn{width:100%;display:flex;align-items:center;gap:10px;margin-top:12px;padding:11px 12px;border:1px solid rgba(213,180,111,.28);border-radius:13px;background:linear-gradient(180deg,rgba(61,45,31,.72),rgba(23,17,14,.86));color:#e9dcc3;text-align:left;box-shadow:inset 0 0 0 1px rgba(255,235,194,.02)}
+.install-app-btn>span{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:#271d17;border:1px solid #5b4631;color:#e7c47e;font-size:16px}
+.install-app-btn strong{display:block;font:700 9px Georgia,serif}.install-app-btn small{display:block;margin-top:2px;font-size:6.5px;color:#8e8270;line-height:1.35}
+.install-app-btn.installed{border-color:rgba(98,153,105,.4);background:linear-gradient(180deg,rgba(33,58,38,.58),rgba(17,27,19,.82))}
+.install-app-btn.installed>span{border-color:#507258;background:#17231a;color:#a8d4ad}
+
+.room-browser-shell{width:min(1080px,94vw);margin:0 auto;padding:26px 0 48px}
+.room-choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:18px}
+.room-choice-card{padding:20px!important}
+.room-choice-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:50%;border:1px solid #735a3e;background:radial-gradient(circle,#332519,#17110e);font-size:20px;color:#e8c981;box-shadow:0 8px 18px rgba(0,0,0,.25)}
+.room-choice-card h3{margin:13px 0 5px}.room-choice-card p{color:#8d8373;font-size:8px;line-height:1.55;min-height:37px}
+.room-validation-status{min-height:18px;margin-top:8px;font-size:7px;color:#897c69}
+.room-validation-status.checking{color:#d4bc88}.room-validation-status.ok{color:#8fbd91}.room-validation-status.error{color:#d78888}
+
+.available-rooms-card{padding:18px;border:1px solid rgba(164,139,96,.34);border-radius:18px;background:linear-gradient(180deg,rgba(25,21,18,.96),rgba(13,11,10,.98));box-shadow:0 18px 55px rgba(0,0,0,.32)}
+.available-rooms-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:5px}
+.available-rooms-head h3{margin:2px 0 0}
+.available-rooms-list{display:flex;flex-direction:column;gap:7px;margin-top:12px}
+.available-room{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:9px;align-items:center;padding:11px;border:1px solid #4c3c2e;border-radius:12px;background:linear-gradient(180deg,#211a16,#15110e);box-shadow:0 7px 15px rgba(0,0,0,.16)}
+.room-live-dot{width:8px;height:8px;border-radius:50%;background:#68aa75;box-shadow:0 0 10px rgba(104,170,117,.65);animation:roomLive 1.7s ease-in-out infinite}
+@keyframes roomLive{0%,100%{opacity:.55}50%{opacity:1;transform:scale(1.2)}}
+.available-room-copy{min-width:0}.available-room-copy strong{font:700 10px Georgia,serif;color:#ebdbbf}.available-room-copy span{display:block;font-size:7.5px;color:#b7a27f;margin-top:2px}.available-room-copy small{display:block;font-size:6.2px;color:#807463;margin-top:3px}
+.room-enter-btn{padding:7px 12px!important;font-size:7px!important;min-width:72px}
+.empty-rooms,.rooms-loading{padding:22px 12px;text-align:center;border:1px dashed #473a2e;border-radius:11px;background:#15120f}
+.empty-rooms strong{display:block;font:700 9px Georgia,serif;color:#bdaa88}.empty-rooms span{display:block;font-size:6.7px;color:#756b5d;margin-top:5px;line-height:1.45}
+.created-room-code{display:flex;align-items:center;justify-content:space-between;margin:12px 0;padding:11px;border:1px solid #705635;border-radius:11px;background:linear-gradient(180deg,#2b2118,#17120e)}
+.created-room-code span{font-size:6px;letter-spacing:.13em;color:#8d7e68}.created-room-code strong{font:700 18px Georgia,serif;letter-spacing:.08em;color:#efd4a0}
+
+@media(max-width:760px){
+  .room-browser-shell{width:94vw;padding-top:15px}.room-choice-grid{grid-template-columns:1fr}
+  .room-choice-card p{min-height:0}.available-rooms-head{align-items:flex-start}
+  .available-room{grid-template-columns:10px minmax(0,1fr);}.available-room .room-enter-btn{grid-column:2;width:100%;margin-top:4px}
+}
