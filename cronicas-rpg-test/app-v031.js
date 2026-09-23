@@ -1291,6 +1291,7 @@ function travelFromMap(dest){
   if(!state||dest===state.location)return;
   if(!state.unlockedLocations.includes(dest))return toast("Esse local ainda não foi descoberto.");
   if(!canTravelTo(dest))return toast("Não há uma rota direta aberta daqui. Use o mapa para seguir pelos locais conectados.");
+  ensureStateShape();state.metrics.decisions=(state.metrics.decisions||0)+1;
   moveTo(dest,state.campaignId==="derenfall"?derenfallArrival(dest):null);
   saveHostState();renderState();broadcastState();
 }
