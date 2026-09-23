@@ -1955,7 +1955,10 @@ function hello(target=null){
 }
 function sendCampaignInfo(target=null){if(isHost&&actions.sendCampaign)actions.sendCampaign({campaignId:selectedCampaign,title:CAMPAIGNS[selectedCampaign].title},target)}
 async function beginOnline(host,code){
-  mode="online";isHost=host;roomId=code;hostPeerId=host?"self":null;participants.clear();p2pReady=false;room=null;player=null;
+  if(room){try{room.leave()}catch{}}
+  remoteVoice.forEach(function(rec){rec.audio.srcObject=null;rec.audio.remove()});remoteVoice.clear();peerVoiceState.clear();peerStatsBaseline.clear();participants.clear();
+  clearInterval(voiceStatsTimer);voiceStatsTimer=null;
+  mode="online";isHost=host;roomId=code;hostPeerId=host?"self":null;p2pReady=false;room=null;player=null;
   const url=new URL(location.href);url.searchParams.set("room",roomId);history.replaceState({},"",url);
   await connectP2P();beginCharacter();
 }
@@ -2380,7 +2383,8 @@ function bind(){
     e.preventDefault();startPTT();
   });
   document.addEventListener("keyup",e=>{if(e.code==="Space"&&voiceMode==="ptt"){e.preventDefault();stopPTT()}});
-  document.addEventListener("visibilitychange",()=>{if(!document.hidden){resumeBlockedVoice();if(voiceWanted&&rawVoiceTrack()?.readyState==="ended")scheduleVoiceRecovery()}});
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden){resumeBlockedVoice();tuneAllPeerAudio();if(voiceWanted&&rawVoiceTrack()?.readyState==="ended")scheduleVoiceRecovery()}});
+  window.addEventListener("online",()=>{setTimeout(()=>{tuneAllPeerAudio();updateVoiceNetworkStats();if(localStream)sendVoiceState(true)},500)});
 ui.sendActionBtn.onclick=()=>submitIntent();ui.actionInput.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();submitIntent()}});
   ui.speechBtn.onclick=startSpeech;ui.freeRollBtn.onclick=soloFreeRoll;ui.interactiveDie.onclick=()=>{const p=state?.pendingRoll;if(!p||p.assignedPlayerId!==player.id)return;ui.interactiveDie.classList.add("rolling");setTimeout(()=>ui.interactiveDie.classList.remove("rolling"),720);if(mode==="solo"||isHost)handleRollTap(player.id);else actions.sendRollTap({playerId:player.id,rollId:p.id})};
   ui.chatSendBtn.onclick=sendChat;ui.chatInput.addEventListener("keydown",e=>{if(e.key==="Enter")sendChat()});ui.alphaLevelBtn.onclick=levelUpAlpha;ui.diceOverlay.onclick=()=>ui.diceOverlay.classList.add("hidden");
