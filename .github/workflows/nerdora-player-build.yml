@@ -62,6 +62,12 @@ jobs:
           cd extracted_project
           git apply /tmp/v060.patch
           echo "Patch v0.6.0 aplicado."
+          test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          test -f app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 30/' app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.6.0"/' app/build.gradle.kts
+          echo "Versão após patch:"
+          grep -nE 'versionCode|versionName|documentfile' app/build.gradle.kts
 
       - name: Encontrar projeto Android
         id: android
@@ -112,6 +118,8 @@ jobs:
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
           grep -q 'versionName = "0.6.0"' app/build.gradle.kts
+          test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          echo "Nerdora Player v0.6.0 validado."
 
       - name: Compilar APK
         id: build
