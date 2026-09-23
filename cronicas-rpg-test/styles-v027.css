@@ -305,3 +305,27 @@ linear-gradient(145deg,var(--accentSoft),rgba(12,16,24,.72));box-shadow:inset 0 
 .clue.conclusion{background:linear-gradient(145deg,var(--accentSoft),rgba(12,16,24,.76));border-color:color-mix(in srgb,var(--accent) 35%,#293145)}
 .clue.conclusion b{color:var(--accent2)}
 .tab-content h4+ .clue-list{margin-top:2px}
+
+/* ===== DIRETOR NARRATIVO / ALPHA 0.2.7 ===== */
+.backstory-builder{margin:18px 0;padding:14px;border:1px solid #2b3448;border-radius:15px;background:linear-gradient(145deg,rgba(139,92,246,.06),rgba(10,14,22,.78))}
+.backstory-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+.backstory-head .field-label{margin:0}.backstory-head .field-label small{font-weight:500;color:#7f899c;margin-left:5px}
+.backstory-head p{font-size:8px;color:#7f899b;max-width:300px;text-align:right;line-height:1.45;margin:0}
+.backstory-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.backstory-grid .field{margin:0}.backstory-grid .full-span{grid-column:1/3}
+.backstory-grid input{font-size:10px;padding:10px 11px}
+
+.npc-relations-card{margin-top:14px;padding:11px;border-radius:13px;border:1px solid #293246;background:linear-gradient(145deg,rgba(90,168,255,.055),rgba(11,15,23,.8))}
+.npc-relations-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.npc-relations-head span{font-size:6.5px;letter-spacing:.13em;color:#9ec9ff;font-weight:900}
+.npc-relations-head small{font-size:6.5px;color:#727d90}
+.npc-relation-list{display:flex;flex-direction:column;gap:5px}
+.npc-relation{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 8px;border-radius:9px;background:rgba(8,11,17,.5);border:1px solid rgba(255,255,255,.04)}
+.npc-relation strong{display:block;font-size:8px;color:#e6ebf3}
+.npc-relation small{display:block;font-size:6.5px;color:#798397;margin-top:2px}
+.npc-relation>span{font-size:7px;color:var(--accent2);white-space:nowrap}
+
+@media(max-width:760px){
+  .backstory-grid{grid-template-columns:1fr}.backstory-grid .full-span{grid-column:auto}
+  .backstory-head{display:block}.backstory-head p{text-align:left;margin-top:5px;max-width:none}
+}
