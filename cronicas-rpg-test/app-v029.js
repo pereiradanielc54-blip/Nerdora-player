@@ -653,8 +653,16 @@ function renderNpcRelations(){
   ensureDirectorState();
   const rels=Object.values(state.npcRelations||{});
   ui.npcRelationList.innerHTML=rels.length?rels.map(function(rel){
-    return "<div class='npc-relation'><div><strong>"+esc(rel.name)+"</strong><small>"+esc(rel.role)+"</small></div><span>"+esc(relationshipLabel(rel))+"</span></div>";
+    return "<div class='npc-relation'><div class='npc-portrait'>"+npcSigil(rel)+"</div><div class='npc-relation-copy'><strong>"+esc(rel.name)+"</strong><small>"+esc(rel.role)+"</small></div><span>"+esc(relationshipLabel(rel))+"</span></div>";
   }).join(""):"<p class='muted'>Nenhuma relação relevante ainda.</p>";
+}
+function renderWorldEventCards(){
+  if(!ui.worldEventCards||!state)return;
+  const cards=(state.worldEventLog||[]).slice(0,4);
+  ui.worldEventCards.innerHTML=cards.length?cards.map(function(ev){
+    const icon=ev.kind==="pressure"?"⏳":ev.kind==="location"?"⌖":"☾";
+    return "<article class='world-event-card "+esc(ev.kind)+"'><div class='event-seal'>"+icon+"</div><div><strong>"+esc(ev.title)+"</strong><small>"+esc(ev.location||"Vhalora")+"</small><p>"+esc(ev.text)+"</p></div></article>";
+  }).join(""):"<p class='muted'>Nenhum evento mundial registrado ainda.</p>";
 }
 function directorSignature(){
   if(!state)return"";
@@ -1506,11 +1514,11 @@ function renderState(){
   const c=CAMPAIGNS[state.campaignId];
   setTheme(state.campaignId);ui.campaignTitle.textContent=c.title;ui.locationName.textContent=state.location;ui.objectiveText.textContent=state.objective;
   if(ui.sceneSigil)ui.sceneSigil.textContent=c.icon||"✦";if(ui.campaignSeal)ui.campaignSeal.textContent=c.icon||"✦";
-  if(ui.sceneBannerLabel)ui.sceneBannerLabel.textContent=(c.tone||"MESA DE AVENTURA").toUpperCase()+" • "+String(state.location||"").toUpperCase();
+  if(ui.sceneBannerLabel)ui.sceneBannerLabel.textContent=(c.tone||"MESA DE AVENTURA").toUpperCase()+" • "+String(state.location||"").toUpperCase();if(ui.sceneBanner)ui.sceneBanner.className="scene-banner scene-"+locationVisualKey(state.location);
   const wt=worldTime();ui.worldDay.textContent="Dia "+wt.day;ui.worldTime.textContent=wt.time;
   const labels=state.campaignId==="vidro"?["Cerimônia","Rumores","Pressão","Alianças","Crise","Ruptura"]:state.campaignId==="coro"?["Sussurros","Canção","Contágio","Descida","Convergência","Assimilação"]:["Silêncio","Ecos","Substituições","Vazamento","Ancoragem","Propagação"];
   ui.mysteryLabel.textContent=labels[state.pressure]||labels[0];ui.mysteryBar.style.width=(8+state.pressure*18)+"%";
-  discoverNpcsForLocation(state.location);renderStory();renderClues();renderQuickActions();renderCampaignMap();renderDicePrompt();renderSheet();renderNpcRelations();renderMasterMemory();checkLastRoll();
+  discoverNpcsForLocation(state.location);renderStory();renderClues();renderQuickActions();renderCampaignMap();renderDicePrompt();renderSheet();renderNpcRelations();renderWorldEventCards();renderMasterMemory();checkLastRoll();
 }
 function renderStory(){
   for(const e of state.story){
@@ -1597,9 +1605,9 @@ function renderSheet(){
   ui.sheetStats.innerHTML=Object.entries(player.stats).map(([k,v])=>`<div class="sheet-stat"><span>${ATTRS[k].name}</span><b>${v}</b></div>`).join("");
   if(player.attributePoints>0){ui.unspentBox.classList.remove("hidden");ui.unspentBox.innerHTML=`<strong>${player.attributePoints} ponto(s) de atributo disponível(is).</strong><br><small>Use + ao lado do atributo abaixo:</small>`+Object.keys(ATTRS).map(k=>`<div style="margin-top:5px">${ATTRS[k].name} (${player.stats[k]}) <button data-attr="${k}">+</button></div>`).join("");ui.unspentBox.querySelectorAll("button").forEach(b=>b.onclick=()=>spendAttributePoint(b.dataset.attr))}
   else ui.unspentBox.classList.add("hidden");
-  ui.sheetSkills.innerHTML=player.skills.length?player.skills.map(id=>getSkill(id,player.className)).filter(Boolean).map(s=>`<div class="mini-skill"><strong>${esc(s.name)}</strong>${esc(s.desc)}</div>`).join(""):'<p class="muted">Nenhuma habilidade aprendida.</p>';
+  ui.sheetSkills.innerHTML=player.skills.length?player.skills.map(id=>getSkill(id,player.className)).filter(Boolean).map(s=>`<div class="mini-skill"><span class="mini-skill-icon">${skillIcon(s)}</span><div><strong>${esc(s.name)}</strong>${esc(s.desc)}</div></div>`).join(""):'<p class="muted">Nenhuma habilidade aprendida.</p>';
   const avail=classSkills(player.className).filter(s=>s.level<=player.level&&!player.skills.includes(s.id));
-  ui.sheetAvailableSkills.innerHTML=avail.length?avail.map(s=>`<div class="mini-skill"><button data-skill="${s.id}" ${player.skillPoints>0&&meetsReq(s,player)?"":"disabled"}>Aprender</button><strong>${esc(s.name)}</strong>Nv. ${s.level} • ${Object.entries(s.req).map(([a,v])=>a+" "+v).join(" • ")}</div>`).join(""):'<p class="muted">Nenhuma habilidade disponível.</p>';
+  ui.sheetAvailableSkills.innerHTML=avail.length?avail.map(s=>`<div class="mini-skill"><span class="mini-skill-icon">${skillIcon(s)}</span><div><strong>${esc(s.name)}</strong>Nv. ${s.level} • ${Object.entries(s.req).map(([a,v])=>a+" "+v).join(" • ")}</div><button data-skill="${s.id}" ${player.skillPoints>0&&meetsReq(s,player)?"":"disabled"}>Aprender</button></div>`).join(""):'<p class="muted">Nenhuma habilidade disponível.</p>';
   ui.sheetAvailableSkills.querySelectorAll("button:not([disabled])").forEach(b=>b.onclick=()=>learnGameSkill(b.dataset.skill));
 }
 function spendAttributePoint(attr){
