@@ -72,6 +72,17 @@ jobs:
           sed -i 's/private fun formatDate(timestamp: Long)/private fun formatFileDate(timestamp: Long)/' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           echo "Hotfixes Kotlin da v0.6.0 aplicados."
 
+      - name: Inspecionar suporte a documentos
+        shell: bash
+        run: |
+          echo "=== MANIFEST ==="
+          sed -n '1,260p' extracted_project/app/src/main/AndroidManifest.xml
+          echo "=== MAIN ACTIVITY ==="
+          sed -n '1,320p' extracted_project/app/src/main/java/com/nerdora/player/MainActivity.kt
+          echo "=== DOCUMENT VIEWER ==="
+          sed -n '1,320p' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          echo "=== APP ==="
+          grep -n -E 'external|Document|FilesScreen|document|viewer|selected' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt | head -n 200
       - name: Encontrar projeto Android
         id: android
         shell: bash
