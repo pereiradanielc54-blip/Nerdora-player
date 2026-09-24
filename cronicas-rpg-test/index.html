@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <meta name="theme-color" content="#090b12"/>
   <meta name="description" content="Crônicas de Nerdora — RPG narrativo multiplayer com Mestre Máquina."/>
-  <title>Crônicas de Nerdora — Web Alpha 0.3.7</title>
-  <link rel="stylesheet" href="./styles-v035.css"/>
+  <title>Crônicas de Nerdora — Web Alpha 0.3.8</title>
+  <link rel="stylesheet" href="./styles-v038.css"/>
   <link rel="manifest" href="./manifest.webmanifest"/>
   <meta name="theme-color" content="#17100d"/>
   <meta name="mobile-web-app-capable" content="yes"/>
@@ -25,7 +25,7 @@
         <img class="intro-cover-art" src="./assets/brand/cronicas-de-nerdora-cover.webp" alt="Crônicas de Nerdora"/>
         <div class="intro-version-badge">
           <img src="./assets/brand/nerdora-n-purple.webp" alt="" aria-hidden="true"/>
-          <span>WEB ALPHA 0.3.7</span>
+          <span>WEB ALPHA 0.3.8</span>
         </div>
       </div>
 
@@ -232,10 +232,7 @@
         </div>
 
         <div class="action-tray-label"><span>✧</span> Possibilidades imediatas <span>✧</span></div><div id="quickActions" class="quick-actions"></div>
-        <div class="action-box">
-          <textarea id="actionInput" rows="2" placeholder="Diga livremente o que seu personagem faz..."></textarea>
-          <div class="action-tools"><button id="speechBtn" class="tool-btn">🎤 Ditar</button><button id="freeRollBtn" class="tool-btn">🎲 D20 livre</button><button id="sendActionBtn" class="btn primary">Agir</button></div>
-        </div>
+        <div class="run-tools"><button id="freeRollBtn" class="tool-btn" type="button">🎲 D20 livre</button><small>As ações da run são feitas pelas possibilidades válidas acima.</small></div>
       </section>
   <nav id="mobileGameNav" class="mobile-game-nav" aria-label="Navegação da campanha">
     <button class="mobile-nav-btn active" data-mobile-panel="story" type="button"><span>🎭</span><small>Mesa</small></button>
@@ -263,7 +260,7 @@
       <aside class="panel info-panel">
         <div class="tabs"><button class="tab active" data-tab="journal">Diário</button><button class="tab" data-tab="map">Mapa</button><button class="tab" data-tab="character">Personagem</button><button class="tab" data-tab="chat">Chat</button></div>
         <div id="tab-journal" class="tab-content active"><div class="journal-ribbon">REGISTRO DA COMPANHIA</div>
-          <div class="objective-card"><span>OBJETIVO ATUAL</span><strong id="objectiveText"></strong></div><div id="campaignThreads" class="campaign-threads"></div>
+          <div class="objective-card"><span>OBJETIVO ATUAL</span><strong id="objectiveText"></strong></div><div id="campaignThreads" class="campaign-threads"></div><div id="frontClockList" class="front-clock-list"></div>
           <h4>Evidências guardadas</h4><div id="evidenceList" class="clue-list evidence-list"></div>
           <h4>Conclusões ligadas</h4><div id="clueList" class="clue-list"></div>
           <h4>Pressão da história</h4><div class="mystery-meter"><span id="mysteryLabel">Calma</span><i><b id="mysteryBar"></b></i></div><div class="event-deck-head"><span>CARTAS DE EVENTO</span><small>O mundo muda mesmo fora de cena</small></div><div id="worldEventCards" class="world-event-cards"></div>
@@ -271,6 +268,7 @@
             <div class="npc-relations-head"><span>RELAÇÕES ENCONTRADAS</span><small>NPCs lembram como foram tratados</small></div>
             <div id="npcRelationList" class="npc-relation-list"><p class="muted">Nenhuma relação relevante ainda.</p></div>
           </div>
+          <div class="session-summary-card"><div><span>RESUMO DA SESSÃO</span><strong>Estado atual da aventura</strong><p id="sessionSummaryPreview">Preparando resumo...</p></div><button id="sessionSummaryBtn" class="btn secondary" type="button">Copiar resumo</button></div>
           <div class="master-memory-card">
             <div class="master-memory-head"><div><span>MEMÓRIA DO MESTRE</span><strong id="masterMemoryTitle">Aprendendo seu estilo</strong></div><span id="masterMemoryCount" class="memory-count">0</span></div>
             <p id="masterMemoryInsight" class="master-memory-insight">O Mestre começa sem assumir preferências e aprende apenas com ações realizadas durante as partidas.</p>
@@ -316,6 +314,6 @@
   });
 </script>
 <div id="bootError" hidden style="position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;background:#26151b;border:1px solid #78404d;color:#ffe6eb;padding:10px 14px;border-radius:12px;font:12px system-ui;max-width:min(90vw,520px);text-align:center"></div>
-<script type="module" src="./app-v037.js"></script>
+<script type="module" src="./app-v038.js"></script>
 </body>
 </html>
