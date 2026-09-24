@@ -408,3 +408,59 @@ body{position:relative;isolation:isolate;overflow-x:hidden;background:#09060f!im
     border-radius:3px!important;
   }
 }
+
+/* PROFESSIONAL_UI_V22 */
+.gameHeadInfo{min-width:0;flex:1}
+.roundInfoRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+.roundState{display:inline-flex;align-items:center;min-height:22px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05);color:#c7b9d2;font-size:9px;font-weight:900;letter-spacing:.35px;text-transform:uppercase}
+.roundState.active{color:#8ff5bd;border-color:rgba(88,231,160,.25);background:rgba(88,231,160,.09)}
+.roundState.active:before{content:"";width:6px;height:6px;border-radius:50%;background:#58e7a0;margin-right:5px;box-shadow:0 0 8px rgba(88,231,160,.55)}
+.roundState.ended{color:#ffc87a;border-color:rgba(255,173,85,.25);background:rgba(255,173,85,.08)}
+.roundProgress{width:min(300px,100%);height:5px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:8px}
+.roundProgress>span{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--cyan),var(--vio),var(--pink));transition:width .35s ease;box-shadow:0 0 12px rgba(151,89,255,.35)}
+
+/* Opponent card uses SVG so legacy grid CSS cannot break it */
+.main #shadowWrap.opponentMiniPanelV22{
+  position:static!important;
+  inset:auto!important;
+  float:none!important;
+  box-sizing:border-box!important;
+  display:block!important;
+  width:142px!important;
+  height:auto!important;
+  margin:14px 0 4px auto!important;
+  padding:10px!important;
+  border:1px solid rgba(201,158,255,.20)!important;
+  border-radius:16px!important;
+  background:linear-gradient(180deg,rgba(16,10,26,.94),rgba(7,4,13,.92))!important;
+  box-shadow:0 12px 26px rgba(0,0,0,.20)!important;
+  overflow:hidden!important;
+  transform:none!important;
+}
+.main #shadowWrap.opponentMiniPanelV22.hidden{display:none!important}
+.opponentMiniHeadV22{display:flex;align-items:center;gap:7px;margin-bottom:8px}
+.opponentMiniDotV22{width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:#58e7a0;box-shadow:0 0 8px rgba(88,231,160,.5)}
+.opponentMiniTextV22{min-width:0;display:flex;flex-direction:column}
+.opponentMiniTextV22 strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f4edf9;font-size:10px;line-height:1.15}
+.opponentMiniTextV22 small{color:#8f819b;font-size:8px;line-height:1.2;margin-top:2px}
+.main #shadowCard.opponentMiniSvgV22{display:block!important;width:106px!important;height:106px!important;min-width:106px!important;min-height:106px!important;max-width:106px!important;max-height:106px!important;margin:0 auto!important;overflow:visible!important}
+.opponentMiniRectV22{fill:rgba(255,255,255,.065);stroke:rgba(255,255,255,.12);stroke-width:1}
+.opponentMiniRectV22.free{fill:rgba(139,77,255,.20);stroke:rgba(177,116,255,.28)}
+.opponentMiniRectV22.marked{fill:#a14fff;stroke:rgba(255,255,255,.38);stroke-width:1.2;filter:drop-shadow(0 0 3px rgba(255,77,184,.45))}
+@media(max-width:560px){
+  .gameHead{align-items:flex-start}
+  .gameHead h2{font-size:clamp(24px,7vw,34px);line-height:1.05}
+  .ball{flex:0 0 62px}
+  .roundProgress{width:100%}
+  .main #shadowWrap.opponentMiniPanelV22{
+    width:126px!important;
+    padding:8px!important;
+    margin:12px auto 4px!important;
+  }
+  .main #shadowCard.opponentMiniSvgV22{
+    width:98px!important;height:98px!important;
+    min-width:98px!important;min-height:98px!important;
+    max-width:98px!important;max-height:98px!important;
+  }
+  .actions.center{margin-top:12px}
+}
