@@ -4,19 +4,26 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10091d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bingo Nerdora">
 <title>Bingo Nerdora</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
 <link rel="stylesheet" href="style.css">
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 </head>
 <body>
 <div class="wrap">
-<header><div class="brand"><b>N</b><span>Bingo Nerdora<small>Protótipo multiplayer</small></span></div><div id="net" class="pill">○ offline</div></header>
+<header><div class="brand"><b>N</b><span>Bingo Nerdora<small>Protótipo multiplayer</small></span></div><div class="headerActions"><button id="installApp" class="installPwa hidden" type="button">⬇ Instalar</button><div id="net" class="pill">○ offline</div></div></header>
 
 <section id="home" class="home">
   <div class="panel hero">
     <div class="eyebrow">NERDORA GAMES</div>
     <h1><i>Bingo</i><br>Nerdora</h1>
-    <p>Crie uma sala, envie o código para seus amigos e joguem em tempo real. Cada pessoa recebe uma cartela diferente.</p>
+    <p>Crie uma sala, envie o código para seus amigos e joguem em tempo real. Cada pessoa recebe uma cartela diferente. Você também pode instalar o Bingo Nerdora no celular e abrir como um app.</p>
     <label>SEU NOME</label>
     <input id="name" maxlength="24" placeholder="Ex.: Daniel">
     <div class="actions"><button id="create" class="primary">Criar sala</button><button id="openJoin">Entrar em sala</button></div>
