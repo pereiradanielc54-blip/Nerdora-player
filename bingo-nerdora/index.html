@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
-<link rel="stylesheet" href="style.css?v=20">
+<link rel="stylesheet" href="style.css?v=21">
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 </head>
 <body>
@@ -54,12 +54,12 @@
     <div class="gameHead"><div><div class="eyebrow">SUA CARTELA</div><h2 id="title">Aguardando sorteio</h2><span id="count" class="muted">0 de 75 bolas</span></div><div id="last" class="ball">—</div></div>
     <div class="letters"><b class="letterB">B</b><b class="letterI">I</b><b class="letterN">N</b><b class="letterG">G</b><b class="letterO">O</b></div>
     <div id="card" class="card"></div>
-    <div id="shadowWrap" class="opponentShadow hidden" aria-label="Mini cartela do oponente">
-      <div class="opponentShadowHead">
-        <span class="opponentShadowDot"></span>
+    <div id="shadowWrap" class="opMiniWrap hidden" aria-label="Mini cartela do oponente">
+      <div class="opMiniHead">
+        <span class="opMiniDot"></span>
         <span id="shadowTitle">Oponente</span>
       </div>
-      <div id="shadowCard" class="shadowCard" role="grid" aria-label="Posições marcadas pelo oponente"></div>
+      <div id="shadowCard" class="opMiniGrid" role="grid" aria-label="Posições marcadas pelo oponente"></div>
     </div>
     <div class="actions center"><button id="draw" class="primary hidden">Iniciar sorteio automático</button><button id="bingo" class="green">BINGO!</button></div>
     <div id="winner" class="winner hidden"></div>
@@ -94,7 +94,7 @@
     </div>
   </div>
 </div>
-<script src="app.js?v=20"></script>
-<script src="extras.js?v=20"></script>
+<script src="app.js?v=21"></script>
+<script src="extras.js?v=21"></script>
 </body>
 </html>
