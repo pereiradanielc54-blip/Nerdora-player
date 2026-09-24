@@ -1,5 +1,5 @@
-const CACHE="cronicas-nerdora-v035";
-const CORE=["./","./index.html","./styles-v035.css","./app-v035.js","./manifest.webmanifest","./assets/brand/nerdora-n-purple.webp","./assets/brand/cronicas-de-nerdora-cover.webp","./assets/skill-icons.svg","./assets/location-scenes.svg","./assets/maps/derenfall.svg","./assets/maps/vidro.svg","./assets/maps/coro.svg"];
+const CACHE="cronicas-nerdora-v036";
+const CORE=["./","./index.html","./styles-v035.css","./app-v035.js","./manifest.webmanifest","./assets/brand/nerdora-n-purple.webp","./assets/brand/cronicas-de-nerdora-cover.webp","./assets/brand/cronicas-nerdora-app-icon.jpg","./assets/skill-icons.svg","./assets/location-scenes.svg","./assets/maps/derenfall.svg","./assets/maps/vidro.svg","./assets/maps/coro.svg"];
 self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).catch(()=>{}));self.skipWaiting()});
 self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim()});
 self.addEventListener("fetch",event=>{
