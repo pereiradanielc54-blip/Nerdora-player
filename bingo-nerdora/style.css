@@ -87,3 +87,69 @@ body{position:relative;isolation:isolate;overflow-x:hidden;background:#09060f!im
 @keyframes trophyBounce{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-8px) rotate(2deg)}}
 @keyframes winnerShine{to{background-position:200% center}}
 @media(max-width:520px){.winnerModalBox{padding:24px 16px 18px!important}.winnerStats{gap:5px}.winnerStats>div{padding:9px 3px}.winnerBigTitle{letter-spacing:-2px}.winnerTrophy{font-size:54px}}
+
+/* OPPONENT_SHADOW_V18 */
+.opponentShadow{
+  position:absolute!important;
+  right:16px!important;
+  bottom:16px!important;
+  width:104px!important;
+  height:104px!important;
+  padding:8px!important;
+  margin:0!important;
+  border-radius:15px!important;
+  border:1px solid rgba(255,255,255,.14)!important;
+  background:rgba(7,4,13,.72)!important;
+  box-shadow:0 12px 28px rgba(0,0,0,.28)!important;
+  backdrop-filter:blur(10px)!important;
+  -webkit-backdrop-filter:blur(10px)!important;
+  overflow:hidden!important;
+  z-index:3!important;
+}
+.opponentShadow>span{display:none!important}
+.shadowCard{
+  width:100%!important;
+  height:100%!important;
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  grid-template-rows:repeat(5,minmax(0,1fr))!important;
+  grid-auto-flow:row!important;
+  gap:3px!important;
+}
+.shadowCell{
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  aspect-ratio:auto!important;
+  border-radius:4px!important;
+  border:1px solid rgba(255,255,255,.09)!important;
+  background:rgba(255,255,255,.055)!important;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.10)!important;
+}
+.shadowCell.marked{
+  background:linear-gradient(135deg,rgba(141,77,255,.96),rgba(255,77,184,.88))!important;
+  border-color:rgba(255,255,255,.26)!important;
+  box-shadow:0 0 7px rgba(174,91,255,.30),inset 0 0 0 1px rgba(255,255,255,.10)!important;
+}
+.shadowCell.center:after{content:none!important}
+@media(max-width:950px){
+  .opponentShadow{
+    position:absolute!important;
+    right:12px!important;
+    bottom:12px!important;
+    width:92px!important;
+    height:92px!important;
+    margin:0!important;
+  }
+}
+@media(max-width:560px){
+  .opponentShadow{
+    width:84px!important;
+    height:84px!important;
+    padding:6px!important;
+    border-radius:13px!important;
+  }
+  .shadowCard{gap:2px!important}
+  .shadowCell{border-radius:3px!important}
+}
