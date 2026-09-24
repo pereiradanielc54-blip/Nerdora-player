@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
-<link rel="stylesheet" href="style.css?v=24">
+<link rel="stylesheet" href="style.css?v=25">
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 </head>
 <body>
@@ -26,51 +26,90 @@
   <div id="net" class="pill">○ offline</div>
 </div></header>
 
-<section id="home" class="home">
-  <div class="panel hero">
-    <div class="eyebrow">NERDORA GAMES</div>
-    <h1><i>Bingo</i><br>Nerdora</h1>
-    <p>Crie uma sala, envie o código para seus amigos e joguem em tempo real. Cada pessoa recebe uma cartela diferente. Você também pode instalar o Bingo Nerdora no celular e abrir como um app.</p>
-    <div id="profileMini" class="profileMini">
-      <div id="profileAvatar" class="profileAvatar">N</div>
-      <div class="profileMiniInfo"><strong id="profileName">Jogador Nerdora</strong><span><b id="profileWins">0</b> vitórias • <b id="profileXp">0</b> XP • <b id="profileCoins">0</b> 🪙</span></div>
-      <select id="themeSelect" class="themeSelect" aria-label="Tema visual"><option value="neon">Neon</option><option value="arcade">Arcade</option><option value="nyan">Nyan</option><option value="midnight">Midnight</option></select>
-    </div>
-    <label>SEU NOME</label>
-    <input id="name" maxlength="24" placeholder="Ex.: Daniel">
-    <details class="roomSetup" open>
-      <summary>Configurar sala</summary>
-      <div class="roomSetupGrid">
-        <label><span>Nome da sala</span><input id="roomName" maxlength="28" placeholder="Sala do Daniel"></label>
-        <label><span>Modo</span><select id="modeSelect"><option value="line">Linha clássica</option><option value="two">Duas linhas</option><option value="corners">4 cantos</option><option value="x">X completo</option><option value="border">Moldura</option><option value="blackout">Cartela cheia</option><option value="nerdora">Modo Nerdora</option></select></label>
-        <label><span>Velocidade</span><select id="speedSelect"><option value="5000">Rápida • 5s</option><option value="7000" selected>Normal • 7s</option><option value="10000">Relaxada • 10s</option></select></label>
-        <label><span>Jogadores</span><select id="maxPlayers"><option value="4">Até 4</option><option value="6" selected>Até 6</option><option value="8">Até 8</option></select></label>
+<section id="home" class="home lobbyHome">
+  <div class="panel lobbyEntryPanel">
+    <div class="lobbyHeroIntro">
+      <div>
+        <div class="eyebrow">NERDORA GAMES • MULTIPLAYER</div>
+        <h1><i>Bingo</i> Nerdora</h1>
+        <p>Escolha como quer jogar. Crie uma sala personalizada ou entre rapidamente em uma sala que já está esperando jogadores.</p>
       </div>
-      <label class="publicSwitch"><input id="publicRoom" type="checkbox" checked><span>Sala pública — aparece no lobby até a partida começar</span></label>
-    </details>
-    <div class="actions"><button id="create" class="primary">Criar sala</button><button id="openJoin">Entrar com código</button></div>
-    <div id="joinBox" class="join hidden"><label>CÓDIGO DA SALA</label><div class="actions"><input id="roomInput" maxlength="6" placeholder="ABC123"><button id="join" class="green">Entrar</button></div></div>
+      <div class="lobbyLiveBadge"><span></span> Salas ao vivo</div>
+    </div>
 
-    <div class="publicRoomsBlock">
-      <div class="publicRoomsHead">
-        <div>
-          <label>SALAS PÚBLICAS</label>
-          <small>Entre sem precisar digitar o código</small>
+    <div id="profileMini" class="profileMini lobbyProfile">
+      <div id="profileAvatar" class="profileAvatar">N</div>
+      <div class="profileMiniInfo">
+        <strong id="profileName">Jogador Nerdora</strong>
+        <span><b id="profileWins">0</b> vitórias • <b id="profileXp">0</b> XP • <b id="profileCoins">0</b> 🪙</span>
+      </div>
+      <select id="themeSelect" class="themeSelect" aria-label="Tema visual">
+        <option value="neon">Neon</option>
+        <option value="arcade">Arcade</option>
+        <option value="nyan">Nyan</option>
+        <option value="midnight">Midnight</option>
+      </select>
+    </div>
+
+    <div class="playerNameBlock">
+      <label for="name">COMO VÃO TE CHAMAR?</label>
+      <div class="nameInputWrap"><span>👤</span><input id="name" maxlength="24" placeholder="Digite seu nome"></div>
+      <small>Seu nome fica salvo neste aparelho para as próximas partidas.</small>
+    </div>
+
+    <div class="entryModeGrid">
+      <section class="entryModeCard createModeCard">
+        <div class="entryModeIcon">✦</div>
+        <div class="entryModeTitle"><div><span>CRIAR SALA</span><h2>Sua partida, suas regras</h2></div><em>HOST</em></div>
+        <p>Configure a rodada e entre imediatamente na sala para esperar seus amigos.</p>
+
+        <div class="setupCards">
+          <label class="setupField wideSetup"><span>Nome da sala</span><div class="setupInputIcon">🏠<input id="roomName" maxlength="28" placeholder="Sala do Daniel"></div></label>
+          <label class="setupField"><span>Modo de vitória</span><select id="modeSelect"><option value="line">Linha clássica</option><option value="two">Duas linhas</option><option value="corners">4 cantos</option><option value="x">X completo</option><option value="border">Moldura</option><option value="blackout">Cartela cheia</option><option value="nerdora">Modo Nerdora</option></select></label>
+          <label class="setupField"><span>Velocidade</span><select id="speedSelect"><option value="5000">⚡ Rápida • 5s</option><option value="7000" selected>✨ Normal • 7s</option><option value="10000">🌙 Relaxada • 10s</option></select></label>
+          <label class="setupField"><span>Capacidade</span><select id="maxPlayers"><option value="4">👥 Até 4</option><option value="6" selected>👥 Até 6</option><option value="8">👥 Até 8</option></select></label>
+          <label class="publicSwitch proSwitch"><input id="publicRoom" type="checkbox" checked><span><strong>Sala pública</strong><small>Enquanto estiver aguardando, outras pessoas podem encontrá-la no lobby.</small></span></label>
         </div>
+
+        <button id="create" class="primary createAndEnterBtn" type="button"><span>🎮</span><b>Criar e entrar na sala</b><small>Você será o anfitrião</small></button>
+      </section>
+
+      <section class="entryModeCard joinModeCard" id="joinBox">
+        <div class="entryModeIcon joinIcon">↗</div>
+        <div class="entryModeTitle"><div><span>ENTRAR EM SALA</span><h2>Já recebeu um convite?</h2></div><em>JOGADOR</em></div>
+        <p>Use o código de seis caracteres ou escolha uma sala pública disponível.</p>
+
+        <label class="joinCodeLabel" for="roomInput">CÓDIGO DA SALA</label>
+        <div class="joinCodeRow">
+          <input id="roomInput" maxlength="6" placeholder="ABC123" autocomplete="off" autocapitalize="characters">
+          <button id="join" class="green" type="button">Entrar</button>
+        </div>
+        <button id="openJoin" class="codeHelpBtn" type="button">⌨️ Focar no código</button>
+
+        <div class="joinTip"><span>💡</span><div><strong>Mais rápido:</strong><small>Se a sala estiver pública, é só tocar em Entrar na lista ao lado.</small></div></div>
+      </section>
+    </div>
+  </div>
+
+  <div class="panel lobbyBrowsePanel">
+    <div class="lobbyArtwork">
+      <div class="lobbyArtworkShade">
+        <div class="eyebrow">PRAÇA NERDORA</div>
+        <h2>Encontre sua turma</h2>
+        <p>Nerdora e Nyan ficam por aqui enquanto as salas aguardam o início da partida.</p>
+        <div class="welcomeChips"><span>🎧 Nerdora</span><span>🐾 Nyan</span><span>🎱 75 bolas</span></div>
+      </div>
+    </div>
+
+    <div class="publicRoomsBlock lobbyPublicRooms">
+      <div class="publicRoomsHead">
+        <div><label>SALAS PÚBLICAS</label><small>Até 4 salas aguardando jogadores</small></div>
         <button id="refreshRooms" class="refreshRoomsBtn" type="button" aria-label="Atualizar salas">↻</button>
       </div>
       <div id="publicRooms" class="publicRooms" aria-live="polite">
         <div class="roomsLoading"><span></span> Procurando salas...</div>
       </div>
-      <div id="publicRoomsHint" class="publicRoomsHint">Mostramos até 4 salas que ainda não iniciaram.</div>
-    </div>
-  </div>
-  <div class="panel how welcomeArt">
-    <div class="welcomeOverlay">
-      <div class="eyebrow">BEM-VINDO AO BINGO NERDORA</div>
-      <h2>Nerdora & Nyan</h2>
-      <p>Entre na praça neon, reúna seus amigos e dispute a partida com os mascotes da Nerdora acompanhando a sala.</p>
-      <div class="welcomeChips"><span>🎧 Nerdora</span><span>🐾 Nyan</span><span>75 bolas</span></div>
+      <div id="publicRoomsHint" class="publicRoomsHint">Salas desaparecem daqui assim que a partida começa.</div>
     </div>
   </div>
 </section>
@@ -104,6 +143,11 @@
         <div class="roundProgress" aria-hidden="true"><span id="roundProgressFill"></span></div>
       </div>
       <div id="last" class="ball">—</div>
+    </div>
+    <div id="waitingRoomBanner" class="waitingRoomBanner hidden">
+      <div class="waitingPulse"><span></span></div>
+      <div class="waitingRoomCopy"><strong>Sala criada • aguardando jogadores</strong><small>Compartilhe o código <b id="waitingRoomCode">------</b> ou o convite. Você já está dentro da sala como anfitrião.</small></div>
+      <div id="waitingPlayerCount" class="waitingPlayerCount">1/6</div>
     </div>
     <div class="letters"><b class="letterB">B</b><b class="letterI">I</b><b class="letterN">N</b><b class="letterG">G</b><b class="letterO">O</b></div>
     <div id="eventBanner" class="eventBanner hidden"></div>
@@ -153,7 +197,7 @@
     </div>
   </div>
 </div>
-<script src="app.js?v=24"></script>
-<script src="extras.js?v=24"></script>
+<script src="app.js?v=25"></script>
+<script src="extras.js?v=25"></script>
 </body>
 </html>
