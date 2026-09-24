@@ -1,0 +1,239 @@
+{
+  "project": "Crônicas de Nerdora",
+  "researched_at": "2026-09-24",
+  "purpose": "Base comparativa de mecânicas de RPG de mesa para o Mestre Máquina. Documento aditivo: não substitui cânone.",
+  "canon_preserved": true,
+  "sources": [
+    {
+      "name": "Blades in the Dark",
+      "kind": "official_srd",
+      "mechanics": [
+        "progress clocks 4/6/8",
+        "clocks describe obstacles, not methods",
+        "consequences can advance danger"
+      ],
+      "status": "partially_used",
+      "nerdora": [
+        "pressure meter",
+        "world events",
+        "now explicit progress tracks"
+      ],
+      "gap": "Nerdora still lacks multiple named obstacle clocks with independent segment counts and visibility scopes."
+    },
+    {
+      "name": "Dungeon World",
+      "kind": "srd",
+      "mechanics": [
+        "fronts",
+        "linked dangers",
+        "grim portents",
+        "impending doom",
+        "stakes questions"
+      ],
+      "status": "partially_used",
+      "nerdora": [
+        "world events",
+        "NPC/faction reactions",
+        "pressure escalation",
+        "0.3.7 telegraph omens"
+      ],
+      "gap": "Threats are not yet grouped into reusable front objects with motives and impending-doom records."
+    },
+    {
+      "name": "Fate",
+      "kind": "official_srd",
+      "mechanics": [
+        "aspects",
+        "invocations",
+        "compels",
+        "negotiated complications"
+      ],
+      "status": "conceptually_adjacent_not_copied",
+      "nerdora": [
+        "character hooks",
+        "NPC relationships",
+        "equipment/context modifiers"
+      ],
+      "gap": "No player-facing resource economy for accepting/refusing dramatic complications. Consider optional consequence bargains, not Fate-point cloning."
+    },
+    {
+      "name": "Mythic GME 2e",
+      "kind": "publisher",
+      "mechanics": [
+        "yes/no oracle",
+        "random events",
+        "meaning tables",
+        "scene structure",
+        "chaos factor",
+        "threads/characters lists"
+      ],
+      "status": "not_used_as_a_formal_layer",
+      "nerdora": [
+        "Director reacts to stagnation and pressure",
+        "structured state/context"
+      ],
+      "gap": "No separate Oracle service. Future Oracle must only resolve narrative uncertainty and never override canon, rules, inventory, HP, rolls, or authoritative state."
+    },
+    {
+      "name": "Pathfinder 2e",
+      "kind": "official_rules_reference",
+      "mechanics": [
+        "d20 vs DC",
+        "four degrees of success",
+        "secret checks",
+        "research points",
+        "influence subsystem"
+      ],
+      "status": "partially_used",
+      "nerdora": [
+        "d20 vs DF",
+        "relationships",
+        "investigation tracks",
+        "0.3.7 stores five Nerdora outcome bands"
+      ],
+      "gap": "No generic Influence/Research point subsystem; Nerdora keeps fiction-first relationships and clue graph instead."
+    },
+    {
+      "name": "The Alexandrian",
+      "kind": "scenario_design_reference",
+      "mechanics": [
+        "prep situations not plots",
+        "node-based scenario design",
+        "three-clue rule",
+        "multiple routes around chokepoints"
+      ],
+      "status": "strongly_used",
+      "nerdora": [
+        "network maps",
+        "3+ evidence routes",
+        "REVELATION_RULES clue graph",
+        "multiple endings",
+        "anti-chokepoint recovery"
+      ],
+      "gap": "Future authoring tool should visualize clue->conclusion graph and validate redundancy automatically."
+    },
+    {
+      "name": "Foundry VTT",
+      "kind": "vtt_reference",
+      "mechanics": [
+        "per-user fog exploration",
+        "token vision",
+        "persistent scene exploration"
+      ],
+      "status": "not_yet_equivalent",
+      "nerdora": [
+        "unlocked/visited locations",
+        "campaign maps"
+      ],
+      "gap": "Current P2P state broadcasts shared discovery; real per-character fog/knowledge needs filtered server-authoritative state."
+    },
+    {
+      "name": "2025-2026 RPG/solo/AI-GM community discussions",
+      "kind": "community_forums",
+      "mechanics": [
+        "mixed success valued by many players",
+        "dead-end failures are disliked",
+        "long AI campaigns commonly suffer memory/continuity drift",
+        "players want persistent world/relationships/quests"
+      ],
+      "status": "used_as_validation_not_authority",
+      "nerdora": [
+        "fail-forward",
+        "anti-loop",
+        "IndexedDB structured memory",
+        "NPC relationship state",
+        "world events"
+      ],
+      "gap": "Long-session central persistence and server-side consistency guard are still future work."
+    }
+  ],
+  "implemented_before_0_3_7": [
+    "D20 + attributes + difficulty",
+    "tests only for uncertainty-worthy actions",
+    "evidence separated from conclusions",
+    "explicit clue graph through REVELATION_RULES",
+    "three-path redundancy in campaign design",
+    "node/network maps and multiple routes",
+    "completed one-use actions disappear",
+    "fail-forward after repeated investigative failure",
+    "anti-loop recovery after repeated identical action",
+    "world pressure and timed world events",
+    "NPC trust/respect/fear/suspicion",
+    "structured local Master memory in IndexedDB",
+    "memory ranks options but does not remove valid choices",
+    "player-defined personal hooks",
+    "solo and multiplayer modes",
+    "P2P/WebRTC voice and host-authoritative shared state"
+  ],
+  "applied_in_0_3_7": [
+    "D20 outcomes now store critical, strong success, success, partial failure with progress, and hard failure using margin against DF; natural 20 is critical.",
+    "Generic and investigative failure narration/consequence now distinguishes near miss from hard failure.",
+    "Director state signature now counts world time, current objective, and world-event count, eliminating false stagnation when the world actually advanced.",
+    "Adaptive anti-loop recovery now consults valid actions in all three campaigns, not only Derenfall.",
+    "World events emit a visible omen one beat before escalation, when the characters could reasonably perceive warning signs.",
+    "Journal now shows separate objective-progress tracks in Derenfall, A Coroa de Vidro, and O Coro Abaixo, distinct from the pressure/threat meter.",
+    "State version advanced to 0.3.7 while old JS version remains preserved."
+  ],
+  "important_divergences_remaining": [
+    {
+      "severity": "architecture",
+      "item": "Current alpha is host-authoritative P2P, while the canonical production architecture calls for a server-authoritative Game Server + persistence."
+    },
+    {
+      "severity": "secrets",
+      "item": "All players receive the shared state; true GM-only rolls, private clues, per-character knowledge and secure fog-of-war cannot be trusted until state is filtered server-side."
+    },
+    {
+      "severity": "memory",
+      "item": "Adaptive memory is local IndexedDB; central PostgreSQL schema exists but is not live."
+    },
+    {
+      "severity": "oracle",
+      "item": "No formal narrative Oracle service yet. This should be added only after authoritative state boundaries are enforced."
+    },
+    {
+      "severity": "combat",
+      "item": "The alpha is investigation-heavy. Full combat economy, enemy morale, conditions, wounds/rest and tactical positioning remain thin."
+    },
+    {
+      "severity": "factions",
+      "item": "NPC relationships and world beats exist, but reusable faction fronts/agendas/clocks are not yet first-class objects."
+    },
+    {
+      "severity": "session_tools",
+      "item": "No automatic end-of-session summary/export of canonical state, unresolved threads and player-visible recap yet."
+    },
+    {
+      "severity": "visibility",
+      "item": "Map discovery is party-shared rather than individual/shared-selectable."
+    }
+  ],
+  "principles_not_to_copy_blindly": [
+    "Do not turn every action into a roll.",
+    "Do not make every failure secretly succeed; failure may worsen position or produce defeat while the story continues.",
+    "Do not let random oracle output create canon facts that contradict stored state.",
+    "Do not let adaptive memory change rules, rolls, HP, inventory, canon or remove valid choices.",
+    "Do not expose hidden knowledge just to keep the story moving; move redundant clues through coherent channels instead.",
+    "Do not add a heavy point economy unless it creates a clear player decision that the current fiction-first model lacks."
+  ],
+  "next_priority": [
+    "Server-authoritative room/game state with snapshots and idempotent event log.",
+    "Visibility scopes: public, party, player-private, Master-only for clues/rolls/events.",
+    "Per-player or shared-selectable map exploration.",
+    "Formal world fronts/faction agendas with named progress/threat clocks.",
+    "Internal Oracle service constrained by canon/state and fully logged.",
+    "Session summary and export/import.",
+    "Combat/conditions/morale/rest expansion after state authority is stable."
+  ],
+  "sources_urls": [
+    "https://bladesinthedark.com/progress-clocks",
+    "https://www.dungeonworldsrd.com/gamemastering/fronts/",
+    "https://fate-srd.com/fate-core/invoking-compelling-aspects",
+    "https://www.wordmillgames.com/page/mythic-gme.html",
+    "https://2e.aonprd.com/Rules.aspx?ID=2266",
+    "https://2e.aonprd.com/Rules.aspx?ID=3045",
+    "https://thealexandrian.net/creations/misc/node-design/node-design.html",
+    "https://thealexandrian.net/creations/misc/node-design/node-design2.html",
+    "https://foundryvtt.com/article/scenes/"
+  ]
+}
