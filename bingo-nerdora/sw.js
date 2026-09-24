@@ -1,12 +1,12 @@
-const CACHE="bingo-nerdora-v10";
+const CACHE="bingo-nerdora-v14";
 const CORE=[
   "./",
   "./index.html",
   "./style.css",
   "./app.js",
+  "./extras.js",
   "./manifest.json",
-  "./icon.svg",
-  "./assets/nerdora-bg.jpg"
+  "./icon.svg"
 ];
 
 self.addEventListener("install",event=>{
@@ -36,7 +36,7 @@ self.addEventListener("fetch",event=>{
   }
   event.respondWith(
     caches.match(req).then(cached=>cached||fetch(req).then(res=>{
-      if(res && res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put(req,copy));}
+      if(res&&res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put(req,copy));}
       return res;
     }))
   );
