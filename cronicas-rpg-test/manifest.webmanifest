@@ -10,9 +10,9 @@
   "theme_color": "#17100d",
   "icons": [
     {
-      "src": "./assets/app-icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "./assets/brand/nerdora-n-purple.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
       "purpose": "any maskable"
     }
   ]
