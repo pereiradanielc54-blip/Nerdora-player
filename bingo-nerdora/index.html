@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Fredoka:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=30">
+<link rel="stylesheet" href="style.css?v=31">
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 </head>
 <body>
@@ -26,6 +26,7 @@
   <button id="voiceToggle" class="installPwa voiceControl" type="button">🔊 Voz</button>
   <button id="soundToggle" class="installPwa compactToggle" type="button">🔔 Efeitos</button>
   <button id="musicToggle" class="installPwa compactToggle" type="button">🎵 Música</button>
+  <button id="settingsBtn" class="installPwa settingsGearBtn" type="button" aria-label="Configurações">⚙️</button>
   <button id="installApp" class="installPwa hidden" type="button">⬇ Instalar</button>
   <div id="net" class="pill">○ offline</div>
 </div></header>
@@ -203,6 +204,69 @@
 <div id="countdownOverlay" class="countdownOverlay hidden" aria-live="assertive"><div id="countdownValue">3</div><span>Prepare sua cartela!</span></div>
 <div id="drawStage" class="drawStage hidden" aria-live="polite"><div class="drawMachine"><i></i><i></i><i></i><i></i><div id="previewBall" class="previewBall">?</div></div><span>Sorteando...</span></div>
 <div id="emoteLayer" class="emoteLayer" aria-hidden="true"></div>
+
+<div id="settingsModal" class="settingsOverlay hidden" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+  <div class="settingsPanel">
+    <div class="settingsTop">
+      <div><div class="eyebrow">BINGO NERDORA</div><h2 id="settingsTitle">Configurações</h2><p>Ajuste o jogo do seu jeito. As preferências ficam salvas neste aparelho.</p></div>
+      <button id="settingsClose" class="settingsClose" type="button" aria-label="Fechar">×</button>
+    </div>
+
+    <div class="settingsScroll">
+      <section class="settingsSection">
+        <div class="settingsSectionTitle"><span>🔊</span><div><strong>Áudio</strong><small>Volumes independentes para música, efeitos e narração</small></div></div>
+
+        <label class="rangeSetting">
+          <div class="rangeTop"><span>🎵 Música do tema</span><b id="musicVolumeValue">35%</b></div>
+          <input id="musicVolumeRange" type="range" min="0" max="100" step="1" value="35">
+          <div class="rangeEnds"><span>Silencioso</span><span>Máximo</span></div>
+        </label>
+
+        <label class="rangeSetting">
+          <div class="rangeTop"><span>🔔 Efeitos sonoros</span><b id="effectsVolumeValue">70%</b></div>
+          <input id="effectsVolumeRange" type="range" min="0" max="100" step="1" value="70">
+        </label>
+
+        <label class="rangeSetting">
+          <div class="rangeTop"><span>🗣️ Volume da narração</span><b id="voiceVolumeValue">90%</b></div>
+          <input id="voiceVolumeRange" type="range" min="0" max="100" step="1" value="90">
+        </label>
+
+        <label class="rangeSetting">
+          <div class="rangeTop"><span>⏱️ Velocidade da voz</span><b id="voiceRateValue">1.00×</b></div>
+          <input id="voiceRateRange" type="range" min="80" max="120" step="5" value="100">
+        </label>
+
+        <button id="testAudioBtn" class="settingsTestBtn" type="button">▶ Testar áudio e narração</button>
+      </section>
+
+      <section class="settingsSection">
+        <div class="settingsSectionTitle"><span>🎮</span><div><strong>Jogo e celular</strong><small>Ajustes úteis durante as partidas</small></div></div>
+
+        <label class="toggleSetting"><div><strong>📳 Feedback tátil</strong><small>Vibra levemente ao marcar, sortear e vencer, quando o aparelho permitir.</small></div><input id="vibrationSetting" type="checkbox"><span></span></label>
+        <label class="toggleSetting"><div><strong>🌙 Manter tela ligada</strong><small>Tenta impedir que o celular apague enquanto você estiver dentro de uma sala.</small></div><input id="wakeLockSetting" type="checkbox"><span></span></label>
+        <label class="toggleSetting"><div><strong>✨ Reduzir animações</strong><small>Diminui movimentos e efeitos visuais para melhorar conforto e desempenho.</small></div><input id="reduceMotionSetting" type="checkbox"><span></span></label>
+        <label class="toggleSetting"><div><strong>🃏 Mostrar adversários</strong><small>Exibe as mini-cartelas e o progresso visual dos outros jogadores.</small></div><input id="showOpponentsSetting" type="checkbox"><span></span></label>
+        <label class="toggleSetting"><div><strong>🚪 Confirmar antes de sair</strong><small>Evita sair da partida por toque acidental.</small></div><input id="confirmExitSetting" type="checkbox"><span></span></label>
+
+        <div id="wakeLockInfo" class="settingsSupportInfo"></div>
+      </section>
+
+      <section class="settingsSection aboutSection">
+        <div class="settingsSectionTitle"><span>ⓘ</span><div><strong>Sobre</strong><small>Informações desta versão</small></div></div>
+        <div class="aboutCard">
+          <div class="aboutLogo">N</div>
+          <div><strong>Bingo Nerdora</strong><span>Versão 31 • protótipo multiplayer</span></div>
+        </div>
+        <p>Jogo de Bingo online do universo Nerdora, com salas P2P, temas completos, músicas temáticas, modos de vitória, placar e recursos sociais.</p>
+        <div class="aboutFacts"><span>🔒 Preferências salvas localmente</span><span>👥 Multiplayer P2P</span><span>🎨 4 temas visuais</span></div>
+      </section>
+
+      <button id="resetSettingsBtn" class="resetSettingsBtn" type="button">↺ Restaurar configurações padrão</button>
+    </div>
+  </div>
+</div>
+
 <div id="modal" class="modal hidden">
   <div id="confettiLayer" class="confettiLayer" aria-hidden="true"></div>
   <div class="modalBox winnerModalBox">
@@ -226,7 +290,7 @@
     </div>
   </div>
 </div>
-<script src="app.js?v=30"></script>
-<script src="extras.js?v=30"></script>
+<script src="app.js?v=31"></script>
+<script src="extras.js?v=31"></script>
 </body>
 </html>
