@@ -5,13 +5,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
+import android.graphics.pdf.PdfDocument
 import android.net.Uri
-import android.os.Bundle
-import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
-import android.print.PageRange
-import android.print.PrintAttributes
-import android.print.PrintDocumentAdapter
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.Image
@@ -35,7 +31,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.SelectionContainer
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -75,11 +71,14 @@ import java.io.ByteArrayOutputStream
 import java.io.Closeable
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.FileOutputStream
 import java.security.MessageDigest
 import java.util.Locale
 import java.util.zip.ZipInputStream
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlin.math.ceil
+import kotlin.math.max
 import kotlin.math.roundToInt
 
 private data class WordPrepared(val pdf: File, val text: String, val legacy: Boolean)
@@ -700,6 +699,7 @@ private suspend fun htmlToPdf(context: Context, html: String, output: File) {
         suspendCancellableCoroutine<Unit> { continuation ->
             val web = WebView(context)
             var finished = false
+
             fun fail(t: Throwable) {
                 if (finished) return
                 finished = true
@@ -707,6 +707,7 @@ private suspend fun htmlToPdf(context: Context, html: String, output: File) {
                 runCatching { web.destroy() }
                 if (continuation.isActive) continuation.resumeWithException(t)
             }
+
             fun done() {
                 if (finished) return
                 finished = true
@@ -717,68 +718,82 @@ private suspend fun htmlToPdf(context: Context, html: String, output: File) {
             web.settings.javaScriptEnabled = false
             web.settings.loadsImagesAutomatically = true
             web.settings.defaultTextEncodingName = "utf-8"
+            web.settings.useWideViewPort = true
+            web.settings.loadWithOverviewMode = false
+
             web.webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView, url: String?) {
-                    val adapter = view.createPrintDocumentAdapter("Nerdora Word")
-                    val attributes = PrintAttributes.Builder()
-                        .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
-                        .setResolution(PrintAttributes.Resolution("nerdora", "Nerdora", 300, 300))
-                        .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
-                        .build()
-                    adapter.onLayout(
-                        null,
-                        attributes,
-                        CancellationSignal(),
-                        object : PrintDocumentAdapter.LayoutResultCallback() {
-                            override fun onLayoutFinished(info: android.print.PrintDocumentInfo?, changed: Boolean) {
-                                runCatching {
-                                    output.parentFile?.mkdirs()
-                                    val pfd = ParcelFileDescriptor.open(
-                                        output,
-                                        ParcelFileDescriptor.MODE_CREATE or ParcelFileDescriptor.MODE_TRUNCATE or ParcelFileDescriptor.MODE_READ_WRITE
+                    view.post {
+                        runCatching {
+                            val renderWidthPx = 794
+                            val pageWidthPt = 595
+                            val pageHeightPt = 842
+                            val scaleToPdf = pageWidthPt.toFloat() / renderWidthPx.toFloat()
+                            val pageHeightPx = (pageHeightPt / scaleToPdf).roundToInt()
+
+                            val widthSpec = android.view.View.MeasureSpec.makeMeasureSpec(
+                                renderWidthPx,
+                                android.view.View.MeasureSpec.EXACTLY
+                            )
+                            val heightSpec = android.view.View.MeasureSpec.makeMeasureSpec(
+                                0,
+                                android.view.View.MeasureSpec.UNSPECIFIED
+                            )
+                            view.measure(widthSpec, heightSpec)
+                            val measured = max(view.measuredHeight, pageHeightPx)
+                            view.layout(0, 0, renderWidthPx, measured)
+
+                            val cssHeight = (view.contentHeight * view.scale).roundToInt()
+                            val contentHeight = max(max(cssHeight, view.measuredHeight), pageHeightPx)
+                            val pageCount = ceil(contentHeight.toDouble() / pageHeightPx.toDouble())
+                                .toInt()
+                                .coerceIn(1, 500)
+
+                            output.parentFile?.mkdirs()
+                            val pdf = PdfDocument()
+                            try {
+                                for (index in 0 until pageCount) {
+                                    val info = PdfDocument.PageInfo.Builder(
+                                        pageWidthPt,
+                                        pageHeightPt,
+                                        index + 1
+                                    ).create()
+                                    val page = pdf.startPage(info)
+                                    val canvas = page.canvas
+                                    canvas.save()
+                                    canvas.scale(scaleToPdf, scaleToPdf)
+                                    canvas.clipRect(
+                                        0f,
+                                        0f,
+                                        renderWidthPx.toFloat(),
+                                        pageHeightPx.toFloat()
                                     )
-                                    adapter.onWrite(
-                                        arrayOf(PageRange.ALL_PAGES),
-                                        pfd,
-                                        CancellationSignal(),
-                                        object : PrintDocumentAdapter.WriteResultCallback() {
-                                            override fun onWriteFinished(pages: Array<out PageRange>?) {
-                                                runCatching { pfd.close() }
-                                                runCatching { adapter.onFinish() }
-                                                done()
-                                            }
-                                            override fun onWriteFailed(error: CharSequence?) {
-                                                runCatching { pfd.close() }
-                                                runCatching { adapter.onFinish() }
-                                                fail(IllegalStateException(error?.toString() ?: "Falha ao gerar PDF."))
-                                            }
-                                            override fun onWriteCancelled() {
-                                                runCatching { pfd.close() }
-                                                runCatching { adapter.onFinish() }
-                                                fail(IllegalStateException("Conversão cancelada."))
-                                            }
-                                        }
-                                    )
-                                }.onFailure(::fail)
+                                    canvas.translate(0f, -(index * pageHeightPx).toFloat())
+                                    view.draw(canvas)
+                                    canvas.restore()
+                                    pdf.finishPage(page)
+                                }
+                                FileOutputStream(output).use { stream -> pdf.writeTo(stream) }
+                            } finally {
+                                pdf.close()
                             }
-                            override fun onLayoutFailed(error: CharSequence?) {
-                                runCatching { adapter.onFinish() }
-                                fail(IllegalStateException(error?.toString() ?: "Falha no layout do Word."))
-                            }
-                            override fun onLayoutCancelled() {
-                                runCatching { adapter.onFinish() }
-                                fail(IllegalStateException("Layout cancelado."))
-                            }
-                        },
-                        Bundle()
-                    )
+                        }.onSuccess { done() }.onFailure(::fail)
+                    }
                 }
             }
+
             continuation.invokeOnCancellation {
                 runCatching { web.stopLoading() }
                 runCatching { web.destroy() }
             }
-            web.loadDataWithBaseURL("file:///android_asset/", html, "text/html", "UTF-8", null)
+
+            web.loadDataWithBaseURL(
+                "file:///android_asset/",
+                html,
+                "text/html",
+                "UTF-8",
+                null
+            )
         }
     }
 }
