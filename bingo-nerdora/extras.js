@@ -1,5 +1,5 @@
 (function(){
-var voiceBtn=document.getElementById("voiceToggle"),installBtn=document.getElementById("installBtn"),last=document.getElementById("last"),bg=document.querySelector(".nerdoraBg");
+var voiceBtn=document.getElementById("voiceToggle"),installBtn=document.getElementById("installApp"),last=document.getElementById("last"),bg=document.querySelector(".nerdoraBg");
 var voiceOn=localStorage.getItem("bingoVoice")!=="off",lastSpoken="",deferredPrompt=null;
 function refreshVoice(){if(!voiceBtn)return;voiceBtn.textContent=voiceOn?"🔊 Voz":"🔇 Voz";voiceBtn.classList.toggle("voiceOff",!voiceOn)}
 function getVoice(){if(!("speechSynthesis" in window))return null;var vs=speechSynthesis.getVoices();return vs.find(function(v){return (v.lang||"").toLowerCase()==="pt-br"})||vs.find(function(v){return (v.lang||"").toLowerCase().indexOf("pt")===0})||null}
