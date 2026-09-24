@@ -1,4 +1,4 @@
-const CACHE="bingo-nerdora-v15";
+const CACHE="bingo-nerdora-v16";
 const CORE=[
   "./",
   "./index.html",
