@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.1 Signed Release
+name: Nerdora Player - Build v0.9.2 Word Reader
 
 on:
   workflow_dispatch:
@@ -231,6 +231,60 @@ jobs:
           grep -q 'settings.useWideViewPort = true' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           echo "Visual Refresh v0.9.1 preparado com assinatura permanente."
 
+      - name: Aplicar Word Reader v0.9.2
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp .github/overlays/v0.9.2/WordDocumentViewer.kt extracted_project/app/src/main/java/com/nerdora/player/ui/WordDocumentViewer.kt
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          viewer = Path("extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt")
+          text = viewer.read_text(encoding="utf-8")
+
+          old = "private enum class DocumentKind { PDF, DOCX, XLSX, PPTX, ZIP, TEXT, OTHER }"
+          new = "private enum class DocumentKind { PDF, DOC, DOCX, XLSX, PPTX, ZIP, TEXT, OTHER }"
+          assert old in text or new in text, "Enum DocumentKind não encontrado"
+          text = text.replace(old, new)
+
+          old = 'DocumentKind.DOCX -> "Word • layout aprimorado"'
+          new = 'DocumentKind.DOC, DocumentKind.DOCX -> "Word • páginas reais + cache"'
+          assert old in text or new in text, "Título Word não encontrado"
+          text = text.replace(old, new)
+
+          old = 'DocumentKind.DOCX -> RichHtmlViewer(document.uri) { OfficeHtmlReader.readDocx(context, document.uri) }'
+          new = 'DocumentKind.DOC, DocumentKind.DOCX -> WordDocumentViewer(context, document)'
+          assert old in text or new in text, "Rota DOCX não encontrada"
+          text = text.replace(old, new)
+
+          old = 'ext=="docx"||mime.contains("wordprocessingml")->DocumentKind.DOCX;'
+          new = 'ext=="doc"||mime=="application/msword"->DocumentKind.DOC;ext=="docx"||mime.contains("wordprocessingml")->DocumentKind.DOCX;'
+          assert old in text or new in text, "Detecção DOCX não encontrada"
+          text = text.replace(old, new)
+
+          viewer.write_text(text, encoding="utf-8")
+
+          manifest = Path("extracted_project/app/src/main/AndroidManifest.xml")
+          m = manifest.read_text(encoding="utf-8")
+          wordx = '                <data android:mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document" />'
+          legacy = '                <data android:mimeType="application/msword" />'
+          assert wordx in m, "MIME DOCX não encontrado no manifest"
+          if legacy not in m:
+              m = m.replace(wordx, wordx + "\n" + legacy, 1)
+          manifest.write_text(m, encoding="utf-8")
+          PY
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 62/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.2"/' extracted_project/app/build.gradle.kts
+
+          grep -q 'versionName = "0.9.2"' extracted_project/app/build.gradle.kts
+          grep -q 'DocumentKind.DOC, DocumentKind.DOCX -> WordDocumentViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          grep -q 'fun WordDocumentViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/WordDocumentViewer.kt
+          grep -q 'word_pdf' extracted_project/app/src/main/java/com/nerdora/player/ui/WordDocumentViewer.kt
+          grep -q 'application/msword' extracted_project/app/src/main/AndroidManifest.xml
+          echo "Word Reader v0.9.2 aplicado."
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
@@ -304,7 +358,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.1"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.2"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -316,7 +370,10 @@ jobs:
           grep -q 'SmallVideoAction' app/src/main/java/com/nerdora/player/ui/VideoPlayer.kt
           grep -q '"CYBER"' app/src/main/java/com/nerdora/player/ui/NerdoraTheme.kt
           grep -q 'settings.useWideViewPort = true' app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
-          echo "Nerdora Player v0.9.1 validado."
+          test -f app/src/main/java/com/nerdora/player/ui/WordDocumentViewer.kt
+          grep -q 'fun WordDocumentViewer' app/src/main/java/com/nerdora/player/ui/WordDocumentViewer.kt
+          grep -q 'application/msword' app/src/main/AndroidManifest.xml
+          echo "Nerdora Player v0.9.2 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -365,7 +422,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.1 assinada
+      - name: Publicar Release pública v0.9.2 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -374,8 +431,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Release assinada"
-          NOTES="Nerdora Player v0.9.1: primeira Release preparada para usar a chave permanente de assinatura do Nerdora Player. Mantém o Visual Refresh da v0.9.0, Universal Files, temas, login local, navegação Voltar e índices persistentes. Depois de instalar esta versão assinada uma vez, as próximas versões assinadas com a mesma chave poderão ser instaladas por cima normalmente."
+          TITLE="Nerdora Player v${VERSION} — Word Reader"
+          NOTES="Nerdora Player v0.9.2: novo leitor interno de Word. DOCX agora é convertido para PDF temporário em cache, preservando melhor páginas, fontes, tamanhos, negrito, itálico, sublinhado, cores, alinhamento, tabelas, imagens, cabeçalho, rodapé e quebras de página. O leitor ganhou miniaturas, busca, indicador e salto de página, texto selecionável, zoom por pinça e duplo toque, além de memória da última página. DOC legado ganhou compatibilidade interna de texto e continua podendo ser aberto em outro app quando for necessária fidelidade total. A Release continua assinada com a mesma chave permanente da v0.9.1 para atualização por cima."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
