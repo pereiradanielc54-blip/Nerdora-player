@@ -464,3 +464,29 @@ body{position:relative;isolation:isolate;overflow-x:hidden;background:#09060f!im
   }
   .actions.center{margin-top:12px}
 }
+
+/* PUBLIC_ROOMS_V23 */
+.publicRoomsBlock{margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.08)}
+.publicRoomsHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.publicRoomsHead>div{min-width:0}
+.publicRoomsHead label{display:block;margin:0;color:#e9dcf2;font-size:10px;letter-spacing:1.3px}
+.publicRoomsHead small{display:block;color:var(--mut);font-size:10px;margin-top:3px}
+.refreshRoomsBtn{width:34px;height:34px;padding:0;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.09);color:#d9c8e8;font-size:18px}
+.publicRooms{display:grid;gap:8px}
+.publicRoomCard{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:11px 11px 11px 13px;border-radius:14px;border:1px solid rgba(255,255,255,.09);background:linear-gradient(135deg,rgba(33,20,47,.72),rgba(14,9,22,.80));transition:.18s ease}
+.publicRoomInfo{min-width:0;flex:1}
+.publicRoomTop{display:flex;align-items:center;gap:7px;min-width:0}
+.publicRoomTop strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+.waitingBadge{flex:0 0 auto;padding:3px 6px;border-radius:999px;font-size:7px;font-weight:1000;text-transform:uppercase;letter-spacing:.5px;color:#83f1b5;background:rgba(88,231,160,.09);border:1px solid rgba(88,231,160,.18)}
+.publicRoomMeta{display:flex;align-items:center;gap:5px;color:#9f91aa;font-size:9px;margin-top:4px}
+.publicRoomMeta span:first-child{font-weight:900;letter-spacing:1px;color:#c6b7d2}
+.joinPublicBtn{flex:0 0 auto;min-width:68px;padding:9px 11px;border-radius:10px;background:linear-gradient(135deg,#7c42df,#d946a2);color:#fff;font-size:10px;font-weight:900;box-shadow:0 7px 18px rgba(121,65,211,.18)}
+.roomsEmpty,.roomsLoading{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-height:64px;padding:12px 13px;border-radius:14px;border:1px dashed rgba(255,255,255,.10);background:rgba(255,255,255,.025);color:#a99ab5;font-size:10px}
+.roomsEmpty strong{color:#cbbdd6;font-size:11px;margin-bottom:3px}
+.roomsEmpty span{color:#85788f}
+.roomsLoading{flex-direction:row;align-items:center;gap:8px}
+.roomsLoading>span{width:8px;height:8px;border-radius:50%;background:#a66bff;box-shadow:0 0 8px rgba(166,107,255,.55);animation:roomsPulse 1.2s ease-in-out infinite}
+.publicRoomsHint{margin-top:8px;color:#786c82;font-size:9px}
+@keyframes roomsPulse{50%{opacity:.35;transform:scale(.72)}}
+@media(hover:hover) and (pointer:fine){.publicRoomCard:hover{border-color:rgba(177,105,255,.20);transform:translateY(-1px)}.refreshRoomsBtn:hover{background:rgba(255,255,255,.09)}}
+@media(max-width:560px){.publicRoomsBlock{margin-top:18px}.publicRoomCard{padding:10px}.joinPublicBtn{min-width:64px}.publicRoomTop strong{font-size:12px}}
