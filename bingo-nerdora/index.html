@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=16">
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 </head>
 <body>
@@ -69,8 +69,25 @@
 </section>
 </div>
 <div id="toast" class="toast"></div>
-<div id="modal" class="modal hidden"><div class="modalBox"><div class="emoji">🎉🏆🎉</div><h2>Temos Bingo!</h2><p id="modalText"></p><button id="closeModal" class="primary wide">Continuar</button></div></div>
-<script src="app.js"></script>
-<script src="extras.js"></script>
+<div id="modal" class="modal hidden">
+  <div id="confettiLayer" class="confettiLayer" aria-hidden="true"></div>
+  <div class="modalBox winnerModalBox">
+    <div class="winnerAura" aria-hidden="true"></div>
+    <div class="winnerTrophy">🏆</div>
+    <div class="winnerKicker">VITÓRIA CONFIRMADA</div>
+    <div class="winnerBigTitle">BINGO!</div>
+    <h2 id="winnerName" class="winnerName">Temos um vencedor!</h2>
+    <p id="modalText" class="winnerMessage"></p>
+    <div class="winnerStats">
+      <div><strong id="winnerCalls">0</strong><span>bolas chamadas</span></div>
+      <div><strong>✓</strong><span>linha validada</span></div>
+      <div><strong>7s</strong><span>por chamada</span></div>
+    </div>
+    <div class="winnerMascots"><span>N</span><small>Nerdora & Nyan comemoram com você!</small></div>
+    <button id="closeModal" class="primary wide winnerContinue">Continuar na sala</button>
+  </div>
+</div>
+<script src="app.js?v=16"></script>
+<script src="extras.js?v=16"></script>
 </body>
 </html>
