@@ -12,6 +12,12 @@ achievements:$("achievements"),ruleText:$("ruleText"),profileMini:$("profileMini
 countdownOverlay:$("countdownOverlay"),countdownValue:$("countdownValue"),drawStage:$("drawStage"),previewBall:$("previewBall"),emoteLayer:$("emoteLayer"),waitingRoomBanner:$("waitingRoomBanner"),waitingRoomCode:$("waitingRoomCode"),waitingPlayerCount:$("waitingPlayerCount")
 };
 var PROFILE_KEY="bingoNerdoraProfileV24",NAME_KEY="bingoNerdoraName";
+var THEME_META={
+  neon:{label:"Neon",tagline:"Cidade do Futuro",color:"#09152d"},
+  midnight:{label:"Midnight",tagline:"Sob o Luar",color:"#071126"},
+  arcade:{label:"Arcade",tagline:"High Score",color:"#16081f"},
+  nyan:{label:"Nyan",tagline:"Paws & Stars",color:"#251431"}
+};
 function loadProfile(){try{var p=JSON.parse(localStorage.getItem(PROFILE_KEY)||"{}");return Object.assign({wins:0,games:0,xp:0,coins:0,streak:0,bestStreak:0,achievements:[],theme:"neon"},p)}catch(e){return{wins:0,games:0,xp:0,coins:0,streak:0,bestStreak:0,achievements:[],theme:"neon"}}}
 var P=loadProfile(),S={
 host:false,code:"",name:"",peer:null,hostConn:null,conns:new Map(),players:new Map(),card:[],marked:new Set([12]),called:[],bag:[],winner:null,id:"",joined:false,spectator:false,leaving:false,
@@ -52,7 +58,27 @@ function bingoReady(){return!S.spectator&&!S.winner&&modeComplete(S.marked,S.con
 function valid(card,marked){var set=new Set(marked);set.add(12);return modeComplete(set,S.config.mode)&&allMarkedCalled(card,set)}
 function playerNear(p){return!p.spectator&&nearMode(new Set(Array.isArray(p.marked)?p.marked:[12]),S.config.mode)}
 function readConfig(){return{roomName:(E.roomName.value.trim()||("Sala de "+(clean()||"Nerdora"))).slice(0,28),public:!!E.publicRoom.checked,mode:E.modeSelect.value||"line",speed:Math.max(4000,Math.min(12000,Number(E.speedSelect.value)||7000)),maxPlayers:Math.max(2,Math.min(8,Number(E.maxPlayers.value)||6))}}
-function renderProfile(){document.body.dataset.theme=P.theme||"neon";if(E.themeSelect)E.themeSelect.value=P.theme||"neon";var nm=clean()||savedName||"Jogador Nerdora";E.profileName.textContent=nm;E.profileAvatar.textContent=(nm[0]||"N").toUpperCase();E.profileWins.textContent=P.wins;E.profileXp.textContent=P.xp;E.profileCoins.textContent=P.coins;E.achievements.innerHTML="";var labels={first_game:"🎟️ Primeira partida",first_bingo:"🏆 Primeiro Bingo",speed_bingo:"⚡ Vitória relâmpago",streak3:"🔥 3 vitórias seguidas",social:"💬 Social",nyan:"🐾 Amigo do Nyan"};(P.achievements||[]).slice(-6).forEach(function(k){var b=document.createElement("span");b.textContent=labels[k]||k;E.achievements.appendChild(b)});if(!P.achievements.length)E.achievements.innerHTML='<small>Jogue para desbloquear conquistas.</small>'}
+function renderProfile(){
+  var theme=P.theme||"neon",meta=THEME_META[theme]||THEME_META.neon;
+  document.body.dataset.theme=theme;
+  if(E.themeSelect)E.themeSelect.value=theme;
+  document.querySelectorAll("[data-theme-choice]").forEach(function(btn){btn.classList.toggle("isActive",btn.dataset.themeChoice===theme)});
+  var themeMeta=document.querySelector('meta[name="theme-color"]');if(themeMeta)themeMeta.setAttribute("content",meta.color);
+  var nm=clean()||savedName||"Jogador Nerdora";
+  E.profileName.textContent=nm;E.profileAvatar.textContent=(nm[0]||"N").toUpperCase();E.profileWins.textContent=P.wins;E.profileXp.textContent=P.xp;E.profileCoins.textContent=P.coins;
+  E.achievements.innerHTML="";
+  var labels={first_game:"🎟️ Primeira partida",first_bingo:"🏆 Primeiro Bingo",speed_bingo:"⚡ Vitória relâmpago",streak3:"🔥 3 vitórias seguidas",social:"💬 Social",nyan:"🐾 Amigo do Nyan"};
+  (P.achievements||[]).slice(-6).forEach(function(k){var b=document.createElement("span");b.textContent=labels[k]||k;E.achievements.appendChild(b)});
+  if(!P.achievements.length)E.achievements.innerHTML='<small>Jogue para desbloquear conquistas.</small>'
+}
+function setTheme(theme,announce){
+  if(!THEME_META[theme])theme="neon";
+  if(P.theme===theme&&!announce){renderProfile();return}
+  P.theme=theme;localStorage.setItem(PROFILE_KEY,JSON.stringify(P));
+  document.body.classList.add("themeSwitching");renderProfile();
+  setTimeout(function(){document.body.classList.remove("themeSwitching")},520);
+  if(announce)toast("Tema "+THEME_META[theme].label+" • "+THEME_META[theme].tagline)
+}
 function unlock(k){if(P.achievements.indexOf(k)<0){P.achievements.push(k);toast("🏅 Conquista: "+k.replace(/_/g," "));saveProfile()}}
 function applyRoundReward(){if(!S.winner||S.spectator)return;var key=S.code+"-"+S.round;if(localStorage.getItem("bingoReward:"+key))return;localStorage.setItem("bingoReward:"+key,"1");P.games++;P.xp+=20;P.coins+=3;unlock("first_game");if(S.winner.id===S.id){P.wins++;P.xp+=80;P.coins+=10;P.streak++;P.bestStreak=Math.max(P.bestStreak,P.streak);unlock("first_bingo");if(S.called.length<=35)unlock("speed_bingo");if(P.streak>=3)unlock("streak3")}else P.streak=0;saveProfile()}
 function getAudio(){if(!audioCtx)try{audioCtx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();return audioCtx}
@@ -140,7 +166,8 @@ function copy(t,msg){if(navigator.clipboard)navigator.clipboard.writeText(t).the
 function setupParallax(){var root=document.documentElement,raf=0,px=0,py=0,sy=0;if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;function apply(){raf=0;root.style.setProperty("--px",px.toFixed(1)+"px");root.style.setProperty("--py",py.toFixed(1)+"px");root.style.setProperty("--scroll-py",sy.toFixed(1)+"px")}function req(){if(!raf)raf=requestAnimationFrame(apply)}window.addEventListener("pointermove",function(e){px=(e.clientX/window.innerWidth-.5)*18;py=(e.clientY/window.innerHeight-.5)*12;req()},{passive:true});window.addEventListener("scroll",function(){sy=Math.min(18,window.scrollY*.025);req()},{passive:true})}
 function setupInstall(){if(!E.install)return;if(isStandalone)E.install.classList.add("hidden");else setTimeout(function(){if(!isStandalone)E.install.classList.remove("hidden")},1800);window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();deferredInstallPrompt=e;E.install.classList.remove("hidden")});E.install.onclick=async function(){if(deferredInstallPrompt){deferredInstallPrompt.prompt();try{await deferredInstallPrompt.userChoice}catch(e){}deferredInstallPrompt=null;E.install.classList.add("hidden")}else toast("No Chrome, use ⋮ → Instalar app.")}}
 function setupPwa(){if("serviceWorker"in navigator)window.addEventListener("load",function(){navigator.serviceWorker.register("./sw.js").catch(function(){})})}
-function setupControls(){refreshAudioButtons();E.voiceToggle.onclick=function(){S.voiceOn=!S.voiceOn;localStorage.setItem("bingoVoice",S.voiceOn?"on":"off");refreshAudioButtons();if(S.voiceOn)speakText("Narração Nerdora ativada.")};E.soundToggle.onclick=function(){S.soundOn=!S.soundOn;localStorage.setItem("bingoSound",S.soundOn?"on":"off");refreshAudioButtons();if(S.soundOn)sfx("mark")};E.musicToggle.onclick=function(){S.musicOn=!S.musicOn;localStorage.setItem("bingoMusic",S.musicOn?"on":"off");refreshAudioButtons();S.musicOn?startMusic():stopMusic()};E.themeSelect.onchange=function(){P.theme=E.themeSelect.value;saveProfile()};E.name.addEventListener("input",renderProfile);if(E.quickChat)E.quickChat.querySelectorAll("button").forEach(function(b){b.onclick=function(){sendQuick(b.dataset.chat||b.textContent)}})}
+function setupControls(){refreshAudioButtons();E.voiceToggle.onclick=function(){S.voiceOn=!S.voiceOn;localStorage.setItem("bingoVoice",S.voiceOn?"on":"off");refreshAudioButtons();if(S.voiceOn)speakText("Narração Nerdora ativada.")};E.soundToggle.onclick=function(){S.soundOn=!S.soundOn;localStorage.setItem("bingoSound",S.soundOn?"on":"off");refreshAudioButtons();if(S.soundOn)sfx("mark")};E.musicToggle.onclick=function(){S.musicOn=!S.musicOn;localStorage.setItem("bingoMusic",S.musicOn?"on":"off");refreshAudioButtons();S.musicOn?startMusic():stopMusic()};E.themeSelect.onchange=function(){setTheme(E.themeSelect.value,true)};
+document.querySelectorAll("[data-theme-choice]").forEach(function(btn){btn.onclick=function(){setTheme(btn.dataset.themeChoice,true)}});E.name.addEventListener("input",renderProfile);if(E.quickChat)E.quickChat.querySelectorAll("button").forEach(function(b){b.onclick=function(){sendQuick(b.dataset.chat||b.textContent)}})}
 function setupEvents(){E.openJoin.onclick=function(){E.room.focus();E.joinBox.scrollIntoView({behavior:"smooth",block:"center"})};E.create.onclick=createRoom;E.join.onclick=joinRoom;E.draw.onclick=toggleAuto;E.bingo.onclick=bingo;E.readyBtn.onclick=toggleReady;E.leave.onclick=function(){S.leaving=true;if(S.host)lobbyUnregister();try{S.peer&&S.peer.destroy()}catch(e){}location.href=location.pathname};E.copyCode.onclick=function(){copy(S.code,"Código copiado.")};E.copyLink.onclick=function(){var u=new URL(location.href);u.search="";u.searchParams.set("room",S.code);copy(u.toString(),"Convite copiado.")};E.closeModal.onclick=function(){E.modal.classList.add("hidden")};E.replayBtn.onclick=requestReplay;E.replayInline.onclick=requestReplay;E.room.onkeydown=function(e){if(e.key==="Enter")joinRoom()};if(E.refreshRooms)E.refreshRooms.onclick=lobbyRefresh;window.addEventListener("beforeunload",function(){S.leaving=true;if(S.host)lobbyUnregister();clearInterval(S.autoTimer);clearInterval(musicTimer);try{S.peer&&S.peer.destroy()}catch(e){}})}
 // Public P2P lobby
 var LOBBY_REGISTRY_ID="nerdora-bingo-public-registry-v2",LOBBY_TTL=15000,lobbyPeer=null,lobbyConn=null,lobbyRegistryPeer=null,lobbyRegistryRooms=new Map(),lobbyRegistryClients=new Set(),lobbyHeartbeatTimer=null,lobbyCleanupTimer=null;
