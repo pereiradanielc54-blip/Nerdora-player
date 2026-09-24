@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Fredoka:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=31">
+<link rel="stylesheet" href="style.css?v=32">
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 </head>
 <body>
@@ -153,6 +153,21 @@
     <h3>Jogadores</h3><div id="players"></div>
     <div class="scoreSection"><h3>Placar da sessão</h3><div id="scoreboard" class="scoreboard"></div></div>
     <h3>Conexão</h3><div id="status" class="status">Preparando...</div>
+
+    <section class="roomVoicePanel">
+      <div class="roomVoiceHead">
+        <div><strong>🎙️ Chat por voz</strong><small id="voiceChatStatus">Desativado</small></div>
+        <span id="voiceChatCount" class="voiceChatCount">0 online</span>
+      </div>
+      <div class="roomVoiceActions">
+        <button id="voiceChatToggle" class="voiceChatPrimary" type="button">🎙️ Ativar voz</button>
+        <button id="voiceChatMute" class="voiceChatMute hidden" type="button">🔇 Mutar</button>
+      </div>
+      <small class="voicePrivacy">Áudio P2P via WebRTC • o jogo não grava a conversa.</small>
+    </section>
+
+    <button id="roomSettingsBtn" class="roomSettingsBtn" type="button">⚙️ Configurações de áudio e jogo</button>
+
     <div class="quickChatBlock"><h3>Chat rápido</h3><div id="quickChat" class="quickChat">
       <button data-chat="Boa sorte!">🍀 Boa sorte</button><button data-chat="🔥">🔥</button><button data-chat="😂">😂</button><button data-chat="Quase!">😱 Quase!</button><button data-chat="Nyan!">🐾 Nyan!</button>
     </div><div id="chatFeed" class="chatFeed"></div></div>
@@ -240,6 +255,16 @@
         <button id="testAudioBtn" class="settingsTestBtn" type="button">▶ Testar áudio e narração</button>
       </section>
 
+      <section id="voiceChatSettingsSection" class="settingsSection voiceChatSettingsSection hidden">
+        <div class="settingsSectionTitle"><span>🎙️</span><div><strong>Chat por voz</strong><small>Disponível somente enquanto você estiver dentro de uma sala</small></div></div>
+        <label class="rangeSetting">
+          <div class="rangeTop"><span>Volume das outras pessoas</span><b id="voiceChatVolumeValue">80%</b></div>
+          <input id="voiceChatVolumeRange" type="range" min="0" max="100" step="1" value="80">
+          <div class="rangeEnds"><span>Silencioso</span><span>Máximo</span></div>
+        </label>
+        <div class="voiceChatSettingsInfo">Esse controle altera somente o que você ouve no chat por voz. Música, efeitos e narração continuam independentes.</div>
+      </section>
+
       <section class="settingsSection">
         <div class="settingsSectionTitle"><span>🎮</span><div><strong>Jogo e celular</strong><small>Ajustes úteis durante as partidas</small></div></div>
 
@@ -256,7 +281,7 @@
         <div class="settingsSectionTitle"><span>ⓘ</span><div><strong>Sobre</strong><small>Informações desta versão</small></div></div>
         <div class="aboutCard">
           <div class="aboutLogo">N</div>
-          <div><strong>Bingo Nerdora</strong><span>Versão 31 • protótipo multiplayer</span></div>
+          <div><strong>Bingo Nerdora</strong><span>Versão 32 • protótipo multiplayer com voz</span></div>
         </div>
         <p>Jogo de Bingo online do universo Nerdora, com salas P2P, temas completos, músicas temáticas, modos de vitória, placar e recursos sociais.</p>
         <div class="aboutFacts"><span>🔒 Preferências salvas localmente</span><span>👥 Multiplayer P2P</span><span>🎨 4 temas visuais</span></div>
@@ -290,7 +315,7 @@
     </div>
   </div>
 </div>
-<script src="app.js?v=31"></script>
-<script src="extras.js?v=31"></script>
+<script src="app.js?v=32"></script>
+<script src="extras.js?v=32"></script>
 </body>
 </html>
