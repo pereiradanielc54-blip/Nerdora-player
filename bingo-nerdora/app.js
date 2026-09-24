@@ -1,8 +1,9 @@
 (function(){
 "use strict";
+var APP_VERSION="33";
 var $=function(id){return document.getElementById(id)};
 var E={
-home:$("home"),game:$("game"),name:$("name"),create:$("create"),openJoin:$("openJoin"),joinBox:$("joinBox"),room:$("roomInput"),join:$("join"),net:$("net"),
+home:$("home"),game:$("game"),name:$("name"),create:$("create"),openJoin:$("openJoin"),joinBox:$("joinBox"),room:$("roomInput"),join:$("join"),net:$("net"),bootSplash:$("bootSplash"),bootStatus:$("bootStatus"),bootProgressFill:$("bootProgressFill"),
 code:$("code"),role:$("role"),copyCode:$("copyCode"),copyLink:$("copyLink"),players:$("players"),status:$("status"),leave:$("leave"),title:$("title"),count:$("count"),last:$("last"),card:$("card"),draw:$("draw"),bingo:$("bingo"),history:$("history"),winner:$("winner"),toast:$("toast"),modal:$("modal"),modalText:$("modalText"),closeModal:$("closeModal"),install:$("installApp"),voiceToggle:$("voiceToggle"),soundToggle:$("soundToggle"),musicToggle:$("musicToggle"),
 winnerName:$("winnerName"),winnerCalls:$("winnerCalls"),winnerModeStat:$("winnerModeStat"),winnerPattern:$("winnerPattern"),confettiLayer:$("confettiLayer"),replayBtn:$("replayBtn"),replayInline:$("replayInline"),replayArea:$("replayArea"),replayVoteStatus:$("replayVoteStatus"),
 roundState:$("roundState"),roundProgressFill:$("roundProgressFill"),publicRooms:$("publicRooms"),publicRoomsHint:$("publicRoomsHint"),refreshRooms:$("refreshRooms"),
@@ -29,7 +30,7 @@ autoTimer:null,countdownTimer:null,autoRunning:false,nextDrawAt:0,drawing:false,
 voiceOn:localStorage.getItem("bingoVoice")!=="off",soundOn:localStorage.getItem("bingoSound")!=="off",musicOn:localStorage.getItem("bingoMusic")==="on",lastSpoken:"",
 config:{roomName:"Sala Nerdora",public:true,mode:"line",speed:7000,maxPlayers:6}
 };
-var deferredInstallPrompt=null,isStandalone=window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true,audioCtx=null,musicTimer=null,musicStep=0,reconnectTimer=null,migrationTimer=null,wakeLockHandle=null;
+var deferredInstallPrompt=null,isStandalone=window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true,audioCtx=null,musicTimer=null,musicStep=0,reconnectTimer=null,migrationTimer=null,wakeLockHandle=null,pwaRegistrationPromise=null,bootFinished=false;
 var voiceChatEnabled=false,voiceChatMuted=false,voiceStream=null,voiceCalls=new Map(),voiceAudios=new Map(),voicePeerBound=null,voiceMeterCtx=null,voiceMeters=new Map(),voiceSpeakingPeers=new Set(),voiceMeterTimer=null;
 var ARCADE_VIDEO_ID="Vec5yrhU-z0",ARCADE_START=20,ARCADE_END=320,ARCADE_VOLUME=24,arcadePlayer=null,arcadePlayerReady=false,arcadeApiPromise=null,arcadeLoopTimer=null;
 var NYAN_VIDEO_ID="Uj93hicGDNc",NYAN_START=15,NYAN_END=315,NYAN_VOLUME=22,nyanPlayer=null,nyanPlayerReady=false,nyanLoopTimer=null;
@@ -427,7 +428,45 @@ function requestReplay(){voteReplay()}
 function copy(t,msg){if(navigator.clipboard)navigator.clipboard.writeText(t).then(function(){toast(msg)}).catch(function(){prompt("Copie:",t)});else prompt("Copie:",t)}
 function setupParallax(){var root=document.documentElement,raf=0,px=0,py=0,sy=0;if(G.reduceMotion||window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;function apply(){raf=0;root.style.setProperty("--px",px.toFixed(1)+"px");root.style.setProperty("--py",py.toFixed(1)+"px");root.style.setProperty("--scroll-py",sy.toFixed(1)+"px")}function req(){if(!raf)raf=requestAnimationFrame(apply)}window.addEventListener("pointermove",function(e){px=(e.clientX/window.innerWidth-.5)*18;py=(e.clientY/window.innerHeight-.5)*12;req()},{passive:true});window.addEventListener("scroll",function(){sy=Math.min(18,window.scrollY*.025);req()},{passive:true})}
 function setupInstall(){if(!E.install)return;if(isStandalone)E.install.classList.add("hidden");else setTimeout(function(){if(!isStandalone)E.install.classList.remove("hidden")},1800);window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();deferredInstallPrompt=e;E.install.classList.remove("hidden")});E.install.onclick=async function(){if(deferredInstallPrompt){deferredInstallPrompt.prompt();try{await deferredInstallPrompt.userChoice}catch(e){}deferredInstallPrompt=null;E.install.classList.add("hidden")}else toast("No Chrome, use ⋮ → Instalar app.")}}
-function setupPwa(){if("serviceWorker"in navigator)window.addEventListener("load",function(){navigator.serviceWorker.register("./sw.js").catch(function(){})})}
+function setupPwa(){
+  if(!("serviceWorker"in navigator))return Promise.resolve(null);
+  if(pwaRegistrationPromise)return pwaRegistrationPromise;
+  pwaRegistrationPromise=navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"}).then(function(reg){try{reg.update()}catch(e){}return reg}).catch(function(){return null});
+  return pwaRegistrationPromise
+}
+function bootStep(text,pct){if(E.bootStatus)E.bootStatus.textContent=text;if(E.bootProgressFill)E.bootProgressFill.style.width=Math.max(0,Math.min(100,pct||0))+"%"}
+function finishBoot(text){
+  if(bootFinished)return;bootFinished=true;bootStep(text||"Tudo pronto!",100);
+  setTimeout(function(){if(E.bootSplash){E.bootSplash.classList.add("isLeaving");setTimeout(function(){E.bootSplash.classList.add("hidden")},520)}},260)
+}
+async function checkLatestVersion(){
+  bootStep("Verificando a versão mais recente...",18);
+  try{
+    if(navigator.onLine){
+      var checkUrl="./index.html?__nerdora_update="+Date.now();
+      var res=await fetch(checkUrl,{cache:"no-store",headers:{"Cache-Control":"no-cache"}});
+      if(res&&res.ok){
+        bootStep("Comparando atualizações...",42);
+        var html=await res.text(),match=html.match(/data-app-version=["']([^"']+)["']/i),remote=match&&match[1]?String(match[1]):APP_VERSION;
+        if(remote!==APP_VERSION){
+          bootStep("Nova versão encontrada • atualizando...",68);
+          try{var reg0=await setupPwa();if(reg0)await reg0.update()}catch(e){}
+          var u=new URL(location.href);u.searchParams.set("v",remote);u.searchParams.set("fresh",Date.now().toString());
+          sessionStorage.setItem("bingoNerdoraUpdatedTo",remote);
+          setTimeout(function(){location.replace(u.toString())},420);
+          return false
+        }
+      }
+    }else bootStep("Sem internet • abrindo versão salva...",48);
+  }catch(e){bootStep("Não foi possível consultar o servidor • usando versão salva...",55)}
+  bootStep("Atualizando arquivos do jogo...",70);
+  try{
+    var reg=await setupPwa();
+    if(reg){await reg.update();bootStep("Arquivos sincronizados...",88)}
+  }catch(e){}
+  finishBoot(navigator.onLine?"Jogo atualizado e pronto!":"Modo offline pronto!");
+  return true
+}
 function setupControls(){refreshAudioButtons();
 function themedMusicGestureUnlock(){if(S.musicOn&&P.theme==="arcade")startArcadeMusic(false);if(S.musicOn&&P.theme==="nyan")startNyanMusic(false);if(S.musicOn&&P.theme==="neon")startNeonMusic(false);if(S.musicOn&&P.theme==="midnight")startMidnightMusic(false);document.removeEventListener("pointerdown",themedMusicGestureUnlock)}
 document.addEventListener("pointerdown",themedMusicGestureUnlock,{passive:true});E.voiceToggle.onclick=function(){S.voiceOn=!S.voiceOn;localStorage.setItem("bingoVoice",S.voiceOn?"on":"off");refreshAudioButtons();if(S.voiceOn)speakText("Narração Nerdora ativada.")};E.soundToggle.onclick=function(){S.soundOn=!S.soundOn;localStorage.setItem("bingoSound",S.soundOn?"on":"off");refreshAudioButtons();if(S.soundOn)sfx("mark")};E.musicToggle.onclick=function(){S.musicOn=!S.musicOn;localStorage.setItem("bingoMusic",S.musicOn?"on":"off");refreshAudioButtons();if(S.musicOn){startMusic();if(P.theme==="arcade")toast("👾 Música Arcade ativada.");if(P.theme==="nyan")toast("🐾 Música Nyan ativada.");if(P.theme==="neon")toast("🌃 Música Neon ativada.");if(P.theme==="midnight")toast("🌙 Música Midnight ativada.")}else stopMusic()};E.themeSelect.onchange=function(){setTheme(E.themeSelect.value,true)};
@@ -467,5 +506,5 @@ function lobbyStart(){if(typeof Peer==="undefined")return;var p=new Peer(undefin
 function lobbyRegisterNow(){if(S.host&&S.code&&S.config.public&&!S.roundStarted&&!S.winner&&lobbyConn&&lobbyConn.open)lobbySafeSend(lobbyConn,{type:"register",room:lobbyRoomPayload()})}
 function lobbyUnregister(){if(S.code&&lobbyConn&&lobbyConn.open)lobbySafeSend(lobbyConn,{type:"unregister",code:S.code})}
 function lobbyRefresh(){if(lobbyConn&&lobbyConn.open)lobbySafeSend(lobbyConn,{type:"list"});else lobbyConnect()}
-renderProfile();setupParallax();setupInstall();setupPwa();setupControls();setupEvents();lobbyStart();if(S.musicOn)startMusic();
+renderProfile();setupParallax();setupInstall();setupControls();setupEvents();lobbyStart();if(S.musicOn)startMusic();checkLatestVersion();
 })();
