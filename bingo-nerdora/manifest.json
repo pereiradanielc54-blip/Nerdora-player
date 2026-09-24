@@ -1,0 +1,20 @@
+{
+  "name": "Bingo Nerdora",
+  "short_name": "Bingo Nerdora",
+  "description": "Bingo multiplayer online do universo Nerdora.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#09060f",
+  "theme_color": "#10091d",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
