@@ -12,21 +12,42 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
-<link rel="stylesheet" href="style.css?v=23">
+<link rel="stylesheet" href="style.css?v=24">
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 </head>
 <body>
 <div class="nerdoraBg" aria-hidden="true"></div>
 <div class="wrap">
-<header><div class="brand"><b>N</b><span>Bingo Nerdora<small>Protótipo multiplayer</small></span></div><div class="headerActions"><button id="voiceToggle" class="installPwa voiceControl" type="button">🔊 Voz</button><button id="installApp" class="installPwa hidden" type="button">⬇ Instalar</button><div id="net" class="pill">○ offline</div></div></header>
+<header><div class="brand"><b>N</b><span>Bingo Nerdora<small>Protótipo multiplayer</small></span></div><div class="headerActions">
+  <button id="voiceToggle" class="installPwa voiceControl" type="button">🔊 Voz</button>
+  <button id="soundToggle" class="installPwa compactToggle" type="button">🔔 Efeitos</button>
+  <button id="musicToggle" class="installPwa compactToggle" type="button">🎵 Música</button>
+  <button id="installApp" class="installPwa hidden" type="button">⬇ Instalar</button>
+  <div id="net" class="pill">○ offline</div>
+</div></header>
 
 <section id="home" class="home">
   <div class="panel hero">
     <div class="eyebrow">NERDORA GAMES</div>
     <h1><i>Bingo</i><br>Nerdora</h1>
     <p>Crie uma sala, envie o código para seus amigos e joguem em tempo real. Cada pessoa recebe uma cartela diferente. Você também pode instalar o Bingo Nerdora no celular e abrir como um app.</p>
+    <div id="profileMini" class="profileMini">
+      <div id="profileAvatar" class="profileAvatar">N</div>
+      <div class="profileMiniInfo"><strong id="profileName">Jogador Nerdora</strong><span><b id="profileWins">0</b> vitórias • <b id="profileXp">0</b> XP • <b id="profileCoins">0</b> 🪙</span></div>
+      <select id="themeSelect" class="themeSelect" aria-label="Tema visual"><option value="neon">Neon</option><option value="arcade">Arcade</option><option value="nyan">Nyan</option><option value="midnight">Midnight</option></select>
+    </div>
     <label>SEU NOME</label>
     <input id="name" maxlength="24" placeholder="Ex.: Daniel">
+    <details class="roomSetup" open>
+      <summary>Configurar sala</summary>
+      <div class="roomSetupGrid">
+        <label><span>Nome da sala</span><input id="roomName" maxlength="28" placeholder="Sala do Daniel"></label>
+        <label><span>Modo</span><select id="modeSelect"><option value="line">Linha clássica</option><option value="two">Duas linhas</option><option value="corners">4 cantos</option><option value="x">X completo</option><option value="border">Moldura</option><option value="blackout">Cartela cheia</option><option value="nerdora">Modo Nerdora</option></select></label>
+        <label><span>Velocidade</span><select id="speedSelect"><option value="5000">Rápida • 5s</option><option value="7000" selected>Normal • 7s</option><option value="10000">Relaxada • 10s</option></select></label>
+        <label><span>Jogadores</span><select id="maxPlayers"><option value="4">Até 4</option><option value="6" selected>Até 6</option><option value="8">Até 8</option></select></label>
+      </div>
+      <label class="publicSwitch"><input id="publicRoom" type="checkbox" checked><span>Sala pública — aparece no lobby até a partida começar</span></label>
+    </details>
     <div class="actions"><button id="create" class="primary">Criar sala</button><button id="openJoin">Entrar com código</button></div>
     <div id="joinBox" class="join hidden"><label>CÓDIGO DA SALA</label><div class="actions"><input id="roomInput" maxlength="6" placeholder="ABC123"><button id="join" class="green">Entrar</button></div></div>
 
@@ -56,10 +77,17 @@
 
 <section id="game" class="game hidden">
   <aside class="panel">
-    <label>SALA</label><div id="code" class="code">------</div><div id="role" class="muted"></div>
+    <div class="roomIdentity"><div><label>SALA</label><div id="roomDisplayName" class="roomDisplayName">Sala Nerdora</div></div><span id="modeBadge" class="modeBadge">Linha clássica</span></div>
+    <div id="code" class="code">------</div><div id="role" class="muted"></div>
+    <button id="readyBtn" class="readyBtn hidden" type="button">✓ Estou pronto</button>
     <div class="actions small"><button id="copyCode">Copiar código</button><button id="copyLink">Copiar convite</button></div>
     <h3>Jogadores</h3><div id="players"></div>
+    <div class="scoreSection"><h3>Placar da sessão</h3><div id="scoreboard" class="scoreboard"></div></div>
     <h3>Conexão</h3><div id="status" class="status">Preparando...</div>
+    <div class="quickChatBlock"><h3>Chat rápido</h3><div id="quickChat" class="quickChat">
+      <button data-chat="Boa sorte!">🍀 Boa sorte</button><button data-chat="🔥">🔥</button><button data-chat="😂">😂</button><button data-chat="Quase!">😱 Quase!</button><button data-chat="Nyan!">🐾 Nyan!</button>
+    </div><div id="chatFeed" class="chatFeed"></div></div>
+    <div class="matchHistoryBlock"><h3>Últimas partidas</h3><div id="matchHistory" class="matchHistory"></div></div>
     <div class="nyanCompanion"><div class="nyanThumb" aria-hidden="true"></div><div><strong>Nyan está na sala</strong><small>Ele acompanha cada chamada.</small></div></div>
     <button id="leave" class="danger wide">Sair da sala</button>
   </aside>
@@ -78,17 +106,14 @@
       <div id="last" class="ball">—</div>
     </div>
     <div class="letters"><b class="letterB">B</b><b class="letterI">I</b><b class="letterN">N</b><b class="letterG">G</b><b class="letterO">O</b></div>
+    <div id="eventBanner" class="eventBanner hidden"></div>
+    <div id="nearBingo" class="nearBingo hidden">🔥 Falta 1 para o Bingo!</div>
+    <div id="spectatorBanner" class="spectatorBanner hidden">👀 Você entrou como espectador. Sua cartela será liberada na próxima rodada.</div>
     <div id="card" class="card"></div>
-    <div id="shadowWrap" class="opponentMiniPanelV22 hidden" aria-label="Mini cartela do oponente">
-      <div class="opponentMiniHeadV22">
-        <span class="opponentMiniDotV22"></span>
-        <div class="opponentMiniTextV22">
-          <strong id="shadowTitle">Oponente</strong>
-          <small id="opponentMarkCount">0 marcações</small>
-        </div>
-      </div>
-      <svg id="shadowCard" class="opponentMiniSvgV22" viewBox="0 0 106 106" role="img" aria-label="Posições marcadas pelo oponente"></svg>
-    </div>
+    <section id="opponentsArea" class="opponentsArea hidden" aria-label="Adversários">
+      <div class="opponentsHead"><span>ADVERSÁRIOS</span><small>Marcações visíveis sem revelar números</small></div>
+      <div id="opponentsGrid" class="opponentsGrid"></div>
+    </section>
     <div class="actions center"><button id="draw" class="primary hidden">Iniciar sorteio automático</button><button id="bingo" class="green">BINGO!</button></div>
     <div id="winner" class="winner hidden"></div>
     <div id="replayArea" class="replayArea hidden"><button id="replayInline" class="primary wide">🔄 Jogar novamente</button></div>
@@ -96,11 +121,15 @@
 
   <aside class="panel">
     <label>HISTÓRICO DE CHAMADAS</label><div id="history" class="history"></div>
-    <h3>Regra desta versão</h3><p class="note">Você pode marcar qualquer número. Marcações ainda não sorteadas ficam destacadas; o botão BINGO só aparece quando houver uma linha completa e todas as marcações já tiverem sido chamadas.</p>
+    <div class="achievementsBox"><h3>Conquistas locais</h3><div id="achievements" class="achievements"></div></div>
+    <h3>Regra atual</h3><p id="ruleText" class="note">Complete o padrão da sala e aguarde todas as suas marcações serem chamadas.</p>
   </aside>
 </section>
 </div>
 <div id="toast" class="toast"></div>
+<div id="countdownOverlay" class="countdownOverlay hidden" aria-live="assertive"><div id="countdownValue">3</div><span>Prepare sua cartela!</span></div>
+<div id="drawStage" class="drawStage hidden" aria-live="polite"><div class="drawMachine"><i></i><i></i><i></i><i></i><div id="previewBall" class="previewBall">?</div></div><span>Sorteando...</span></div>
+<div id="emoteLayer" class="emoteLayer" aria-hidden="true"></div>
 <div id="modal" class="modal hidden">
   <div id="confettiLayer" class="confettiLayer" aria-hidden="true"></div>
   <div class="modalBox winnerModalBox">
@@ -113,16 +142,18 @@
     <div class="winnerStats">
       <div><strong id="winnerCalls">0</strong><span>bolas chamadas</span></div>
       <div><strong>✓</strong><span>linha validada</span></div>
-      <div><strong>7s</strong><span>por chamada</span></div>
+      <div><strong id="winnerModeStat">Clássico</strong><span>modo</span></div>
     </div>
+    <div id="winnerPattern" class="winnerPattern">Padrão concluído</div>
     <div class="winnerMascots"><span>N</span><small>Nerdora & Nyan comemoram com você!</small></div>
+    <div id="replayVoteStatus" class="replayVoteStatus"></div>
     <div class="winnerButtons">
       <button id="replayBtn" class="green wide">🔄 Jogar novamente</button>
       <button id="closeModal" class="primary wide winnerContinue">Continuar na sala</button>
     </div>
   </div>
 </div>
-<script src="app.js?v=23"></script>
-<script src="extras.js?v=23"></script>
+<script src="app.js?v=24"></script>
+<script src="extras.js?v=24"></script>
 </body>
 </html>
