@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.0
+name: Nerdora Player - Build v0.9.1 Signed Release
 
 on:
   workflow_dispatch:
@@ -217,10 +217,10 @@ jobs:
           cp /tmp/nerdora-v090/SettingsScreen.kt extracted_project/app/src/main/java/com/nerdora/player/ui/SettingsScreen.kt
           python3 /tmp/nerdora-v090/apply_v090.py
 
-          sed -i -E 's/versionCode = [0-9]+/versionCode = 60/' extracted_project/app/build.gradle.kts
-          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.0"/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 61/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.1"/' extracted_project/app/build.gradle.kts
 
-          grep -q 'versionName = "0.9.0"' extracted_project/app/build.gradle.kts
+          grep -q 'versionName = "0.9.1"' extracted_project/app/build.gradle.kts
           grep -q 'formatDuration(position)' extracted_project/app/src/main/java/com/nerdora/player/ui/VideoPlayer.kt
           grep -q 'SmallVideoAction' extracted_project/app/src/main/java/com/nerdora/player/ui/VideoPlayer.kt
           grep -q '"CYBER"' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraTheme.kt
@@ -229,7 +229,7 @@ jobs:
           grep -q '"AURORA"' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraTheme.kt
           grep -q 'categoryFor(file.name, mime).label' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           grep -q 'settings.useWideViewPort = true' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
-          echo "Visual Refresh v0.9.0 aplicado."
+          echo "Visual Refresh v0.9.1 preparado com assinatura permanente."
 
       - name: Encontrar projeto Android
         id: android
@@ -265,6 +265,31 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Restaurar e validar chave permanente
+        id: signing
+        shell: bash
+        env:
+          NERDORA_KEYSTORE_BASE64: ${{ secrets.NERDORA_KEYSTORE_BASE64 }}
+          NERDORA_KEYSTORE_PASSWORD: ${{ secrets.NERDORA_KEYSTORE_PASSWORD }}
+          NERDORA_KEY_ALIAS: ${{ secrets.NERDORA_KEY_ALIAS }}
+          NERDORA_KEY_PASSWORD: ${{ secrets.NERDORA_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "$NERDORA_KEYSTORE_BASE64"
+          test -n "$NERDORA_KEYSTORE_PASSWORD"
+          test -n "$NERDORA_KEY_ALIAS"
+          test -n "$NERDORA_KEY_PASSWORD"
+
+          KEYSTORE="$RUNNER_TEMP/nerdora-release.jks"
+          printf '%s' "$NERDORA_KEYSTORE_BASE64" | tr -d '\r\n' | base64 --decode > "$KEYSTORE"
+          chmod 600 "$KEYSTORE"
+          test -s "$KEYSTORE"
+
+          keytool -list             -keystore "$KEYSTORE"             -storepass "$NERDORA_KEYSTORE_PASSWORD"             -alias "$NERDORA_KEY_ALIAS" >/dev/null
+
+          echo "keystore_path=$KEYSTORE" >> "$GITHUB_OUTPUT"
+          echo "Chave permanente restaurada e validada sem expor credenciais."
+
       - name: Preparar Android SDK
         shell: bash
         run: |
@@ -279,7 +304,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.0"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.1"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -291,29 +316,42 @@ jobs:
           grep -q 'SmallVideoAction' app/src/main/java/com/nerdora/player/ui/VideoPlayer.kt
           grep -q '"CYBER"' app/src/main/java/com/nerdora/player/ui/NerdoraTheme.kt
           grep -q 'settings.useWideViewPort = true' app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
-          echo "Nerdora Player v0.9.0 validado."
+          echo "Nerdora Player v0.9.1 validado."
 
-      - name: Compilar APK
+      - name: Compilar APK Release assinado
         id: build
         working-directory: ${{ steps.android.outputs.project_dir }}
         shell: bash
+        env:
+          NERDORA_KEYSTORE_PATH: ${{ steps.signing.outputs.keystore_path }}
+          NERDORA_KEYSTORE_PASSWORD: ${{ secrets.NERDORA_KEYSTORE_PASSWORD }}
+          NERDORA_KEY_ALIAS: ${{ secrets.NERDORA_KEY_ALIAS }}
+          NERDORA_KEY_PASSWORD: ${{ secrets.NERDORA_KEY_PASSWORD }}
         run: |
           set +e
-          gradle --no-daemon :app:assembleDebug -PNERDORA_GITHUB_REPOSITORY="$GITHUB_REPOSITORY" --console=plain 2>&1 | tee "$GITHUB_WORKSPACE/nerdora-player-build.log"
+          gradle --no-daemon :app:assembleRelease -PNERDORA_GITHUB_REPOSITORY="$GITHUB_REPOSITORY" --console=plain 2>&1 | tee "$GITHUB_WORKSPACE/nerdora-player-build.log"
           STATUS=${PIPESTATUS[0]}
           echo "status=$STATUS" >> "$GITHUB_OUTPUT"
           exit 0
 
-      - name: Preparar APK
+      - name: Preparar e verificar APK assinado
         if: steps.build.outputs.status == '0'
         shell: bash
         run: |
+          set -euo pipefail
           PROJECT="${{ steps.android.outputs.project_dir }}"
           VERSION="${{ steps.version.outputs.version }}"
-          APK=$(find "$PROJECT/app/build/outputs/apk/debug" -type f -name '*.apk' | head -n 1)
+          APK=$(find "$PROJECT/app/build/outputs/apk/release" -type f -name '*.apk' | head -n 1)
           test -n "$APK"
           mkdir -p final-apk
-          cp "$APK" "final-apk/Nerdora-Player-v${VERSION}.apk"
+          FINAL="final-apk/Nerdora-Player-v${VERSION}.apk"
+          cp "$APK" "$FINAL"
+
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)
+          test -n "$APKSIGNER"
+          "$APKSIGNER" verify --verbose --print-certs "$FINAL"
+
+          sha256sum "$FINAL" | tee final-apk/SHA256SUMS.txt
           ls -lh final-apk/
 
       - name: Publicar APK
@@ -321,11 +359,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Nerdora-Player-v${{ steps.version.outputs.version }}
-          path: final-apk/*.apk
+          path: |
+            final-apk/*.apk
+            final-apk/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.0
+      - name: Publicar Release pública v0.9.1 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -334,8 +374,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Visual Refresh"
-          NOTES="Nerdora Player v0.9.0: player de vídeo redesenhado com tempo acima da barra de progresso e controles compactos na parte inferior; ajuste de tela, velocidade, legenda, rotação, cast, PiP e bloqueio sem painel separado; área de arquivos com cartões e metadados mais legíveis; visualização de Word, Excel e PowerPoint refinada; quatro novos temas completos Cyber, Sakura, Emerald e Aurora, além de Nerdora e AMOLED. Mantém login, navegação Voltar e índices persistentes da v0.8."
+          TITLE="Nerdora Player v${VERSION} — Release assinada"
+          NOTES="Nerdora Player v0.9.1: primeira Release preparada para usar a chave permanente de assinatura do Nerdora Player. Mantém o Visual Refresh da v0.9.0, Universal Files, temas, login local, navegação Voltar e índices persistentes. Depois de instalar esta versão assinada uma vez, as próximas versões assinadas com a mesma chave poderão ser instaladas por cima normalmente."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
