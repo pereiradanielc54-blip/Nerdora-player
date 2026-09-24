@@ -1,43 +1,28 @@
-const CACHE="bingo-nerdora-v21";
-const CORE=[
-  "./",
-  "./index.html",
-  "./style.css",
-  "./app.js",
-  "./extras.js",
-  "./manifest.json",
-  "./icon.svg"
-];
-
+const CACHE="bingo-nerdora-v22";
+const CORE=["./","./index.html","./style.css","./app.js","./extras.js","./manifest.json","./icon.svg"];
 self.addEventListener("install",event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting()));
 });
-
 self.addEventListener("activate",event=>{
-  event.waitUntil(
-    caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())
-  );
+  event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
 });
-
 self.addEventListener("fetch",event=>{
   const req=event.request;
   if(req.method!=="GET") return;
   const url=new URL(req.url);
   if(url.origin!==location.origin) return;
-  if(req.mode==="navigate"){
+  const isFreshAsset=req.mode==="navigate"||/\.(?:js|css)$/.test(url.pathname);
+  if(isFreshAsset){
     event.respondWith(
       fetch(req).then(res=>{
-        const copy=res.clone();
-        caches.open(CACHE).then(c=>c.put("./index.html",copy));
+        if(res&&res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put(req,copy));}
         return res;
-      }).catch(()=>caches.match("./index.html"))
+      }).catch(()=>caches.match(req,{ignoreSearch:true}).then(r=>r||caches.match("./index.html")))
     );
     return;
   }
-  event.respondWith(
-    caches.match(req).then(cached=>cached||fetch(req).then(res=>{
-      if(res&&res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put(req,copy));}
-      return res;
-    }))
-  );
+  event.respondWith(caches.match(req).then(cached=>cached||fetch(req).then(res=>{
+    if(res&&res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put(req,copy));}
+    return res;
+  })));
 });
