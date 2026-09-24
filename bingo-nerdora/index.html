@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
-<link rel="stylesheet" href="style.css?v=22">
+<link rel="stylesheet" href="style.css?v=23">
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 </head>
 <body>
@@ -27,8 +27,22 @@
     <p>Crie uma sala, envie o código para seus amigos e joguem em tempo real. Cada pessoa recebe uma cartela diferente. Você também pode instalar o Bingo Nerdora no celular e abrir como um app.</p>
     <label>SEU NOME</label>
     <input id="name" maxlength="24" placeholder="Ex.: Daniel">
-    <div class="actions"><button id="create" class="primary">Criar sala</button><button id="openJoin">Entrar em sala</button></div>
+    <div class="actions"><button id="create" class="primary">Criar sala</button><button id="openJoin">Entrar com código</button></div>
     <div id="joinBox" class="join hidden"><label>CÓDIGO DA SALA</label><div class="actions"><input id="roomInput" maxlength="6" placeholder="ABC123"><button id="join" class="green">Entrar</button></div></div>
+
+    <div class="publicRoomsBlock">
+      <div class="publicRoomsHead">
+        <div>
+          <label>SALAS PÚBLICAS</label>
+          <small>Entre sem precisar digitar o código</small>
+        </div>
+        <button id="refreshRooms" class="refreshRoomsBtn" type="button" aria-label="Atualizar salas">↻</button>
+      </div>
+      <div id="publicRooms" class="publicRooms" aria-live="polite">
+        <div class="roomsLoading"><span></span> Procurando salas...</div>
+      </div>
+      <div id="publicRoomsHint" class="publicRoomsHint">Mostramos até 4 salas que ainda não iniciaram.</div>
+    </div>
   </div>
   <div class="panel how welcomeArt">
     <div class="welcomeOverlay">
@@ -108,7 +122,7 @@
     </div>
   </div>
 </div>
-<script src="app.js?v=22"></script>
-<script src="extras.js?v=22"></script>
+<script src="app.js?v=23"></script>
+<script src="extras.js?v=23"></script>
 </body>
 </html>
