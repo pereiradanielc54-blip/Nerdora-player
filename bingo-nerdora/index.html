@@ -12,11 +12,15 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
-<link rel="stylesheet" href="style.css?v=25">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Fredoka:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=26">
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 </head>
 <body>
 <div class="nerdoraBg" aria-hidden="true"></div>
+<div class="themeAmbient" aria-hidden="true"><span></span><i></i></div>
 <div class="wrap">
 <header><div class="brand"><b>N</b><span>Bingo Nerdora<small>Protótipo multiplayer</small></span></div><div class="headerActions">
   <button id="voiceToggle" class="installPwa voiceControl" type="button">🔊 Voz</button>
@@ -50,6 +54,31 @@
         <option value="midnight">Midnight</option>
       </select>
     </div>
+
+    <section class="themeStudio" aria-label="Escolher tema">
+      <div class="themeStudioHead">
+        <div><span>TEMA VISUAL</span><strong>Escolha o universo da partida</strong></div>
+        <small>Fundo, fontes, luzes e interface mudam juntos</small>
+      </div>
+      <div class="themeChoices">
+        <button type="button" class="themeChoice" data-theme-choice="neon">
+          <span class="themeThumb themeThumbNeon"><b>NEON</b><i>CYBER CITY</i></span>
+          <strong>Neon</strong><small>Futurista • cyber</small>
+        </button>
+        <button type="button" class="themeChoice" data-theme-choice="midnight">
+          <span class="themeThumb themeThumbMidnight"><b>MIDNIGHT</b><i>MOONLIGHT</i></span>
+          <strong>Midnight</strong><small>Luar • elegante</small>
+        </button>
+        <button type="button" class="themeChoice" data-theme-choice="arcade">
+          <span class="themeThumb themeThumbArcade"><b>ARCADE</b><i>HIGH SCORE</i></span>
+          <strong>Arcade</strong><small>Retrô • fliperama</small>
+        </button>
+        <button type="button" class="themeChoice" data-theme-choice="nyan">
+          <span class="themeThumb themeThumbNyan"><b>NYAN</b><i>PAWS & STARS</i></span>
+          <strong>Nyan</strong><small>Fofo • mascote</small>
+        </button>
+      </div>
+    </section>
 
     <div class="playerNameBlock">
       <label for="name">COMO VÃO TE CHAMAR?</label>
@@ -197,7 +226,7 @@
     </div>
   </div>
 </div>
-<script src="app.js?v=25"></script>
-<script src="extras.js?v=25"></script>
+<script src="app.js?v=26"></script>
+<script src="extras.js?v=26"></script>
 </body>
 </html>
