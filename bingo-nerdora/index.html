@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-app-version="33">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -10,15 +10,23 @@
 <meta name="apple-mobile-web-app-title" content="Bingo Nerdora">
 <title>Bingo Nerdora</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/bingo-cover.webp?v=33" type="image/webp">
 <link rel="apple-touch-icon" href="icon.svg">
+<meta property="og:image" content="assets/bingo-cover.webp?v=33">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Fredoka:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=32">
+<link rel="stylesheet" href="style.css?v=33">
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 </head>
 <body>
+<div id="bootSplash" class="bootSplash" aria-live="polite" aria-label="Carregando Bingo Nerdora">
+  <div class="bootGlow" aria-hidden="true"></div>
+  <div class="bootCoverFrame"><img src="assets/bingo-cover.webp?v=33" alt="Capa do Bingo Nerdora"></div>
+  <div class="bootBrand"><span>NERDORA GAMES</span><strong>Bingo Nerdora</strong><small id="bootStatus">Preparando o jogo...</small></div>
+  <div class="bootProgress"><i id="bootProgressFill"></i></div>
+  <div class="bootVersion">v33 • verificando atualizações</div>
+</div>
 <div class="nerdoraBg" aria-hidden="true"></div>
 <div class="themeAmbient" aria-hidden="true"><span></span><i></i></div>
 <div class="wrap">
@@ -281,7 +289,7 @@
         <div class="settingsSectionTitle"><span>ⓘ</span><div><strong>Sobre</strong><small>Informações desta versão</small></div></div>
         <div class="aboutCard">
           <div class="aboutLogo">N</div>
-          <div><strong>Bingo Nerdora</strong><span>Versão 32 • protótipo multiplayer com voz</span></div>
+          <div><strong>Bingo Nerdora</strong><span>Versão 33 • capa oficial e atualização automática</span></div>
         </div>
         <p>Jogo de Bingo online do universo Nerdora, com salas P2P, temas completos, músicas temáticas, modos de vitória, placar e recursos sociais.</p>
         <div class="aboutFacts"><span>🔒 Preferências salvas localmente</span><span>👥 Multiplayer P2P</span><span>🎨 4 temas visuais</span></div>
@@ -315,7 +323,7 @@
     </div>
   </div>
 </div>
-<script src="app.js?v=32"></script>
-<script src="extras.js?v=32"></script>
+<script src="app.js?v=33"></script>
+<script src="extras.js?v=33"></script>
 </body>
 </html>
