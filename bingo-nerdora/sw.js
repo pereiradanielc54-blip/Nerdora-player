@@ -1,4 +1,4 @@
-const CACHE="bingo-nerdora-v22";
+const CACHE="bingo-nerdora-v23";
 const CORE=["./","./index.html","./style.css","./app.js","./extras.js","./manifest.json","./icon.svg"];
 self.addEventListener("install",event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting()));
