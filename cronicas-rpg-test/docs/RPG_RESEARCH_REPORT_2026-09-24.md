@@ -43,3 +43,13 @@ O protótipo já possui evidências separadas de conclusões, REVELATION_RULES c
 
 ## Ordem técnica recomendada
 Primeiro tornar o estado servidor-autoritativo; depois implementar escopos de visibilidade, fog por jogador, clocks/fronts de facções, Oracle interno com auditoria, resumos de sessão e só então aprofundar combate/ferimentos/moral. Essa ordem evita construir “segredos” que qualquer cliente P2P poderia inspecionar.
+
+
+## Web Alpha 0.3.8 — fechamento das pendências compatíveis com cliente estático
+- Campo livre e ditado de ações removidos da run; as ações do Mestre Máquina agora partem somente das possibilidades válidas apresentadas pelo motor.
+- O chat entre jogadores continua separado; o D20 livre foi mantido como ferramenta de mesa.
+- Frentes do Mundo com relógios próprios de 0 a 6 foram separadas das Trilhas de Progresso.
+- Eventos mundiais e passagem de tempo avançam frentes apropriadas.
+- Oracle interno conservador e determinístico criado: ele só escolhe entre alternativas já consideradas válidas pelo motor.
+- Resumo estruturado da sessão adicionado ao Diário, com locais, conclusões, evidências, frentes, relações e métricas.
+- Pistas privadas reais, rolagens secretas, fog-of-war por jogador e estado GM-only continuam aguardando servidor autoritativo.
