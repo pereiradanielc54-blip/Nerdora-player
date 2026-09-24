@@ -999,3 +999,80 @@ body.local-speaking .voice-main .icon-btn.active{box-shadow:0 0 0 2px rgba(91,18
   .room-choice-card p{min-height:0}.available-rooms-head{align-items:flex-start}
   .available-room{grid-template-columns:10px minmax(0,1fr);}.available-room .room-enter-btn{grid-column:2;width:100%;margin-top:4px}
 }
+
+/* ===== BRAND OFICIAL APROVADA / ALPHA 0.3.5 ===== */
+.brand-cover-intro{
+  position:relative;
+  min-height:100dvh;
+  overflow:auto;
+  background:#08060b!important;
+}
+.brand-cover-intro:before{display:none!important}
+.brand-cover-backdrop{
+  position:absolute;inset:-32px;z-index:0;
+  background:
+    linear-gradient(90deg,rgba(5,4,8,.64),rgba(8,5,12,.22) 45%,rgba(5,4,8,.72)),
+    url("./assets/brand/cronicas-de-nerdora-cover.webp") center/cover no-repeat;
+  filter:blur(22px) saturate(.78) brightness(.45);
+  transform:scale(1.08);
+}
+.intro-cover-layout{
+  position:relative;z-index:2;
+  width:min(1380px,96vw);min-height:100dvh;margin:0 auto;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,430px);
+  align-items:center;gap:clamp(18px,3vw,48px);padding:24px 0;
+}
+.intro-cover-stage{
+  position:relative;display:grid;place-items:center;min-width:0;
+  filter:drop-shadow(0 30px 55px rgba(0,0,0,.58));
+}
+.intro-cover-art{
+  display:block;width:min(100%,820px);max-height:calc(100dvh - 48px);
+  object-fit:contain;aspect-ratio:1/1;border-radius:20px;
+  box-shadow:0 0 0 1px rgba(194,139,255,.18),0 28px 78px rgba(0,0,0,.58),0 0 55px rgba(128,45,222,.10);
+}
+.intro-version-badge{
+  position:absolute;left:20px;top:20px;display:flex;align-items:center;gap:8px;
+  padding:6px 10px 6px 6px;border-radius:999px;
+  background:rgba(9,5,14,.74);border:1px solid rgba(186,118,255,.38);
+  backdrop-filter:blur(12px);box-shadow:0 7px 20px rgba(0,0,0,.32)
+}
+.intro-version-badge img{width:30px;height:30px;object-fit:contain}
+.intro-version-badge span{font:700 7px Georgia,serif;letter-spacing:.11em;color:#e9d9ff}
+.branded-entry-panel{
+  position:relative!important;max-width:none!important;
+  border-color:rgba(170,103,238,.34)!important;
+  background:
+    radial-gradient(circle at 20% 0%,rgba(119,45,190,.12),transparent 28%),
+    linear-gradient(180deg,rgba(32,20,39,.94),rgba(13,10,15,.97))!important;
+  box-shadow:0 32px 90px rgba(0,0,0,.58),inset 0 0 0 1px rgba(221,191,255,.035)!important;
+}
+.entry-brand-lockup{display:flex;align-items:center;gap:12px;margin-bottom:9px}
+.entry-brand-logo{
+  width:64px;height:64px;object-fit:contain;flex:0 0 auto;
+  filter:drop-shadow(0 0 18px rgba(154,66,255,.30));
+}
+.entry-brand-lockup h2{margin:2px 0 0!important}
+.branded-entry-panel .mode-card{border-color:rgba(113,78,130,.55)!important}
+.branded-entry-panel .mode-card:hover{border-color:rgba(188,119,255,.72)!important}
+.branded-entry-panel .mode-icon{border-color:rgba(132,82,166,.55)!important}
+.topbar-brand-logo{
+  width:46px;height:46px;object-fit:contain;flex:0 0 auto;
+  filter:drop-shadow(0 0 12px rgba(147,65,239,.26));
+}
+.campaign-heading .campaign-seal{width:34px;height:34px;font-size:15px}
+
+@media(max-width:900px){
+  .intro-cover-layout{grid-template-columns:minmax(0,1fr) 350px;gap:16px;width:96vw}
+}
+@media(max-width:760px){
+  .brand-cover-intro{overflow:auto}
+  .intro-cover-layout{display:flex;flex-direction:column;width:100%;padding:0 0 22px;gap:0}
+  .intro-cover-stage{width:100%;padding:0}
+  .intro-cover-art{width:100%;max-height:none;border-radius:0;box-shadow:none}
+  .intro-version-badge{left:10px;top:10px}
+  .branded-entry-panel{width:calc(100% - 20px);margin:-8px 10px 0;border-radius:18px!important;z-index:3}
+  .entry-brand-logo{width:54px;height:54px}
+  .topbar-brand-logo{width:38px;height:38px}
+  .campaign-heading{gap:8px}
+}
