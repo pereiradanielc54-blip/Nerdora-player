@@ -10,10 +10,10 @@
   "theme_color": "#17100d",
   "icons": [
     {
-      "src": "./assets/brand/nerdora-n-purple.webp",
-      "sizes": "512x512",
-      "type": "image/webp",
-      "purpose": "any maskable"
+      "src": "./assets/brand/cronicas-nerdora-app-icon.jpg",
+      "sizes": "1536x1536",
+      "type": "image/jpeg",
+      "purpose": "any"
     }
   ]
 }
