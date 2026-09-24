@@ -751,3 +751,21 @@ body.reduceMotion .themeAmbient{opacity:.45}
 .playerPro.voiceSpeaking .avatar{box-shadow:0 0 0 2px rgba(88,231,160,.30),0 0 14px rgba(88,231,160,.20)}
 .playerPro.voiceSpeaking .playerInfo>span:after{content:"  🎙️";font-size:8px}
 @media(max-width:560px){.roomVoiceActions{grid-template-columns:1fr}.roomVoiceActions .voiceChatMute{width:100%}}
+
+/* OFFICIAL COVER + BOOT SPLASH V33 */
+.bootSplash{position:fixed;inset:0;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:max(22px,env(safe-area-inset-top)) 20px max(24px,env(safe-area-inset-bottom));overflow:hidden;background:
+  radial-gradient(circle at 50% 28%,rgba(172,72,255,.20),transparent 36%),
+  linear-gradient(180deg,#100719 0%,#08030e 58%,#050208 100%);
+  opacity:1;transition:opacity .48s ease,visibility .48s ease}
+.bootSplash.hidden{display:none!important}.bootSplash.isLeaving{opacity:0;visibility:hidden}
+.bootGlow{position:absolute;width:min(92vw,620px);height:min(92vw,620px);border-radius:50%;background:radial-gradient(circle,rgba(160,69,255,.16),rgba(255,62,178,.06) 45%,transparent 70%);filter:blur(18px);animation:bootGlowPulse 3s ease-in-out infinite alternate}
+.bootCoverFrame{position:relative;z-index:2;width:min(72vw,390px);aspect-ratio:1;border-radius:30px;overflow:hidden;border:1px solid rgba(255,255,255,.16);background:#130a1e;box-shadow:0 28px 80px rgba(0,0,0,.48),0 0 54px rgba(147,67,255,.18)}
+.bootCoverFrame:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.05),transparent 42%,rgba(5,1,10,.18));box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
+.bootCoverFrame img{width:100%;height:100%;display:block;object-fit:cover}
+.bootBrand{position:relative;z-index:2;text-align:center;margin-top:20px}.bootBrand>span{display:block;font-size:8px;font-weight:1000;letter-spacing:2px;color:#ac8fc2}.bootBrand strong{display:block;margin-top:5px;font-family:'Orbitron','Manrope',sans-serif;font-size:clamp(26px,7vw,38px);letter-spacing:-1px;background:linear-gradient(120deg,#fff 8%,#d5afff 48%,#ff84ce);-webkit-background-clip:text;background-clip:text;color:transparent}.bootBrand small{display:block;min-height:18px;margin-top:8px;color:#9b8aa7;font-size:10px}
+.bootProgress{position:relative;z-index:2;width:min(74vw,360px);height:6px;margin-top:14px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.075);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03)}
+.bootProgress i{display:block;width:4%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#59ddff,#9b5bff,#ff4bb7);box-shadow:0 0 16px rgba(162,88,255,.55);transition:width .35s ease}
+.bootVersion{position:relative;z-index:2;margin-top:8px;color:#615469;font-size:7px;letter-spacing:.5px}
+@keyframes bootGlowPulse{to{transform:scale(1.08);opacity:.72}}
+@media(max-width:520px){.bootCoverFrame{width:min(78vw,340px);border-radius:24px}.bootBrand{margin-top:16px}.bootBrand strong{font-size:28px}}
+body.reduceMotion .bootGlow{animation:none!important}
