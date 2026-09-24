@@ -739,3 +739,15 @@ body.reduceMotion .themeAmbient{opacity:.45}
   .settingsOverlay{padding:8px;align-items:flex-end}.settingsPanel{max-height:92vh;border-radius:22px 22px 14px 14px}.settingsTop{padding:16px 15px 12px}.settingsScroll{padding:11px 15px 16px}.settingsSection{padding:12px}.settingsTop h2{font-size:21px}
   .headerActions{max-width:200px}.settingsGearBtn{width:34px;min-width:34px}
 }
+
+/* ROOM VOICE CHAT V32 */
+.roomVoicePanel{margin:12px 0;padding:11px;border-radius:14px;border:1px solid rgba(255,255,255,.075);background:linear-gradient(135deg,rgba(75,42,112,.09),rgba(39,145,177,.055))}
+.roomVoiceHead{display:flex;align-items:center;justify-content:space-between;gap:9px}.roomVoiceHead strong{display:block;font-size:10px}.roomVoiceHead small{display:block;color:#776b82;font-size:8px;margin-top:2px}.voiceChatCount{padding:4px 6px;border-radius:999px;background:rgba(255,255,255,.045);color:#92859d;font-size:7px}
+.roomVoiceActions{display:grid;grid-template-columns:1fr auto;gap:6px;margin-top:8px}.roomVoicePrimary,.roomVoiceActions .voiceChatMute{padding:9px 10px;border-radius:10px;font-size:9px;font-weight:900}.voiceChatPrimary{background:linear-gradient(135deg,rgba(112,65,204,.58),rgba(46,155,194,.50));border-color:rgba(143,121,232,.18)}.voiceChatPrimary.active{background:rgba(255,86,116,.09);border-color:rgba(255,86,116,.18);color:#ffb1bf}.voiceChatMute{min-width:70px;background:rgba(255,255,255,.045)}.voiceChatMute.muted{color:#ffadba;border-color:rgba(255,90,116,.18)}
+.voicePrivacy{display:block;margin-top:7px;color:#62576b;font-size:7px;line-height:1.35}
+.roomSettingsBtn{width:100%;margin:0 0 12px;padding:9px;border-radius:10px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.065);font-size:8px;color:#aa9bb5}
+.voiceChatSettingsInfo{margin-top:7px;padding:8px 9px;border-radius:9px;background:rgba(78,174,218,.045);color:#758792;font-size:8px;line-height:1.4}
+.playerPro.voiceSpeaking{border-color:rgba(88,231,160,.34)!important;background:rgba(88,231,160,.055)!important;box-shadow:0 0 14px rgba(88,231,160,.08)}
+.playerPro.voiceSpeaking .avatar{box-shadow:0 0 0 2px rgba(88,231,160,.30),0 0 14px rgba(88,231,160,.20)}
+.playerPro.voiceSpeaking .playerInfo>span:after{content:"  🎙️";font-size:8px}
+@media(max-width:560px){.roomVoiceActions{grid-template-columns:1fr}.roomVoiceActions .voiceChatMute{width:100%}}
