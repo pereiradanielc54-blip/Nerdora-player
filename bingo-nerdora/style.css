@@ -153,3 +153,10 @@ body{position:relative;isolation:isolate;overflow-x:hidden;background:#09060f!im
   .shadowCard{gap:2px!important}
   .shadowCell{border-radius:3px!important}
 }
+
+/* REPLAY_V19 */
+.replayArea{margin-top:10px}
+.replayArea .wide{max-width:320px;margin:0 auto;display:block}
+.winnerButtons{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.winnerButtons button{min-height:48px}
+@media(max-width:520px){.winnerButtons{grid-template-columns:1fr}.replayArea .wide{max-width:none}}
