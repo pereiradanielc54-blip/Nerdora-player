@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.4 Files + DOCX Hotfix
+name: Nerdora Player - Build v0.9.5 High Fidelity DOCX
 
 on:
   workflow_dispatch:
@@ -468,6 +468,111 @@ jobs:
           grep -q 'withTimeout(15_000L)' extracted_project/app/src/main/java/com/nerdora/player/ui/WordDocumentViewer.kt
           echo "Hotfix v0.9.4 aplicado."
 
+      - name: Aplicar DOCX alta fidelidade v0.9.5
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp .github/overlays/v0.9.5/HighFidelityDocxViewer.kt \
+            extracted_project/app/src/main/java/com/nerdora/player/ui/HighFidelityDocxViewer.kt
+
+          ASSETS="extracted_project/app/src/main/assets/docx_renderer"
+          rm -rf "$ASSETS"
+          mkdir -p "$ASSETS/fonts" "$ASSETS/licenses"
+          cp .github/overlays/v0.9.5/viewer.html "$ASSETS/viewer.html"
+          cp .github/overlays/v0.9.5/font-aliases.css "$ASSETS/font-aliases.css"
+
+          rm -rf /tmp/nerdora-docx-web
+          mkdir -p /tmp/nerdora-docx-web
+          cd /tmp/nerdora-docx-web
+          npm init -y >/dev/null 2>&1
+          npm install --silent --no-audit --no-fund \
+            docx-renderer@0.2.2 \
+            jszip@3.10.1 \
+            lodash@4.17.21 \
+            konva@9.3.22 \
+            @fontsource/carlito@5.3.0 \
+            @fontsource/caladea@5.3.0 \
+            @fontsource/arimo@5.3.0 \
+            @fontsource/tinos@5.3.0 \
+            @fontsource/cousine@5.3.0
+
+          cp node_modules/docx-renderer/dist/docx-renderer.umd.js "$GITHUB_WORKSPACE/$ASSETS/docx-renderer.umd.js"
+          cp node_modules/jszip/dist/jszip.min.js "$GITHUB_WORKSPACE/$ASSETS/jszip.min.js"
+          cp node_modules/lodash/lodash.min.js "$GITHUB_WORKSPACE/$ASSETS/lodash.min.js"
+          KONVA=$(find node_modules/konva -maxdepth 2 -type f -name 'konva.min.js' | head -n 1)
+          test -n "$KONVA"
+          cp "$KONVA" "$GITHUB_WORKSPACE/$ASSETS/konva.min.js"
+
+          copy_font() {
+            PACKAGE="$1"
+            FAMILY="$2"
+            DEST="$3"
+            for SPEC in 400-normal 400-italic 700-normal 700-italic; do
+              WEIGHT="${SPEC%%-*}"
+              STYLE="${SPEC#*-}"
+              SRC=$(find "node_modules/@fontsource/$PACKAGE/files" -type f -name "$FAMILY-latin-$WEIGHT-$STYLE.woff2" | head -n 1)
+              test -n "$SRC"
+              OUT="$GITHUB_WORKSPACE/$ASSETS/fonts/$DEST-$WEIGHT"
+              if [ "$STYLE" = "italic" ]; then OUT="$OUT-italic"; fi
+              cp "$SRC" "$OUT.woff2"
+            done
+          }
+
+          copy_font carlito carlito carlito
+          copy_font caladea caladea caladea
+          copy_font arimo arimo arimo
+          copy_font tinos tinos tinos
+          copy_font cousine cousine cousine
+
+          cp node_modules/docx-renderer/LICENSE "$GITHUB_WORKSPACE/$ASSETS/licenses/docx-renderer-LICENSE.txt"
+          cp node_modules/docx-renderer/NOTICE "$GITHUB_WORKSPACE/$ASSETS/licenses/docx-renderer-NOTICE.txt"
+          for PACKAGE in carlito caladea arimo tinos cousine; do
+            LIC=$(find "node_modules/@fontsource/$PACKAGE" -maxdepth 2 -type f \( -iname 'LICENSE*' -o -iname 'OFL*' \) | head -n 1 || true)
+            if [ -n "$LIC" ]; then cp "$LIC" "$GITHUB_WORKSPACE/$ASSETS/licenses/$PACKAGE-LICENSE.txt"; fi
+          done
+
+          cd "$GITHUB_WORKSPACE"
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          viewer = Path("extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt")
+          text = viewer.read_text(encoding="utf-8")
+
+          old = 'DocumentKind.DOC -> "Word legado • leitor interno"; DocumentKind.DOCX -> "Word • visualização rápida"'
+          new = 'DocumentKind.DOC -> "Word legado • leitor interno"; DocumentKind.DOCX -> "Word • alta fidelidade"'
+          assert old in text or new in text, "Título DOCX v0.9.4 não encontrado"
+          text = text.replace(old, new, 1)
+
+          old = 'DocumentKind.DOC -> WordDocumentViewer(context, document); DocumentKind.DOCX -> RichHtmlViewer(document.uri) { OfficeHtmlReader.readDocx(context, document.uri) }'
+          new = 'DocumentKind.DOC -> WordDocumentViewer(context, document); DocumentKind.DOCX -> HighFidelityDocxViewer(context, document)'
+          assert old in text or 'DocumentKind.DOCX -> HighFidelityDocxViewer' in text, "Rota DOCX v0.9.4 não encontrada"
+          text = text.replace(old, new, 1)
+
+          viewer.write_text(text, encoding="utf-8")
+          PY
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 65/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.5"/' extracted_project/app/build.gradle.kts
+
+          grep -q 'versionName = "0.9.5"' extracted_project/app/build.gradle.kts
+          grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          grep -q 'fun HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/HighFidelityDocxViewer.kt
+          grep -q 'docx.render' "$ASSETS/viewer.html"
+          grep -q 'font-family: "Calibri"' "$ASSETS/font-aliases.css"
+          test -s "$ASSETS/docx-renderer.umd.js"
+          test -s "$ASSETS/jszip.min.js"
+          test -s "$ASSETS/lodash.min.js"
+          test -s "$ASSETS/konva.min.js"
+          test -s "$ASSETS/fonts/carlito-400.woff2"
+          test -s "$ASSETS/fonts/caladea-400.woff2"
+          test -s "$ASSETS/fonts/arimo-400.woff2"
+          test -s "$ASSETS/fonts/tinos-400.woff2"
+          test -s "$ASSETS/fonts/cousine-400.woff2"
+          node --check "$ASSETS/docx-renderer.umd.js"
+          echo "DOCX alta fidelidade v0.9.5 aplicado com docx-renderer 0.2.2 e fontes métricas livres."
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
@@ -541,7 +646,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.4"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.5"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -558,7 +663,11 @@ jobs:
           grep -q 'application/msword' app/src/main/AndroidManifest.xml
           grep -q 'Baixar e instalar' app/src/main/java/com/nerdora/player/ui/UpdateUi.kt
           grep -q 'updateDialogResult' app/src/main/java/com/nerdora/player/ui/SettingsScreen.kt
-          echo "Nerdora Player v0.9.4 validado."
+          test -f app/src/main/java/com/nerdora/player/ui/HighFidelityDocxViewer.kt
+          test -s app/src/main/assets/docx_renderer/docx-renderer.umd.js
+          test -s app/src/main/assets/docx_renderer/fonts/carlito-400.woff2
+          grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          echo "Nerdora Player v0.9.5 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -607,7 +716,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.4 assinada
+      - name: Publicar Release pública v0.9.5 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -616,8 +725,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Hotfix Arquivos e DOCX"
-          NOTES="Nerdora Player v0.9.4: corrige lentidão ao abrir a aba Arquivos e DOCX preso em carregamento. O índice salvo agora é reutilizado sem validar arquivo por arquivo; cálculos pesados de tamanho e duplicidade passam a ser feitos apenas sob demanda; a ordenação inicial usa nome para evitar milhares de consultas de data. DOCX volta ao visualizador interno rápido e estável que já funcionava antes, enquanto o leitor legado recebe timeout de segurança para nunca ficar carregando indefinidamente. Mantém o atualizador interno e a assinatura permanente."
+          TITLE="Nerdora Player v${VERSION} — DOCX alta fidelidade"
+          NOTES="Nerdora Player v0.9.5: teste do novo leitor DOCX de alta fidelidade com docx-renderer 0.2.2 executado totalmente offline no WebView. O motor reconstrói páginas, margens, cabeçalhos, rodapés, tabelas, imagens, objetos ancorados, listas, seções e paginação do Word com muito mais fidelidade que o antigo DOCX→HTML simples. Inclui substitutas métricas livres para fontes comuns: Carlito para Calibri, Caladea para Cambria, Arimo para Arial, Tinos para Times New Roman e Cousine para Courier New. Fontes proprietárias Microsoft não são redistribuídas. Mantém hotfix de Arquivos, atualizador interno e assinatura permanente."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
