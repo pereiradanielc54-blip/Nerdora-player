@@ -295,35 +295,40 @@ jobs:
           settings = Path("extracted_project/app/src/main/java/com/nerdora/player/ui/SettingsScreen.kt")
           s = settings.read_text(encoding="utf-8")
 
-          old = '''    var updateText by remember { mutableStateOf("") }
-              var updateUrl by remember { mutableStateOf("") }
-              var checking by remember { mutableStateOf(false) }'''
-          new = '''    var updateText by remember { mutableStateOf("") }
-              var updateDialogResult by remember { mutableStateOf<com.nerdora.player.UpdateResult?>(null) }
-              var checking by remember { mutableStateOf(false) }'''
-          assert old in s or "updateDialogResult" in s, "Estados do atualizador em SettingsScreen não encontrados"
-          s = s.replace(old, new, 1)
+          import re
 
-          old = '''                        updateText = result.message
-                          updateUrl = result.releaseUrl
-                          checking = false'''
-          new = '''                        updateText = result.message
-                          updateDialogResult = if (result.hasUpdate) result else null
-                          checking = false'''
-          assert old in s or "updateDialogResult = if (result.hasUpdate)" in s, "Resultado do update não encontrado"
-          s = s.replace(old, new, 1)
+          if "updateDialogResult" not in s:
+              assert 'var updateUrl by remember { mutableStateOf("") }' in s, "Estado updateUrl não encontrado"
+              s = s.replace(
+                  'var updateUrl by remember { mutableStateOf("") }',
+                  'var updateDialogResult by remember { mutableStateOf<com.nerdora.player.UpdateResult?>(null) }',
+                  1,
+              )
 
-          old = '''            if (updateText.isNotBlank()) {
-                  Text(updateText, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
-                  if (updateUrl.isNotBlank()) {
-                      Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(updateUrl))) }) { Text("Abrir release") }
-                  }
-              }'''
-          new = '''            if (updateText.isNotBlank()) {
-                  Text(updateText, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
-              }'''
-          assert old in s or ('if (updateText.isNotBlank())' in s and 'updateUrl.isNotBlank()' not in s), "Bloco antigo Abrir release não encontrado"
-          s = s.replace(old, new, 1)
+          if "updateDialogResult = if (result.hasUpdate)" not in s:
+              assert "updateUrl = result.releaseUrl" in s, "Atribuição updateUrl não encontrada"
+              s = s.replace(
+                  "updateUrl = result.releaseUrl",
+                  "updateDialogResult = if (result.hasUpdate) result else null",
+                  1,
+              )
+
+          if "updateUrl.isNotBlank()" in s:
+              pattern = re.compile(
+                  r'\n\s*if \(updateText\.isNotBlank\(\)\) \{\s*'
+                  r'Text\(updateText, color = MaterialTheme\.colorScheme\.onSurfaceVariant, fontSize = 12\.sp\)\s*'
+                  r'if \(updateUrl\.isNotBlank\(\)\) \{\s*'
+                  r'Button\(onClick = \{ context\.startActivity\(Intent\(Intent\.ACTION_VIEW, Uri\.parse\(updateUrl\)\)\) \}\) \{ Text\("Abrir release"\) \}\s*'
+                  r'\}\s*\}'
+              )
+              s, count = pattern.subn(
+                  '\n            if (updateText.isNotBlank()) {\n'
+                  '                Text(updateText, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)\n'
+                  '            }',
+                  s,
+                  count=1,
+              )
+              assert count == 1, "Bloco Abrir release não foi substituído"
 
           marker = '''    if (showChangelog) {
               AlertDialog('''
