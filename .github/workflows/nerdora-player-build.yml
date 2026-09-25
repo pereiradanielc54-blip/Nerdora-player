@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.2 Word Reader
+name: Nerdora Player - Build v0.9.3 In-App Updater
 
 on:
   workflow_dispatch:
@@ -285,23 +285,98 @@ jobs:
           grep -q 'application/msword' extracted_project/app/src/main/AndroidManifest.xml
           echo "Word Reader v0.9.2 aplicado."
 
-      - name: Diagnosticar atualizador atual
+      - name: Aplicar atualizador interno v0.9.3
         shell: bash
         run: |
           set -euo pipefail
-          echo "=== UpdateChecker.kt ==="
-          cat extracted_project/app/src/main/java/com/nerdora/player/UpdateChecker.kt
-          echo "=== UpdateInstaller.kt ==="
-          cat extracted_project/app/src/main/java/com/nerdora/player/UpdateInstaller.kt
-          echo "=== UpdateUi.kt ==="
-          cat extracted_project/app/src/main/java/com/nerdora/player/ui/UpdateUi.kt
-          echo "=== SettingsScreen updater block ==="
-          sed -n '1,260p' extracted_project/app/src/main/java/com/nerdora/player/ui/SettingsScreen.kt
-          echo "=== NerdoraPlayerApp update usage ==="
-          grep -nE -C 10 'Update|update' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt || true
-          echo "=== AndroidManifest update/install ==="
-          grep -nE -C 5 'REQUEST_INSTALL_PACKAGES|provider|FileProvider' extracted_project/app/src/main/AndroidManifest.xml || true
-          exit 1
+          python3 - <<'PY'
+          from pathlib import Path
+
+          settings = Path("extracted_project/app/src/main/java/com/nerdora/player/ui/SettingsScreen.kt")
+          s = settings.read_text(encoding="utf-8")
+
+          old = '''    var updateText by remember { mutableStateOf("") }
+              var updateUrl by remember { mutableStateOf("") }
+              var checking by remember { mutableStateOf(false) }'''
+          new = '''    var updateText by remember { mutableStateOf("") }
+              var updateDialogResult by remember { mutableStateOf<com.nerdora.player.UpdateResult?>(null) }
+              var checking by remember { mutableStateOf(false) }'''
+          assert old in s or "updateDialogResult" in s, "Estados do atualizador em SettingsScreen não encontrados"
+          s = s.replace(old, new, 1)
+
+          old = '''                        updateText = result.message
+                          updateUrl = result.releaseUrl
+                          checking = false'''
+          new = '''                        updateText = result.message
+                          updateDialogResult = if (result.hasUpdate) result else null
+                          checking = false'''
+          assert old in s or "updateDialogResult = if (result.hasUpdate)" in s, "Resultado do update não encontrado"
+          s = s.replace(old, new, 1)
+
+          old = '''            if (updateText.isNotBlank()) {
+                  Text(updateText, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                  if (updateUrl.isNotBlank()) {
+                      Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(updateUrl))) }) { Text("Abrir release") }
+                  }
+              }'''
+          new = '''            if (updateText.isNotBlank()) {
+                  Text(updateText, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+              }'''
+          assert old in s or ('if (updateText.isNotBlank())' in s and 'updateUrl.isNotBlank()' not in s), "Bloco antigo Abrir release não encontrado"
+          s = s.replace(old, new, 1)
+
+          marker = '''    if (showChangelog) {
+              AlertDialog('''
+          dialog = '''    updateDialogResult?.let { result ->
+              UpdateAvailableDialog(
+                  context = context,
+                  result = result,
+                  onDismiss = { updateDialogResult = null }
+              )
+          }
+
+          '''
+          assert marker in s, "Ponto para diálogo de atualização não encontrado"
+          if "updateDialogResult?.let" not in s:
+              s = s.replace(marker, dialog + marker, 1)
+
+          settings.write_text(s, encoding="utf-8")
+
+          ui = Path("extracted_project/app/src/main/java/com/nerdora/player/ui/UpdateUi.kt")
+          u = ui.read_text(encoding="utf-8")
+
+          old = '''                        }.onSuccess {
+                              downloadedFile = it
+                          }.onFailure {'''
+          new = '''                        }.onSuccess { file ->
+                              downloadedFile = file
+                              runCatching { UpdateInstaller.install(context, file) }
+                                  .onFailure {
+                                      error = it.message ?: "APK baixado, mas não foi possível abrir o instalador"
+                                  }
+                          }.onFailure {'''
+          assert old in u or "APK baixado, mas não foi possível abrir o instalador" in u, "Callback de download não encontrado"
+          u = u.replace(old, new, 1)
+
+          u = u.replace(
+              'Text("APK baixado. Toque em instalar para abrir a confirmação do Android.", color = MaterialTheme.colorScheme.primary)',
+              'Text("APK baixado. O Nerdora já chamou o instalador; confirme a atualização na tela do Android.", color = MaterialTheme.colorScheme.primary)'
+          )
+          u = u.replace('}) { Text("Baixar atualização") }', '}) { Text("Baixar e instalar") }', 1)
+
+          ui.write_text(u, encoding="utf-8")
+          PY
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 63/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.3"/' extracted_project/app/build.gradle.kts
+
+          grep -q 'versionName = "0.9.3"' extracted_project/app/build.gradle.kts
+          grep -q 'updateDialogResult = if (result.hasUpdate) result else null' extracted_project/app/src/main/java/com/nerdora/player/ui/SettingsScreen.kt
+          grep -q 'UpdateAvailableDialog' extracted_project/app/src/main/java/com/nerdora/player/ui/SettingsScreen.kt
+          ! grep -q 'Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(updateUrl))) })' extracted_project/app/src/main/java/com/nerdora/player/ui/SettingsScreen.kt
+          grep -q 'Baixar e instalar' extracted_project/app/src/main/java/com/nerdora/player/ui/UpdateUi.kt
+          grep -q 'UpdateInstaller.install(context, file)' extracted_project/app/src/main/java/com/nerdora/player/ui/UpdateUi.kt
+          echo "Atualizador interno v0.9.3 aplicado."
 
       - name: Encontrar projeto Android
         id: android
@@ -376,7 +451,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.2"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.3"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -391,7 +466,9 @@ jobs:
           test -f app/src/main/java/com/nerdora/player/ui/WordDocumentViewer.kt
           grep -q 'fun WordDocumentViewer' app/src/main/java/com/nerdora/player/ui/WordDocumentViewer.kt
           grep -q 'application/msword' app/src/main/AndroidManifest.xml
-          echo "Nerdora Player v0.9.2 validado."
+          grep -q 'Baixar e instalar' app/src/main/java/com/nerdora/player/ui/UpdateUi.kt
+          grep -q 'updateDialogResult' app/src/main/java/com/nerdora/player/ui/SettingsScreen.kt
+          echo "Nerdora Player v0.9.3 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -440,7 +517,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.2 assinada
+      - name: Publicar Release pública v0.9.3 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -449,8 +526,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Word Reader"
-          NOTES="Nerdora Player v0.9.2: novo leitor interno de Word. DOCX agora é convertido para PDF temporário em cache, preservando melhor páginas, fontes, tamanhos, negrito, itálico, sublinhado, cores, alinhamento, tabelas, imagens, cabeçalho, rodapé e quebras de página. O leitor ganhou miniaturas, busca, indicador e salto de página, texto selecionável, zoom por pinça e duplo toque, além de memória da última página. DOC legado ganhou compatibilidade interna de texto e continua podendo ser aberto em outro app quando for necessária fidelidade total. A Release continua assinada com a mesma chave permanente da v0.9.1 para atualização por cima."
+          TITLE="Nerdora Player v${VERSION} — Atualizador interno"
+          NOTES="Nerdora Player v0.9.3: unifica o atualizador interno. A verificação manual em Configurações agora abre o mesmo diálogo de atualização usado pela verificação automática, baixa o APK diretamente dentro do Nerdora Player e chama o instalador do Android ao concluir. O botão passa a ser Baixar e instalar, com progresso de download e fallback para permitir instalação de apps desconhecidos quando necessário. Mantém a assinatura permanente iniciada na v0.9.1 e todas as melhorias do Word Reader v0.9.2."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
