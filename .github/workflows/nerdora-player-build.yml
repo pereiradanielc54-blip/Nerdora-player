@@ -330,8 +330,7 @@ jobs:
               )
               assert count == 1, "Bloco Abrir release não foi substituído"
 
-          marker = '''    if (showChangelog) {
-              AlertDialog('''
+          marker = '    if (showChangelog) {'
           dialog = '''    updateDialogResult?.let { result ->
               UpdateAvailableDialog(
                   context = context,
