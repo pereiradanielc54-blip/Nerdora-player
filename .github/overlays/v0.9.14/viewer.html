@@ -1,0 +1,759 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=8.0, user-scalable=yes" />
+  <link rel="stylesheet" href="../docx_renderer/font-aliases.css" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #e9edf0;
+      -webkit-text-size-adjust: 100%;
+      font-family: Calibri, Carlito, Arial, sans-serif;
+    }
+
+    #app {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #e9edf0;
+    }
+
+    #viewport {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      box-sizing: border-box;
+      padding: 12px 10px 18px;
+    }
+
+    body.has-tabs #viewport {
+      bottom: 60px;
+    }
+
+    #sheetHost {
+      width: 100%;
+      min-height: 1px;
+    }
+
+    .sheet-wrapper {
+      position: relative;
+      margin: 0 auto 18px;
+    }
+
+    .sheet-stage {
+      position: relative;
+      display: grid;
+      background: #fff;
+      box-shadow: 0 2px 14px rgba(0,0,0,.18);
+      transform-origin: top left;
+      overflow: visible;
+    }
+
+    .cell {
+      box-sizing: border-box;
+      display: flex;
+      min-width: 0;
+      min-height: 0;
+      padding: 1px 3px;
+      color: #000;
+      background: transparent;
+      overflow: hidden;
+      line-height: 1.18;
+    }
+
+    .cell-content {
+      width: 100%;
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      align-items: inherit;
+      justify-content: inherit;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .cell.wrap .cell-content {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .cell.vertical-text .cell-content {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+    }
+
+    .sheet-image {
+      position: absolute;
+      object-fit: contain;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    #tabs {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 60px;
+      box-sizing: border-box;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px 10px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      background: rgba(255,255,255,.98);
+      border-top: 1px solid rgba(0,0,0,.10);
+      box-shadow: 0 -2px 8px rgba(0,0,0,.06);
+      scrollbar-width: none;
+      z-index: 30;
+    }
+
+    #tabs::-webkit-scrollbar { display: none; }
+    #tabs.visible { display: flex; }
+
+    .tab {
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 14px;
+      background: #e8eaed;
+      color: #263238;
+      font: inherit;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .tab.active {
+      background: #153f33;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    #empty {
+      display: none;
+      margin: 22px auto;
+      padding: 24px 20px;
+      max-width: 420px;
+      text-align: center;
+      color: #455a64;
+      font-size: 14px;
+      background: #fff;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="viewport">
+      <div id="sheetHost"></div>
+      <div id="empty">Esta aba não possui conteúdo visível.</div>
+    </div>
+    <div id="tabs"></div>
+  </div>
+
+  <script src="exceljs.min.js"></script>
+  <script>
+    (() => {
+      const DEFAULT_COL_WIDTH = 8.43;
+      const DEFAULT_ROW_HEIGHT = 15;
+      const MAX_ROWS = 5000;
+      const MAX_COLS = 500;
+
+      let workbook = null;
+      let sheets = [];
+      let activeSheetIndex = 0;
+      let currentStage = null;
+
+      function decodeBase64Chunks() {
+        const total = NerdoraXlsx.getChunkCount();
+        const parts = new Array(total);
+        for (let i = 0; i < total; i++) parts[i] = NerdoraXlsx.getChunk(i);
+
+        const raw = atob(parts.join(""));
+        const bytes = new Uint8Array(raw.length);
+        const stride = 32768;
+        for (let start = 0; start < raw.length; start += stride) {
+          const end = Math.min(start + stride, raw.length);
+          for (let i = start; i < end; i++) bytes[i] = raw.charCodeAt(i);
+        }
+        return bytes;
+      }
+
+      function parseAddress(address) {
+        const m = /^([A-Za-z]+)([0-9]+)$/.exec(String(address || ""));
+        if (!m) return null;
+        let col = 0;
+        for (const ch of m[1].toUpperCase()) {
+          col = col * 26 + (ch.charCodeAt(0) - 64);
+        }
+        return { row: Number(m[2]), col };
+      }
+
+      function parseRange(range) {
+        const parts = String(range || "").split(":");
+        const a = parseAddress(parts[0]);
+        const b = parseAddress(parts[1] || parts[0]);
+        if (!a || !b) return null;
+        return {
+          top: Math.min(a.row, b.row),
+          bottom: Math.max(a.row, b.row),
+          left: Math.min(a.col, b.col),
+          right: Math.max(a.col, b.col)
+        };
+      }
+
+      function unionBounds(a, b) {
+        if (!a) return b ? { ...b } : null;
+        if (!b) return { ...a };
+        return {
+          top: Math.min(a.top, b.top),
+          bottom: Math.max(a.bottom, b.bottom),
+          left: Math.min(a.left, b.left),
+          right: Math.max(a.right, b.right)
+        };
+      }
+
+      function columnWidthPx(width) {
+        const w = Number.isFinite(width) && width > 0 ? width : DEFAULT_COL_WIDTH;
+        return Math.max(1, Math.round(w * 7 + 5));
+      }
+
+      function rowHeightPx(height) {
+        const h = Number.isFinite(height) && height > 0 ? height : DEFAULT_ROW_HEIGHT;
+        return Math.max(1, Math.round(h * 96 / 72));
+      }
+
+      function colorCss(color) {
+        if (!color) return null;
+        const argb = color.argb;
+        if (argb && /^[0-9A-Fa-f]{8}$/.test(argb)) return "#" + argb.slice(2);
+        if (argb && /^[0-9A-Fa-f]{6}$/.test(argb)) return "#" + argb;
+        return null;
+      }
+
+      function borderCss(side) {
+        if (!side || !side.style) return null;
+        let width = 1;
+        let line = "solid";
+        const style = side.style;
+
+        if (style === "hair") width = 0.5;
+        if (style === "dotted") line = "dotted";
+        if (/dash/i.test(style)) line = "dashed";
+        if (style === "double") { width = 3; line = "double"; }
+        if (/^medium/i.test(style)) width = 2;
+        if (style === "thick") width = 3;
+
+        return width + "px " + line + " " + (colorCss(side.color) || "#000");
+      }
+
+      function styleHasContent(cell) {
+        const style = cell.style || {};
+        const font = cell.font || {};
+        const fill = cell.fill || {};
+        const border = cell.border || {};
+        const alignment = cell.alignment || {};
+
+        return !!(
+          cell.value != null ||
+          Object.keys(style).length ||
+          Object.keys(font).length ||
+          (fill && fill.type) ||
+          border.left || border.right || border.top || border.bottom ||
+          Object.keys(alignment).length
+        );
+      }
+
+      function formatNumber(value, numFmt) {
+        if (!Number.isFinite(value)) return String(value);
+        const code = String(numFmt || "General");
+
+        if (code.includes("%")) {
+          const dot = code.match(/0\.([0]+)/);
+          const decimals = dot ? dot[1].length : 0;
+          return (value * 100).toLocaleString("pt-BR", {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+          }) + "%";
+        }
+
+        const decimalsMatch = code.match(/[0#]+\.([0#]+)/);
+        const decimals = decimalsMatch ? decimalsMatch[1].length : (Number.isInteger(value) ? 0 : 2);
+        const grouped = code.includes(",") || code.includes("#.##");
+
+        const options = {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals,
+          useGrouping: grouped
+        };
+
+        if (/R\$/i.test(code)) return "R$ " + value.toLocaleString("pt-BR", options);
+        const currency = (code.match(/[$€£]/) || [null])[0];
+        if (currency) return currency + " " + value.toLocaleString("pt-BR", options);
+
+        if (code === "General") return String(value);
+        return value.toLocaleString("pt-BR", options);
+      }
+
+      function formatDate(date) {
+        if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
+        return date.toLocaleDateString("pt-BR");
+      }
+
+      function cellDisplay(cell) {
+        const value = cell.value;
+        if (value == null) return "";
+
+        if (value instanceof Date) return formatDate(value);
+
+        if (typeof value === "number") return formatNumber(value, cell.numFmt);
+
+        if (typeof value === "string" || typeof value === "boolean") return String(value);
+
+        if (value && Array.isArray(value.richText)) {
+          return value.richText.map(run => run.text || "").join("");
+        }
+
+        if (value && Object.prototype.hasOwnProperty.call(value, "formula")) {
+          const result = value.result;
+          if (result instanceof Date) return formatDate(result);
+          if (typeof result === "number") return formatNumber(result, cell.numFmt);
+          if (result != null) return String(result);
+          return "";
+        }
+
+        if (value && value.text != null) return String(value.text);
+        if (cell.text != null) return String(cell.text);
+        return String(value);
+      }
+
+      function appendCellContent(container, cell) {
+        const value = cell.value;
+        if (value && Array.isArray(value.richText)) {
+          for (const run of value.richText) {
+            const span = document.createElement("span");
+            span.textContent = run.text || "";
+            const font = run.font || {};
+            if (font.name) span.style.fontFamily = '"' + font.name + '", Calibri, Carlito, Arial, sans-serif';
+            if (font.size) span.style.fontSize = font.size + "pt";
+            if (font.bold) span.style.fontWeight = "700";
+            if (font.italic) span.style.fontStyle = "italic";
+            const c = colorCss(font.color);
+            if (c) span.style.color = c;
+            const dec = [];
+            if (font.underline) dec.push("underline");
+            if (font.strike) dec.push("line-through");
+            if (dec.length) span.style.textDecoration = dec.join(" ");
+            container.appendChild(span);
+          }
+          return;
+        }
+
+        container.textContent = cellDisplay(cell);
+      }
+
+      function applyCellStyle(el, content, cell, merge) {
+        const font = cell.font || {};
+        const fill = cell.fill || {};
+        const border = cell.border || {};
+        const alignment = cell.alignment || {};
+
+        if (fill.type === "pattern" && fill.pattern === "solid") {
+          const bg = colorCss(fill.fgColor) || colorCss(fill.bgColor);
+          if (bg) el.style.background = bg;
+        }
+
+        const fontColor = colorCss(font.color);
+        if (fontColor) el.style.color = fontColor;
+        if (font.name) el.style.fontFamily = '"' + font.name + '", Calibri, Carlito, Arial, sans-serif';
+        else el.style.fontFamily = "Calibri, Carlito, Arial, sans-serif";
+        if (font.size) el.style.fontSize = font.size + "pt";
+        if (font.bold) el.style.fontWeight = "700";
+        if (font.italic) el.style.fontStyle = "italic";
+
+        const decorations = [];
+        if (font.underline) decorations.push("underline");
+        if (font.strike) decorations.push("line-through");
+        if (decorations.length) el.style.textDecoration = decorations.join(" ");
+
+        switch (alignment.horizontal) {
+          case "center":
+          case "centerContinuous":
+          case "distributed":
+            el.style.justifyContent = "center";
+            el.style.textAlign = "center";
+            break;
+          case "right":
+            el.style.justifyContent = "flex-end";
+            el.style.textAlign = "right";
+            break;
+          default:
+            el.style.justifyContent = "flex-start";
+            el.style.textAlign = "left";
+        }
+
+        switch (alignment.vertical) {
+          case "top": el.style.alignItems = "flex-start"; break;
+          case "bottom": el.style.alignItems = "flex-end"; break;
+          default: el.style.alignItems = "center";
+        }
+
+        if (alignment.wrapText) el.classList.add("wrap");
+
+        if (alignment.textRotation === "vertical") {
+          el.classList.add("vertical-text");
+        } else if (typeof alignment.textRotation === "number" && alignment.textRotation !== 0) {
+          content.style.transform = "rotate(" + alignment.textRotation + "deg)";
+          content.style.transformOrigin = "center center";
+        }
+
+        const left = borderCss(border.left);
+        const right = borderCss(border.right);
+        const top = borderCss(border.top);
+        const bottom = borderCss(border.bottom);
+
+        if (left) el.style.borderLeft = left;
+        if (right) el.style.borderRight = right;
+        if (top) el.style.borderTop = top;
+        if (bottom) el.style.borderBottom = bottom;
+      }
+
+      function buildMergeMaps(worksheet) {
+        const origins = new Map();
+        const covered = new Set();
+        const merges = (worksheet.model && Array.isArray(worksheet.model.merges))
+          ? worksheet.model.merges
+          : [];
+
+        for (const rangeText of merges) {
+          const range = parseRange(rangeText);
+          if (!range) continue;
+          origins.set(range.top + "_" + range.left, range);
+
+          for (let r = range.top; r <= range.bottom; r++) {
+            for (let c = range.left; c <= range.right; c++) {
+              if (r !== range.top || c !== range.left) covered.add(r + "_" + c);
+            }
+          }
+        }
+
+        return { origins, covered };
+      }
+
+      function computeBounds(worksheet) {
+        let bounds = null;
+        const rows = (worksheet.model && Array.isArray(worksheet.model.rows))
+          ? worksheet.model.rows
+          : [];
+
+        for (const rowModel of rows) {
+          const cells = Array.isArray(rowModel.cells) ? rowModel.cells : [];
+          for (const cellModel of cells) {
+            const ref = parseAddress(cellModel.address);
+            if (!ref) continue;
+            bounds = unionBounds(bounds, {
+              top: ref.row, bottom: ref.row,
+              left: ref.col, right: ref.col
+            });
+          }
+        }
+
+        const merges = (worksheet.model && Array.isArray(worksheet.model.merges))
+          ? worksheet.model.merges
+          : [];
+        for (const merge of merges) {
+          bounds = unionBounds(bounds, parseRange(merge));
+        }
+
+        if (!bounds && worksheet.model && worksheet.model.dimensions) {
+          const d = worksheet.model.dimensions;
+          bounds = {
+            top: d.top || 1,
+            bottom: d.bottom || 1,
+            left: d.left || 1,
+            right: d.right || 1
+          };
+        }
+
+        if (!bounds) return null;
+
+        return {
+          top: Math.max(1, Math.min(MAX_ROWS, bounds.top)),
+          bottom: Math.max(1, Math.min(MAX_ROWS, bounds.bottom)),
+          left: Math.max(1, Math.min(MAX_COLS, bounds.left)),
+          right: Math.max(1, Math.min(MAX_COLS, bounds.right))
+        };
+      }
+
+      function buildGeometry(worksheet, bounds) {
+        const colWidths = [];
+        const rowHeights = [];
+        const colOffsets = [0];
+        const rowOffsets = [0];
+
+        for (let c = bounds.left; c <= bounds.right; c++) {
+          const col = worksheet.getColumn(c);
+          const px = col.hidden ? 0 : columnWidthPx(col.width);
+          colWidths.push(px);
+          colOffsets.push(colOffsets[colOffsets.length - 1] + px);
+        }
+
+        for (let r = bounds.top; r <= bounds.bottom; r++) {
+          const row = worksheet.getRow(r);
+          const px = row.hidden ? 0 : rowHeightPx(row.height || worksheet.properties.defaultRowHeight);
+          rowHeights.push(px);
+          rowOffsets.push(rowOffsets[rowOffsets.length - 1] + px);
+        }
+
+        return {
+          colWidths,
+          rowHeights,
+          colOffsets,
+          rowOffsets,
+          width: Math.max(1, colOffsets[colOffsets.length - 1]),
+          height: Math.max(1, rowOffsets[rowOffsets.length - 1])
+        };
+      }
+
+      function mediaToDataUri(media) {
+        if (!media) return null;
+        if (media.base64) {
+          if (media.base64.startsWith("data:")) return media.base64;
+          const ext = media.extension || "png";
+          return "data:image/" + ext + ";base64," + media.base64;
+        }
+
+        const buffer = media.buffer;
+        if (!buffer) return null;
+        const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+        let binary = "";
+        const chunk = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunk) {
+          binary += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + chunk, bytes.length)));
+        }
+        const ext = media.extension || "png";
+        return "data:image/" + ext + ";base64," + btoa(binary);
+      }
+
+      function renderImages(worksheet, stage, bounds, geometry) {
+        if (!worksheet.getImages || !workbook || !workbook.model) return;
+        let images = [];
+        try { images = worksheet.getImages() || []; } catch (_) { return; }
+
+        const media = Array.isArray(workbook.model.media) ? workbook.model.media : [];
+
+        for (const image of images) {
+          const range = image.range || {};
+          const tl = range.tl;
+          const br = range.br;
+          if (!tl) continue;
+
+          const mediaItem = media.find(m => m.index === image.imageId) || media[image.imageId];
+          const src = mediaToDataUri(mediaItem);
+          if (!src) continue;
+
+          const startCol = (Number.isFinite(tl.nativeCol) ? tl.nativeCol + 1 : Math.floor(tl.col || 0) + 1);
+          const startRow = (Number.isFinite(tl.nativeRow) ? tl.nativeRow + 1 : Math.floor(tl.row || 0) + 1);
+
+          if (startCol < bounds.left || startRow < bounds.top) continue;
+
+          const relCol = Math.max(0, startCol - bounds.left);
+          const relRow = Math.max(0, startRow - bounds.top);
+          if (relCol >= geometry.colOffsets.length - 1 || relRow >= geometry.rowOffsets.length - 1) continue;
+
+          let left = geometry.colOffsets[relCol];
+          let top = geometry.rowOffsets[relRow];
+          let width = geometry.colWidths[relCol] || 100;
+          let height = geometry.rowHeights[relRow] || 60;
+
+          if (br) {
+            const endCol = Number.isFinite(br.nativeCol) ? br.nativeCol + 1 : Math.floor(br.col || startCol - 1) + 1;
+            const endRow = Number.isFinite(br.nativeRow) ? br.nativeRow + 1 : Math.floor(br.row || startRow - 1) + 1;
+            const relEndCol = Math.min(geometry.colOffsets.length - 1, Math.max(relCol + 1, endCol - bounds.left + 1));
+            const relEndRow = Math.min(geometry.rowOffsets.length - 1, Math.max(relRow + 1, endRow - bounds.top + 1));
+            width = Math.max(width, geometry.colOffsets[relEndCol] - left);
+            height = Math.max(height, geometry.rowOffsets[relEndRow] - top);
+          }
+
+          const el = document.createElement("img");
+          el.className = "sheet-image";
+          el.src = src;
+          el.style.left = left + "px";
+          el.style.top = top + "px";
+          el.style.width = width + "px";
+          el.style.height = height + "px";
+          stage.appendChild(el);
+        }
+      }
+
+      function applyFitToWidth() {
+        if (!currentStage) return;
+        const viewport = document.getElementById("viewport");
+        const available = Math.max(120, viewport.clientWidth - 20);
+        const scale = Math.max(0.12, Math.min(1, available / currentStage.width));
+
+        currentStage.stage.style.transform = "scale(" + scale + ")";
+        currentStage.wrapper.style.width = Math.max(1, currentStage.width * scale) + "px";
+        currentStage.wrapper.style.height = Math.max(1, currentStage.height * scale) + "px";
+      }
+
+      function renderSheet(worksheet) {
+        const host = document.getElementById("sheetHost");
+        const empty = document.getElementById("empty");
+        host.replaceChildren();
+        empty.style.display = "none";
+        currentStage = null;
+
+        const bounds = computeBounds(worksheet);
+        if (!bounds) {
+          empty.style.display = "block";
+          return;
+        }
+
+        const geometry = buildGeometry(worksheet, bounds);
+        const mergeMaps = buildMergeMaps(worksheet);
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "sheet-wrapper";
+
+        const stage = document.createElement("div");
+        stage.className = "sheet-stage";
+        stage.style.width = geometry.width + "px";
+        stage.style.height = geometry.height + "px";
+        stage.style.gridTemplateColumns = geometry.colWidths.map(v => v + "px").join(" ");
+        stage.style.gridTemplateRows = geometry.rowHeights.map(v => v + "px").join(" ");
+
+        const addresses = new Set();
+        const rows = (worksheet.model && Array.isArray(worksheet.model.rows))
+          ? worksheet.model.rows
+          : [];
+        for (const rowModel of rows) {
+          for (const cellModel of (rowModel.cells || [])) {
+            if (cellModel.address) addresses.add(cellModel.address);
+          }
+        }
+
+        for (const range of mergeMaps.origins.values()) {
+          const master = worksheet.getCell(range.top, range.left);
+          addresses.add(master.address);
+        }
+
+        for (const address of addresses) {
+          const pos = parseAddress(address);
+          if (!pos) continue;
+          if (pos.row < bounds.top || pos.row > bounds.bottom || pos.col < bounds.left || pos.col > bounds.right) continue;
+
+          const key = pos.row + "_" + pos.col;
+          if (mergeMaps.covered.has(key)) continue;
+
+          const cell = worksheet.getCell(pos.row, pos.col);
+          const merge = mergeMaps.origins.get(key) || null;
+          if (!styleHasContent(cell) && !merge) continue;
+
+          const el = document.createElement("div");
+          el.className = "cell";
+
+          const colStart = pos.col - bounds.left + 1;
+          const rowStart = pos.row - bounds.top + 1;
+          const colSpan = merge ? (merge.right - merge.left + 1) : 1;
+          const rowSpan = merge ? (merge.bottom - merge.top + 1) : 1;
+
+          el.style.gridColumn = colStart + " / span " + colSpan;
+          el.style.gridRow = rowStart + " / span " + rowSpan;
+
+          const content = document.createElement("div");
+          content.className = "cell-content";
+          appendCellContent(content, cell);
+          applyCellStyle(el, content, cell, merge);
+
+          el.appendChild(content);
+          stage.appendChild(el);
+        }
+
+        renderImages(worksheet, stage, bounds, geometry);
+
+        wrapper.appendChild(stage);
+        host.appendChild(wrapper);
+        currentStage = { wrapper, stage, width: geometry.width, height: geometry.height };
+
+        requestAnimationFrame(() => {
+          applyFitToWidth();
+          const viewport = document.getElementById("viewport");
+          viewport.scrollLeft = 0;
+          viewport.scrollTop = 0;
+        });
+      }
+
+      function renderTabs() {
+        const tabs = document.getElementById("tabs");
+        tabs.replaceChildren();
+
+        const hasTabs = sheets.length > 1;
+        document.body.classList.toggle("has-tabs", hasTabs);
+
+        if (!hasTabs) {
+          tabs.classList.remove("visible");
+          return;
+        }
+
+        tabs.classList.add("visible");
+        sheets.forEach((worksheet, index) => {
+          const button = document.createElement("button");
+          button.className = "tab" + (index === activeSheetIndex ? " active" : "");
+          button.textContent = worksheet.name || ("Aba " + (index + 1));
+          button.addEventListener("click", () => {
+            activeSheetIndex = index;
+            renderTabs();
+            renderSheet(sheets[index]);
+          });
+          tabs.appendChild(button);
+        });
+      }
+
+      async function start() {
+        try {
+          if (!window.ExcelJS || !window.ExcelJS.Workbook) {
+            throw new Error("ExcelJS não carregou.");
+          }
+
+          if (document.fonts && document.fonts.ready) await document.fonts.ready;
+
+          const bytes = decodeBase64Chunks();
+          const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+
+          workbook = new ExcelJS.Workbook();
+          await workbook.xlsx.load(buffer);
+
+          sheets = workbook.worksheets.filter(ws => ws && ws.state !== "hidden" && ws.state !== "veryHidden");
+          if (!sheets.length) throw new Error("Nenhuma aba visível foi encontrada no XLSX.");
+
+          activeSheetIndex = 0;
+          renderTabs();
+          renderSheet(sheets[0]);
+          NerdoraXlsx.onRendered(sheets.length);
+        } catch (error) {
+          console.error(error);
+          NerdoraXlsx.onError(error && error.message ? error.message : String(error));
+        }
+      }
+
+      let resizeTimer = null;
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(applyFitToWidth, 100);
+      });
+
+      window.addEventListener("load", start, { once: true });
+    })();
+  </script>
+</body>
+</html>
