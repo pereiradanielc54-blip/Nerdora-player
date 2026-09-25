@@ -349,18 +349,19 @@ jobs:
           ui = Path("extracted_project/app/src/main/java/com/nerdora/player/ui/UpdateUi.kt")
           u = ui.read_text(encoding="utf-8")
 
-          old = '''                        }.onSuccess {
-                              downloadedFile = it
-                          }.onFailure {'''
-          new = '''                        }.onSuccess { file ->
+          if "APK baixado, mas não foi possível abrir o instalador" not in u:
+              callback = re.compile(
+                  r'\}\.onSuccess \{\s*downloadedFile = it\s*\}\.onFailure \{'
+              )
+              replacement = '''}.onSuccess { file ->
                               downloadedFile = file
                               runCatching { UpdateInstaller.install(context, file) }
                                   .onFailure {
                                       error = it.message ?: "APK baixado, mas não foi possível abrir o instalador"
                                   }
                           }.onFailure {'''
-          assert old in u or "APK baixado, mas não foi possível abrir o instalador" in u, "Callback de download não encontrado"
-          u = u.replace(old, new, 1)
+              u, count = callback.subn(replacement, u, count=1)
+              assert count == 1, "Callback de download não encontrado"
 
           u = u.replace(
               'Text("APK baixado. Toque em instalar para abrir a confirmação do Android.", color = MaterialTheme.colorScheme.primary)',
