@@ -383,6 +383,20 @@ jobs:
           grep -q 'UpdateInstaller.install(context, file)' extracted_project/app/src/main/java/com/nerdora/player/ui/UpdateUi.kt
           echo "Atualizador interno v0.9.3 aplicado."
 
+      - name: Diagnosticar Arquivos e Word v0.9.4
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== FilesScreen imports + state ==="
+          sed -n '1,260p' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          echo "=== FilesScreen scan/cache ocorrencias ==="
+          grep -nE -C 12 'LaunchedEffect|UniversalFileIndexCache|listFiles|walk|walkTopDown|scan|refresh|category|DocumentFile|Dispatchers.IO|withContext' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt || true
+          echo "=== UniversalFileIndexCache ==="
+          cat extracted_project/app/src/main/java/com/nerdora/player/UniversalFileIndexCache.kt
+          echo "=== Word htmlToPdf/prepare ==="
+          grep -nE -C 20 'prepareWord|htmlToPdf|onPageFinished|loadDataWithBaseURL|produceState' extracted_project/app/src/main/java/com/nerdora/player/ui/WordDocumentViewer.kt || true
+          exit 1
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
