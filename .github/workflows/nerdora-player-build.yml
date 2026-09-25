@@ -653,6 +653,20 @@ jobs:
           node --check "$ASSETS/luckysheet/luckysheet.umd.js"
           echo "Excel Viewer v0.9.6 aplicado com LuckyExcel 1.0.0 + Luckysheet 2.1.13, somente leitura."
 
+      - name: Diagnóstico temporário de índice XLSX
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "===== CACHE / LOAD ====="
+          grep -n -A 70 -B 20 'UniversalFileIndexCache' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt || true
+          echo "===== CATEGORY XLSX ====="
+          grep -n -A 35 -B 10 'fun categoryFor' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt || true
+          echo "===== XLSX VIEWER ROUTE ====="
+          grep -n -A 6 -B 6 'HighFidelityXlsxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt || true
+          echo "===== XLSX ASSETS ====="
+          find extracted_project/app/src/main/assets/xlsx_renderer -maxdepth 4 -type f -printf '%p %s bytes\n' | sort | head -n 120
+          exit 1
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
