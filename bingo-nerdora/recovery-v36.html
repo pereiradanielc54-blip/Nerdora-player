@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#10091d"><title>Atualizando Bingo Nerdora</title>
+<style>
+html,body{margin:0;min-height:100%;background:#08030e;color:#fff;font-family:system-ui,sans-serif}body{min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box}
+.box{text-align:center;max-width:420px}.n{width:80px;height:80px;margin:auto;border-radius:24px;display:grid;place-items:center;font-weight:1000;font-size:42px;background:linear-gradient(135deg,#8152ff,#ff43b2);box-shadow:0 0 40px #7040d855}.bar{height:6px;background:#ffffff14;border-radius:99px;overflow:hidden;margin:22px 0}.bar i{display:block;height:100%;width:30%;background:linear-gradient(90deg,#4de3ff,#9b5cff,#ff4bb8);animation:a 1s linear infinite}@keyframes a{from{transform:translateX(-120%)}to{transform:translateX(340%)}}small{color:#9c8ba8}
+</style></head>
+<body><div class="box"><div class="n">N</div><h2>Atualizando Bingo Nerdora</h2><p>Removendo apenas o cache antigo do jogo e carregando a versão mais recente.</p><div class="bar"><i></i></div><small id="s">Preparando...</small></div>
+<script>
+(async function(){
+ const s=document.getElementById("s");
+ try{
+  s.textContent="Limpando cache antigo...";
+  const keys=await caches.keys();await Promise.all(keys.filter(k=>k.indexOf("bingo-nerdora-v")===0).map(k=>caches.delete(k)));
+  s.textContent="Atualizando o aplicativo...";
+  if("serviceWorker"in navigator){const regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.map(r=>r.unregister()))}
+ }catch(e){}
+ s.textContent="Abrindo versão 36...";
+ setTimeout(()=>location.replace("./index.html?v=36&fresh="+Date.now()),450);
+})();
+</script></body></html>
