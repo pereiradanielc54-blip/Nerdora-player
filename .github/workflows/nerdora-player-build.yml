@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.6 High Fidelity XLSX
+name: Nerdora Player - Build v0.9.7 XLSX Discovery Fix
 
 on:
   workflow_dispatch:
@@ -653,19 +653,84 @@ jobs:
           node --check "$ASSETS/luckysheet/luckysheet.umd.js"
           echo "Excel Viewer v0.9.6 aplicado com LuckyExcel 1.0.0 + Luckysheet 2.1.13, somente leitura."
 
-      - name: Diagnóstico temporário de índice XLSX
+      - name: Aplicar descoberta incremental de arquivos v0.9.7
         shell: bash
         run: |
           set -euo pipefail
-          echo "===== CACHE / LOAD ====="
-          grep -n -A 70 -B 20 'UniversalFileIndexCache' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt || true
-          echo "===== CATEGORY XLSX ====="
-          grep -n -A 35 -B 10 'fun categoryFor' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt || true
-          echo "===== XLSX VIEWER ROUTE ====="
-          grep -n -A 6 -B 6 'HighFidelityXlsxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt || true
-          echo "===== XLSX ASSETS ====="
-          find extracted_project/app/src/main/assets/xlsx_renderer -maxdepth 4 -type f -printf '%p %s bytes\n' | sort | head -n 120
-          exit 1
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          files = Path("extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt")
+          s = files.read_text(encoding="utf-8")
+
+          old = '''        if (ready && !forceRescan) {
+              val paths = withContext(Dispatchers.IO) { UniversalFileIndexCache.readPaths(context) }
+              allFiles = withContext(Dispatchers.IO) {
+                  paths.asSequence().map(::File).filterNot(::isInsideNerdoraTrash).map(::deviceItem).toList()
+              }
+              scanLimited = UniversalFileIndexCache.wasLimited(context)
+          } else {'''
+
+          new = '''        if (ready && !forceRescan) {
+              val paths = withContext(Dispatchers.IO) { UniversalFileIndexCache.readPaths(context) }
+              val quickPaths = withContext(Dispatchers.IO) { scanQuickPublicFolders(root) }
+              val mergedPaths = (paths + quickPaths).distinct()
+              allFiles = withContext(Dispatchers.IO) {
+                  mergedPaths.asSequence().map(::File).filterNot(::isInsideNerdoraTrash).map(::deviceItem).toList()
+              }
+              scanLimited = UniversalFileIndexCache.wasLimited(context)
+              if (mergedPaths.size != paths.size) {
+                  withContext(Dispatchers.IO) {
+                      UniversalFileIndexCache.replace(context, mergedPaths, scanLimited)
+                  }
+              }
+          } else {'''
+
+          assert old in s or 'scanQuickPublicFolders(root)' in s, "Bloco de cache da v0.9.4 não encontrado"
+          s = s.replace(old, new, 1)
+
+          helper_anchor = 'private fun scanTrashFiles(): List<DeviceFileItem>'
+          helper = '''private fun scanQuickPublicFolders(root: File, limit: Int = 6000): List<String> {
+              val result = ArrayList<String>(512)
+              val stack = ArrayDeque<File>()
+              listOf(
+                  File(root, Environment.DIRECTORY_DOWNLOADS),
+                  File(root, Environment.DIRECTORY_DOCUMENTS)
+              ).filter { it.exists() && it.isDirectory && it.canRead() }.forEach(stack::add)
+
+              while (stack.isNotEmpty() && result.size < limit) {
+                  val dir = stack.removeLast()
+                  val children = runCatching { dir.listFiles() }.getOrNull() ?: continue
+                  for (child in children) {
+                      if (result.size >= limit) break
+                      if (shouldHideSystemPath(child) || isInsideNerdoraTrash(child)) continue
+                      if (child.isDirectory) stack.add(child)
+                      else if (child.isFile) result += child.absolutePath
+                  }
+              }
+              return result
+          }
+
+          '''
+          assert helper_anchor in s, "Ponto para helper de descoberta rápida não encontrado"
+          if 'private fun scanQuickPublicFolders' not in s:
+              s = s.replace(helper_anchor, helper + helper_anchor, 1)
+
+          files.write_text(s, encoding="utf-8")
+          PY
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 67/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.7"/' extracted_project/app/build.gradle.kts
+
+          grep -q 'versionName = "0.9.7"' extracted_project/app/build.gradle.kts
+          grep -q 'scanQuickPublicFolders(root)' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'Environment.DIRECTORY_DOWNLOADS' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'Environment.DIRECTORY_DOCUMENTS' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'ext in setOf("xls", "xlsx")' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'DocumentKind.XLSX -> HighFidelityXlsxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          echo "v0.9.7: índice rápido passa a descobrir automaticamente arquivos novos em Download e Documents."
 
       - name: Encontrar projeto Android
         id: android
@@ -740,7 +805,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.6"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.7"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -765,7 +830,8 @@ jobs:
           test -s app/src/main/assets/xlsx_renderer/luckyexcel.umd.js
           test -s app/src/main/assets/xlsx_renderer/luckysheet/luckysheet.umd.js
           grep -q 'DocumentKind.XLSX -> HighFidelityXlsxViewer' app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
-          echo "Nerdora Player v0.9.6 validado."
+          grep -q 'scanQuickPublicFolders(root)' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          echo "Nerdora Player v0.9.7 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -814,7 +880,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.6 assinada
+      - name: Publicar Release pública v0.9.7 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -823,8 +889,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Excel alta fidelidade"
-          NOTES="Nerdora Player v0.9.6: adiciona um novo visualizador XLSX somente leitura baseado em LuckyExcel 1.0.0 + Luckysheet 2.1.13, executado offline no WebView. Preserva estilos de célula, bordas, formatos numéricos, datas, porcentagens, fórmulas importadas, células mescladas, larguras de coluna, alturas de linha e múltiplas abas com fidelidade muito maior que o antigo XLSX→HTML. Reaproveita as fontes métricas livres já incluídas na v0.9.5 para Calibri, Cambria, Arial, Times New Roman e Courier New. Edição, exclusão, colagem e alterações ficam bloqueadas: é um visualizador. O leitor Word v0.9.5 permanece inalterado."
+          TITLE="Nerdora Player v${VERSION} — Correção de arquivos novos"
+          NOTES="Nerdora Player v0.9.7: corrige arquivos recém-baixados que não apareciam na aba Arquivos devido ao índice persistente criado para acelerar o carregamento. O Nerdora continua abrindo o cache instantaneamente, mas agora faz uma descoberta leve em Download e Documents e adiciona arquivos novos ao índice sem executar uma varredura completa do celular. Mantém o Excel de alta fidelidade v0.9.6 e o Word de alta fidelidade v0.9.5 inalterados."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
