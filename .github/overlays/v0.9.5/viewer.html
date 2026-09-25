@@ -1,0 +1,118 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=8.0, user-scalable=yes" />
+  <link rel="stylesheet" href="font-aliases.css" />
+  <style>
+    html, body { margin: 0; padding: 0; background: #e7e7eb; min-height: 100%; }
+    body { overflow-x: auto; -webkit-text-size-adjust: 100%; }
+    #styles { display: none; }
+    #doc { min-height: 100vh; padding: 12px 0 32px; }
+    .docx-wrapper { background: transparent !important; padding: 0 !important; }
+    section.docx {
+      margin: 12px auto !important;
+      box-shadow: 0 2px 12px rgba(0,0,0,.22);
+    }
+    * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div id="styles"></div>
+  <div id="doc"></div>
+
+  <script src="jszip.min.js"></script>
+  <script src="lodash.min.js"></script>
+  <script src="konva.min.js"></script>
+  <script src="docx-renderer.umd.js"></script>
+  <script>
+    (() => {
+      let observer = null;
+      let renderResult = null;
+
+      function decodeBase64Chunks() {
+        const total = NerdoraDocx.getChunkCount();
+        const parts = new Array(total);
+        for (let i = 0; i < total; i++) parts[i] = NerdoraDocx.getChunk(i);
+        const raw = atob(parts.join(""));
+        const bytes = new Uint8Array(raw.length);
+        const stride = 32768;
+        for (let start = 0; start < raw.length; start += stride) {
+          const end = Math.min(start + stride, raw.length);
+          for (let i = start; i < end; i++) bytes[i] = raw.charCodeAt(i);
+        }
+        return bytes;
+      }
+
+      function notifyPageVisibility(pages) {
+        if (!pages.length || !window.IntersectionObserver) {
+          NerdoraDocx.onPageChanged(1, Math.max(1, pages.length));
+          return;
+        }
+        if (observer) observer.disconnect();
+        const pageMap = new Map(pages.map((el, index) => [el, index + 1]));
+        observer = new IntersectionObserver((entries) => {
+          let best = null;
+          for (const entry of entries) {
+            if (!best || entry.intersectionRatio > best.intersectionRatio) best = entry;
+          }
+          if (best && best.intersectionRatio > 0) {
+            NerdoraDocx.onPageChanged(pageMap.get(best.target) || 1, pages.length);
+          }
+        }, { threshold: [0.05, 0.2, 0.4, 0.6, 0.8] });
+        pages.forEach(page => observer.observe(page));
+      }
+
+      async function start() {
+        try {
+          if (!window.docx || typeof window.docx.render !== "function") {
+            throw new Error("Motor docx-renderer não carregou.");
+          }
+          await document.fonts.ready;
+          const bytes = decodeBase64Chunks();
+          const body = document.getElementById("doc");
+          const styles = document.getElementById("styles");
+
+          renderResult = await window.docx.render(bytes, body, styles, {
+            breakPages: true,
+            ignoreFonts: false,
+            ignoreHeight: false,
+            ignoreWidth: false,
+            ignoreImageWrap: false,
+            ignoreTableWrap: false,
+            renderHeaders: true,
+            renderFooters: true,
+            renderFootnotes: true,
+            renderEndnotes: true,
+            useBase64URL: true,
+            debug: false
+          });
+
+          await document.fonts.ready;
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+          const resultPages = Array.isArray(renderResult && renderResult.pages)
+            ? renderResult.pages.map(p => p.element).filter(Boolean)
+            : [];
+          const pages = resultPages.length
+            ? resultPages
+            : Array.from(document.querySelectorAll("section.docx"));
+
+          const count = Math.max(1, pages.length);
+          NerdoraDocx.onRendered(count);
+          notifyPageVisibility(pages);
+        } catch (error) {
+          console.error(error);
+          NerdoraDocx.onError(error && error.message ? error.message : String(error));
+        }
+      }
+
+      window.addEventListener("load", start, { once: true });
+      window.addEventListener("beforeunload", () => {
+        try { if (observer) observer.disconnect(); } catch (_) {}
+        try { if (renderResult && renderResult.dispose) renderResult.dispose(); } catch (_) {}
+      });
+    })();
+  </script>
+</body>
+</html>
