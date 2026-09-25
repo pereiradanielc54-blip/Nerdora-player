@@ -850,3 +850,20 @@ body.reduceMotion .bootGlow{animation:none!important}
   .gameControlRow #bingo{min-width:92px!important;padding-left:12px!important;padding-right:12px!important}
   .conversationControl .conversationMenu{left:0!important;right:auto!important;bottom:48px!important;width:min(88vw,360px)!important}
 }
+
+/* MULTICARD CAROUSEL V39 */
+.multiCardNav{width:min(100%,520px);margin:8px auto 9px;display:grid;grid-template-columns:42px 1fr 42px;align-items:center;gap:8px}
+.multiCardNav.hidden{display:none!important}
+.carouselArrow{width:42px;height:38px;padding:0!important;border-radius:12px!important;background:rgba(255,255,255,.045)!important;border:1px solid var(--theme-line)!important;font-size:24px!important;line-height:1!important;color:#ddd1e7!important}
+.carouselArrow:active{transform:scale(.94)}
+.multiCardMeta{text-align:center;min-width:0}.multiCardMeta strong{display:block;font-size:10px;color:#e8deef}.multiCardMeta small{display:block;margin-top:3px;font-size:7px;color:#716578}
+.cardDots{display:flex;align-items:center;justify-content:center;gap:5px;margin-top:5px}.cardDot{width:7px!important;height:7px!important;min-width:7px!important;padding:0!important;border-radius:50%!important;border:0!important;background:rgba(255,255,255,.16)!important;box-shadow:none!important}.cardDot.active{width:18px!important;border-radius:99px!important;background:var(--theme-accent)!important;box-shadow:0 0 10px color-mix(in srgb,var(--theme-accent) 40%,transparent)!important}.cardDot.near:not(.active){background:#ffb04b!important;box-shadow:0 0 8px rgba(255,176,75,.35)!important}
+.cardCarousel{width:min(100%,520px);margin:0 auto;perspective:1100px;transform-style:preserve-3d;touch-action:pan-y;will-change:transform,opacity;transform-origin:center center}
+.cardCarousel .card{width:100%}
+.cardCarousel.cardRotateOutLeft{animation:cardOutLeft .15s ease-in forwards}.cardCarousel.cardRotateOutRight{animation:cardOutRight .15s ease-in forwards}.cardCarousel.cardRotateInRight{animation:cardInRight .24s cubic-bezier(.2,.75,.2,1)}.cardCarousel.cardRotateInLeft{animation:cardInLeft .24s cubic-bezier(.2,.75,.2,1)}
+@keyframes cardOutLeft{to{transform:translateX(-22%) rotateY(30deg) scale(.94);opacity:.18;filter:blur(1px)}}@keyframes cardOutRight{to{transform:translateX(22%) rotateY(-30deg) scale(.94);opacity:.18;filter:blur(1px)}}@keyframes cardInRight{from{transform:translateX(24%) rotateY(-30deg) scale(.94);opacity:.18}to{transform:none;opacity:1}}@keyframes cardInLeft{from{transform:translateX(-24%) rotateY(30deg) scale(.94);opacity:.18}to{transform:none;opacity:1}}
+body.reduceMotion .cardCarousel{animation:none!important}
+.setupField select#cardCountSelect{font-weight:800}
+@media(max-width:560px){
+  .multiCardNav{grid-template-columns:36px 1fr 36px;margin:6px auto 8px;gap:5px}.carouselArrow{width:36px;height:34px;font-size:21px!important}.multiCardMeta small{font-size:6px}.cardCarousel{width:100%}
+}
