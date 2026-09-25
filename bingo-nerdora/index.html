@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-app-version="36">
+<html lang="pt-BR" data-app-version="37">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -10,22 +10,22 @@
 <meta name="apple-mobile-web-app-title" content="Bingo Nerdora">
 <title>Bingo Nerdora</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="assets/bingo-cover.webp?v=36" type="image/webp">
+<link rel="icon" href="assets/bingo-cover.webp?v=37" type="image/webp">
 <link rel="apple-touch-icon" href="icon.svg">
-<meta property="og:image" content="assets/bingo-cover.webp?v=36">
+<meta property="og:image" content="assets/bingo-cover.webp?v=37">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Fredoka:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=36">
+<link rel="stylesheet" href="style.css?v=37">
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 </head>
 <body>
 <div id="bootSplash" class="bootSplash" aria-live="polite" aria-label="Carregando Bingo Nerdora">
   <div class="bootGlow" aria-hidden="true"></div>
-  <div class="bootCoverFrame"><img src="assets/bingo-cover.webp?v=36" alt="Capa do Bingo Nerdora"></div>
+  <div class="bootCoverFrame"><img src="assets/bingo-cover.webp?v=37" alt="Capa do Bingo Nerdora"></div>
   <div class="bootBrand"><span>NERDORA GAMES</span><strong>Bingo Nerdora</strong><small id="bootStatus">Preparando o jogo...</small></div>
   <div class="bootProgress"><i id="bootProgressFill"></i></div>
-  <div class="bootVersion">v36 • iniciando jogo</div>
+  <div class="bootVersion">v37 • iniciando jogo</div>
 </div>
 <div class="nerdoraBg" aria-hidden="true"></div>
 <div class="themeAmbient" aria-hidden="true"><span></span><i></i></div>
@@ -176,9 +176,7 @@
 
     <button id="roomSettingsBtn" class="roomSettingsBtn" type="button">⚙️ Configurações de áudio e jogo</button>
 
-    <div class="quickChatBlock"><h3>Chat rápido</h3><div id="quickChat" class="quickChat">
-      <button data-chat="Boa sorte!">🍀 Boa sorte</button><button data-chat="🔥">🔥</button><button data-chat="😂">😂</button><button data-chat="Quase!">😱 Quase!</button><button data-chat="Nyan!">🐾 Nyan!</button>
-    </div><div id="chatFeed" class="chatFeed"></div></div>
+    
     <div class="matchHistoryBlock"><h3>Últimas partidas</h3><div id="matchHistory" class="matchHistory"></div></div>
     <div class="nyanCompanion"><div class="nyanThumb" aria-hidden="true"></div><div><strong>Nyan está na sala</strong><small>Ele acompanha cada chamada.</small></div></div>
     <button id="leave" class="danger wide">Sair da sala</button>
@@ -209,30 +207,38 @@
       <div id="waitingPlayerCount" class="waitingPlayerCount">1/6</div>
     </div>
     <div class="letters"><b class="letterB">B</b><b class="letterI">I</b><b class="letterN">N</b><b class="letterG">G</b><b class="letterO">O</b></div>
-    <div id="eventBanner" class="eventBanner hidden"></div>
-    <div id="nearBingo" class="nearBingo hidden">🔥 Falta 1 para o Bingo!</div>
+    <div class="gameNotices" aria-live="polite">
+      <div id="eventBanner" class="eventBanner hidden"></div>
+      <div id="nearBingo" class="nearBingo hidden">🔥 Falta 1 para o Bingo!</div>
+    </div>
     <div id="spectatorBanner" class="spectatorBanner hidden">👀 Você entrou como espectador. Sua cartela será liberada na próxima rodada.</div>
     <div id="card" class="card"></div>
     <section id="opponentsArea" class="opponentsArea hidden" aria-label="Adversários">
       <div class="opponentsHead"><span>ADVERSÁRIOS</span><small>Marcações visíveis sem revelar números</small></div>
       <div id="opponentsGrid" class="opponentsGrid"></div>
     </section>
-    <section class="tauntDock" aria-label="Provocações e mensagens rápidas">
-      <div class="tauntVisible">
-        <button class="tauntChip" data-taunt="🔥 Tô chegando!">🔥 Tô chegando!</button>
-        <button class="tauntChip" data-taunt="😂 Tá nervoso?">😂 Tá nervoso?</button>
-        <button class="tauntChip" data-taunt="😏 Quase!">😏 Quase!</button>
-        <button id="tauntToggle" class="tauntOpenBtn" type="button">💬 Conversa</button>
-      </div>
-      <div id="tauntMenu" class="tauntMenu hidden">
-        <button data-taunt="🍀 Boa sorte!">🍀 Boa sorte!</button>
-        <button data-taunt="🔥 Bingo vem aí!">🔥 Bingo vem aí!</button>
-        <button data-taunt="🐾 Nyan tá de olho!">🐾 Nyan tá de olho!</button>
-        <button data-taunt="👀 Eu vi essa marcação!">👀 Eu vi essa marcação!</button>
-        <button data-taunt="😎 Essa doeu!">😎 Essa doeu!</button>
-        <button data-taunt="😂 Hoje não!">😂 Hoje não!</button>
-        <button data-taunt="🤝 GG!">🤝 GG!</button>
-        <button data-taunt="💜 Nerdora!">💜 Nerdora!</button>
+    <section class="tauntDock compactConversation" aria-label="Conversa e provocações">
+      <button id="tauntToggle" class="tauntOpenBtn conversationOnlyBtn" type="button">💬 Conversa</button>
+      <div id="tauntMenu" class="tauntMenu conversationMenu hidden">
+        <div class="conversationMenuHead"><strong>Conversa rápida</strong><small>Envie uma frase ou emoji para a sala</small></div>
+        <div class="conversationGrid">
+          <button data-taunt="🍀 Boa sorte!">🍀 Boa sorte!</button>
+          <button data-taunt="🔥 Tô chegando!">🔥 Tô chegando!</button>
+          <button data-taunt="😂 Tá nervoso?">😂 Tá nervoso?</button>
+          <button data-taunt="😏 Quase!">😏 Quase!</button>
+          <button data-taunt="🔥 Bingo vem aí!">🔥 Bingo vem aí!</button>
+          <button data-taunt="🐾 Nyan tá de olho!">🐾 Nyan tá de olho!</button>
+          <button data-taunt="👀 Eu vi essa marcação!">👀 Eu vi essa marcação!</button>
+          <button data-taunt="😎 Essa doeu!">😎 Essa doeu!</button>
+          <button data-taunt="😂 Hoje não!">😂 Hoje não!</button>
+          <button data-taunt="🤝 GG!">🤝 GG!</button>
+          <button data-taunt="💜 Nerdora!">💜 Nerdora!</button>
+          <button data-taunt="🔥">🔥</button>
+          <button data-taunt="😂">😂</button>
+          <button data-taunt="😱 Quase!">😱 Quase!</button>
+          <button data-taunt="🐾 Nyan!">🐾 Nyan!</button>
+        </div>
+        <div class="conversationRecent"><span>Mensagens recentes</span><div id="chatFeed" class="chatFeed conversationFeed"></div></div>
       </div>
     </section>
     <div class="actions center bingoActionRow"><button id="draw" class="primary hidden">Iniciar sorteio automático</button><button id="bingo" class="green">BINGO!</button></div>
@@ -240,8 +246,8 @@
     <div id="replayArea" class="replayArea hidden"><button id="replayInline" class="primary wide">🔄 Jogar novamente</button></div>
   </main>
 
-  <aside class="panel">
-    <label>HISTÓRICO DE CHAMADAS</label><div id="history" class="history"></div>
+  <aside class="panel historyPanel">
+    <label>HISTÓRICO DE CHAMADAS</label><div id="history" class="history historyFill"></div>
     <div class="achievementsBox"><h3>Conquistas locais</h3><div id="achievements" class="achievements"></div></div>
     <h3>Regra atual</h3><p id="ruleText" class="note">Complete o padrão da sala e aguarde todas as suas marcações serem chamadas.</p>
   </aside>
@@ -313,7 +319,7 @@
         <div class="settingsSectionTitle"><span>ⓘ</span><div><strong>Sobre</strong><small>Informações desta versão</small></div></div>
         <div class="aboutCard">
           <div class="aboutLogo">N</div>
-          <div><strong>Bingo Nerdora</strong><span>Versão 36 • atualização em segundo plano</span></div>
+          <div><strong>Bingo Nerdora</strong><span>Versão 37 • histórico adaptativo e conversa compacta</span></div>
         </div>
         <p>Jogo de Bingo online do universo Nerdora, com salas P2P, temas completos, músicas temáticas, modos de vitória, placar e recursos sociais.</p>
         <div class="aboutFacts"><span>🔒 Preferências salvas localmente</span><span>👥 Multiplayer P2P</span><span>🎨 4 temas visuais</span></div>
@@ -347,7 +353,7 @@
     </div>
   </div>
 </div>
-<script src="app.js?v=36"></script>
-<script src="extras.js?v=36"></script>
+<script src="app.js?v=37"></script>
+<script src="extras.js?v=37"></script>
 </body>
 </html>
