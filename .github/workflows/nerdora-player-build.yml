@@ -285,6 +285,15 @@ jobs:
           grep -q 'application/msword' extracted_project/app/src/main/AndroidManifest.xml
           echo "Word Reader v0.9.2 aplicado."
 
+      - name: Diagnosticar atualizador atual
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== arquivos relacionados a update/release/github/download ==="
+          grep -RIlE 'update|atualiza|release|github|DownloadManager|browser_download_url|ACTION_VIEW|REQUEST_INSTALL_PACKAGES' extracted_project/app/src/main/java extracted_project/app/src/main/AndroidManifest.xml 2>/dev/null || true
+          echo "=== ocorrências com contexto ==="
+          grep -RInE -C 5 'update|atualiza|release|github|DownloadManager|browser_download_url|ACTION_VIEW|REQUEST_INSTALL_PACKAGES' extracted_project/app/src/main/java extracted_project/app/src/main/AndroidManifest.xml 2>/dev/null | head -n 1200 || true
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
