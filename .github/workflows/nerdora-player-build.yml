@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.12 XLSX Safe Bounds
+name: Nerdora Player - Build v0.9.13 XLSX Bottom Tabs
 
 on:
   workflow_dispatch:
@@ -991,6 +991,49 @@ jobs:
           grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           echo "v0.9.12: parser visual da v0.9.10 restaurado e área estendida pelas referências reais do XML."
 
+      - name: Fixar abas do Excel no rodapé v0.9.13
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp .github/overlays/v0.9.13/viewer.html \
+            extracted_project/app/src/main/assets/xlsx_renderer/viewer.html
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 73/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.13"/' extracted_project/app/build.gradle.kts
+
+          VIEWER="extracted_project/app/src/main/assets/xlsx_renderer/viewer.html"
+
+          grep -q 'versionName = "0.9.13"' extracted_project/app/build.gradle.kts
+          grep -q 'body.has-tabs #viewport' "$VIEWER"
+          grep -q 'bottom: 60px' "$VIEWER"
+          grep -q 'height: 60px' "$VIEWER"
+          grep -q 'position: absolute' "$VIEWER"
+          grep -q 'document.body.classList.toggle("has-tabs", hasTabs)' "$VIEWER"
+
+          # Confirma que a leitura/parser da v0.9.12 foi preservada.
+          grep -q 'function parseWorkbook' "$VIEWER"
+          grep -q 'function computeUsedBounds' "$VIEWER"
+          grep -q 'function extractRawBounds' "$VIEWER"
+          grep -q 'getElementsByTagNameNS("\*"' "$VIEWER"
+          ! grep -q 'nodeLocalName' "$VIEWER"
+          ! grep -q 'LuckyExcel.transformExcelToLucky' "$VIEWER"
+          ! grep -q 'luckysheet.create' "$VIEWER"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path("extracted_project/app/src/main/assets/xlsx_renderer/viewer.html").read_text(encoding="utf-8")
+          scripts = re.findall(r'<script>([\s\S]*?)</script>', html)
+          assert scripts, "Script inline XLSX v0.9.13 não encontrado"
+          Path("/tmp/xlsx-v0913.js").write_text("\n".join(scripts), encoding="utf-8")
+          PY
+          node --check /tmp/xlsx-v0913.js
+
+          grep -q 'DocumentKind.XLSX -> HighFidelityXlsxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          echo "v0.9.13: leitura XLSX mantida; somente navegação por abas movida para o rodapé."
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
@@ -1064,7 +1107,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.12"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.13"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -1100,7 +1143,9 @@ jobs:
           ! grep -q 'body.has-tabs #viewport' app/src/main/assets/xlsx_renderer/viewer.html
           ! grep -q 'LuckyExcel.transformExcelToLucky' app/src/main/assets/xlsx_renderer/viewer.html
           ! grep -q 'luckysheet.create' app/src/main/assets/xlsx_renderer/viewer.html
-          echo "Nerdora Player v0.9.12 validado."
+          grep -q 'body.has-tabs #viewport' app/src/main/assets/xlsx_renderer/viewer.html
+          grep -q 'bottom: 60px' app/src/main/assets/xlsx_renderer/viewer.html
+          echo "Nerdora Player v0.9.13 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -1149,7 +1194,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.12 assinada
+      - name: Publicar Release pública v0.9.13 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -1158,8 +1203,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Excel área completa"
-          NOTES="Nerdora Player v0.9.12: corrige a regressão de tela em branco da v0.9.11. O parser visual comprovado da v0.9.10 foi restaurado sem as alterações de namespace que quebraram a renderização. A única mudança estrutural mantida é a detecção segura da área real pelas referências de células e mesclas do XML; o caso de teste A1:H20 é validado no build. Assim o documento volta a aparecer e não deve encerrar a folha logo após o título. O leitor Word permanece inalterado."
+          TITLE="Nerdora Player v${VERSION} — Abas do Excel no rodapé"
+          NOTES="Nerdora Player v0.9.13: mantém exatamente a leitura e o parser XLSX da v0.9.12 e altera somente a interface de navegação. As abas da planilha ficam fixadas no rodapé do visualizador, enquanto o documento ocupa todo o espaço acima e continua rolável. Nenhuma alteração foi feita no leitor Word."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
