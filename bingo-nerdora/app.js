@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-var APP_VERSION="37";
+var APP_VERSION="38";
 var $=function(id){return document.getElementById(id)};
 var E={
 home:$("home"),game:$("game"),name:$("name"),create:$("create"),openJoin:$("openJoin"),joinBox:$("joinBox"),room:$("roomInput"),join:$("join"),net:$("net"),bootSplash:$("bootSplash"),bootStatus:$("bootStatus"),bootProgressFill:$("bootProgressFill"),
@@ -360,6 +360,12 @@ function toggleVoiceMute(){
 }
 function renderCard(){E.card.innerHTML="";E.card.classList.toggle("spectatorCard",S.spectator);S.card.forEach(function(n,i){var marked=S.marked.has(i),called=i===12||S.called.indexOf(n)>=0,b=document.createElement("button");b.className="cell"+(marked?" marked":"")+(marked&&!called?" pending":"")+(i===12?" free":"");b.disabled=S.spectator;if(i===12)b.innerHTML='<span class="nerdoraMark" aria-label="Nerdora">N</span>';else b.textContent=n;b.onclick=function(){if(i===12||S.spectator)return;S.marked.has(i)?S.marked.delete(i):S.marked.add(i);sfx("mark");renderCard();renderBingoState();sendMarks()};E.card.appendChild(b)});renderBingoState();renderNear()}
 function renderNear(){var near=!S.spectator&&nearMode(S.marked,S.config.mode)&&!modeComplete(S.marked,S.config.mode);E.nearBingo.classList.toggle("hidden",!near);if(near)E.nearBingo.textContent="🔥 Falta 1 para "+modeLabel(S.config.mode)+"!";renderNyan()}
+function recentHistoryCapacity(){
+  if(!E.recentCalls)return 5;
+  var width=E.recentCalls.clientWidth||0,gap=5,ball=34;
+  if(width<=0)return 5;
+  return Math.max(1,Math.min(75,Math.floor((width+gap)/(ball+gap))))
+}
 function historyCapacity(){
   if(!E.history)return 75;
   var rect=E.history.getBoundingClientRect(),style=getComputedStyle(E.history),
@@ -372,7 +378,7 @@ function renderHistory(){
   E.history.innerHTML="";var latest=S.called.length?S.called[0]:null;
   if(E.recentCalls){
     E.recentCalls.innerHTML="";
-    var top=S.called.slice(0,5);
+    var top=S.called.slice(0,recentHistoryCapacity());
     if(!top.length)E.recentCalls.innerHTML='<span class="recentEmpty">Aguardando chamadas...</span>';
     else top.forEach(function(n,idx){var b=document.createElement("span");b.className="recentBall "+tone(n)+(idx===0?" newest":"");b.innerHTML='<small>'+letter(n)+'</small><b>'+n+'</b>';E.recentCalls.appendChild(b)})
   }
