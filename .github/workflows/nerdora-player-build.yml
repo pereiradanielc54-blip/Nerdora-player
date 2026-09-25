@@ -921,9 +921,10 @@ jobs:
           test -s app/src/main/assets/xlsx_renderer/luckysheet/luckysheet.umd.js
           grep -q 'DocumentKind.XLSX -> HighFidelityXlsxViewer' app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           grep -q 'scanQuickPublicFolders(root)' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
-          grep -q 'allowEdit: false' app/src/main/assets/xlsx_renderer/viewer.html
           grep -q 'normalizeXlsxForLuckyExcel' app/src/main/assets/xlsx_renderer/viewer.html
           grep -q 'startStaticViewer' app/src/main/assets/xlsx_renderer/viewer.html
+          grep -q 'sheet-stage' app/src/main/assets/xlsx_renderer/viewer.html
+          ! grep -q 'luckysheet.create' app/src/main/assets/xlsx_renderer/viewer.html
           echo "Nerdora Player v0.9.9 validado."
 
       - name: Compilar APK Release assinado
