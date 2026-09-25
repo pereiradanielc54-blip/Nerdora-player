@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.8 XLSX Renderer Fix
+name: Nerdora Player - Build v0.9.9 XLSX Final View
 
 on:
   workflow_dispatch:
@@ -769,6 +769,59 @@ jobs:
           grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           echo "v0.9.8: XLSX usa somente leitura nativo, resize seguro e normalização de namespaces OOXML."
 
+      - name: Aplicar visualização final XLSX v0.9.9
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp .github/overlays/v0.9.9/viewer.html \
+            extracted_project/app/src/main/assets/xlsx_renderer/viewer.html
+
+          python3 - <<'PY'
+          from pathlib import Path
+          viewer = Path("extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt")
+          text = viewer.read_text(encoding="utf-8")
+          old = 'DocumentKind.XLSX -> "Excel • alta fidelidade • somente leitura"'
+          new = 'DocumentKind.XLSX -> "Excel • visualização final"'
+          assert old in text or new in text, "Título XLSX não encontrado"
+          text = text.replace(old, new, 1)
+          viewer.write_text(text, encoding="utf-8")
+          PY
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 69/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.9"/' extracted_project/app/build.gradle.kts
+
+          VIEWER="extracted_project/app/src/main/assets/xlsx_renderer/viewer.html"
+
+          grep -q 'versionName = "0.9.9"' extracted_project/app/build.gradle.kts
+          grep -q 'Excel • visualização final' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          grep -q 'startStaticViewer' "$VIEWER"
+          grep -q 'sheet-stage' "$VIEWER"
+          grep -q 'normalizeXlsxForLuckyExcel' "$VIEWER"
+          grep -q 'buildMergeMap' "$VIEWER"
+          grep -q 'buildBorderMap' "$VIEWER"
+          grep -q 'renderImages' "$VIEWER"
+          ! grep -q 'luckysheet.create' "$VIEWER"
+          ! grep -q 'luckysheet.umd.js' "$VIEWER"
+          ! grep -q 'luckysheet-cols-h-c' "$VIEWER"
+          ! grep -q 'luckysheet-rows-h' "$VIEWER"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path("extracted_project/app/src/main/assets/xlsx_renderer/viewer.html").read_text(encoding="utf-8")
+          scripts = re.findall(r'<script>([\s\S]*?)</script>', html)
+          assert scripts, "Script inline do renderer estático XLSX não encontrado"
+          Path("/tmp/xlsx-final-view.js").write_text("\n".join(scripts), encoding="utf-8")
+          PY
+          node --check /tmp/xlsx-final-view.js
+
+          test -s extracted_project/app/src/main/assets/docx_renderer/jszip.min.js
+          test -s extracted_project/app/src/main/assets/xlsx_renderer/luckyexcel.umd.js
+          grep -q 'DocumentKind.XLSX -> HighFidelityXlsxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          echo "v0.9.9: Excel renderizado como documento final, sem cabeçalhos de linhas/colunas, seleção ou grade artificial."
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
@@ -842,7 +895,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.8"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.9"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -868,9 +921,11 @@ jobs:
           test -s app/src/main/assets/xlsx_renderer/luckysheet/luckysheet.umd.js
           grep -q 'DocumentKind.XLSX -> HighFidelityXlsxViewer' app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           grep -q 'scanQuickPublicFolders(root)' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
-          grep -q 'allowEdit: false' app/src/main/assets/xlsx_renderer/viewer.html
           grep -q 'normalizeXlsxForLuckyExcel' app/src/main/assets/xlsx_renderer/viewer.html
-          echo "Nerdora Player v0.9.8 validado."
+          grep -q 'startStaticViewer' app/src/main/assets/xlsx_renderer/viewer.html
+          grep -q 'sheet-stage' app/src/main/assets/xlsx_renderer/viewer.html
+          ! grep -q 'luckysheet.create' app/src/main/assets/xlsx_renderer/viewer.html
+          echo "Nerdora Player v0.9.9 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -919,7 +974,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.8 assinada
+      - name: Publicar Release pública v0.9.9 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -928,8 +983,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Correção do Excel Viewer"
-          NOTES="Nerdora Player v0.9.8: corrige o visualizador Excel em duas frentes. O modo somente leitura passa a usar a opção nativa allowEdit=false do Luckysheet, removendo bloqueios manuais que podiam impedir a grade de desenhar; o renderer também aguarda dimensões válidas do WebView e força o resize do canvas após a criação. Além disso, uma camada de compatibilidade normaliza namespaces OOXML prefixados, como <x:workbook> e <x:worksheet>, que são válidos no Excel mas não eram reconhecidos pelo parser antigo do LuckyExcel. Mantém descoberta rápida de arquivos da v0.9.7 e não altera o leitor Word."
+          TITLE="Nerdora Player v${VERSION} — Excel em visualização final"
+          NOTES="Nerdora Player v0.9.9: troca o Excel Viewer de uma interface de planilha por uma visualização final somente leitura. O LuckyExcel continua lendo o XLSX, mas o Nerdora agora renderiza diretamente o conteúdo como uma folha pronta: sem letras de colunas, números de linhas, seleção azul, barra de edição ou grade artificial. Mantém larguras e alturas, células mescladas, preenchimentos, fontes, alinhamentos, valores formatados, bordas reais do arquivo, imagens e múltiplas abas. Mantém a normalização OOXML da v0.9.8, descoberta rápida de arquivos da v0.9.7 e não altera o leitor Word."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"

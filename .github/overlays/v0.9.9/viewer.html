@@ -1,0 +1,641 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=8.0, user-scalable=yes" />
+  <link rel="stylesheet" href="../docx_renderer/font-aliases.css" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #eceff1;
+      overflow: hidden;
+      -webkit-text-size-adjust: 100%;
+      font-family: Calibri, Carlito, Arial, sans-serif;
+    }
+
+    #app {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      background: #eceff1;
+    }
+
+    #viewport {
+      flex: 1 1 auto;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 14px;
+      box-sizing: border-box;
+    }
+
+    .sheet-stage {
+      position: relative;
+      margin: 0 auto 18px;
+      background: #fff;
+      box-shadow: 0 2px 14px rgba(0,0,0,.18);
+      transform-origin: top left;
+      overflow: visible;
+    }
+
+    .cell {
+      position: absolute;
+      box-sizing: border-box;
+      display: flex;
+      min-width: 0;
+      min-height: 0;
+      padding: 1px 3px;
+      color: #000;
+      background: transparent;
+      overflow: visible;
+    }
+
+    .cell-content {
+      width: 100%;
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      align-items: inherit;
+      justify-content: inherit;
+      white-space: nowrap;
+      overflow: visible;
+      line-height: 1.18;
+    }
+
+    .cell.wrap .cell-content {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      overflow: hidden;
+    }
+
+    .cell.clip .cell-content {
+      overflow: hidden;
+      text-overflow: clip;
+    }
+
+    .cell.vertical-text .cell-content {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+    }
+
+    .sheet-image {
+      position: absolute;
+      object-fit: contain;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    #tabs {
+      flex: 0 0 auto;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      overflow-x: auto;
+      background: rgba(255,255,255,.96);
+      border-top: 1px solid rgba(0,0,0,.10);
+      box-shadow: 0 -2px 8px rgba(0,0,0,.06);
+    }
+
+    #tabs.visible { display: flex; }
+
+    .tab {
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 14px;
+      background: #e8eaed;
+      color: #263238;
+      font: inherit;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .tab.active {
+      background: #153f33;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    #empty {
+      display: none;
+      padding: 36px 24px;
+      text-align: center;
+      color: #455a64;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="viewport">
+      <div id="sheetHost"></div>
+      <div id="empty">Esta aba não possui conteúdo visível.</div>
+    </div>
+    <div id="tabs"></div>
+  </div>
+
+  <script src="../docx_renderer/jszip.min.js"></script>
+  <script src="luckyexcel.umd.js"></script>
+  <script>
+    (() => {
+      const SPREADSHEET_NS = [
+        "http://schemas.openxmlformats.org/spreadsheetml/2006/main",
+        "http://purl.oclc.org/ooxml/spreadsheetml/main"
+      ];
+
+      const DEFAULT_COL_WIDTH = 73;
+      const DEFAULT_ROW_HEIGHT = 19;
+      const MAX_RENDER_ROWS = 2000;
+      const MAX_RENDER_COLS = 300;
+
+      let workbook = null;
+      let activeSheetIndex = 0;
+
+      function decodeBase64Chunks() {
+        const total = NerdoraXlsx.getChunkCount();
+        const parts = new Array(total);
+        for (let i = 0; i < total; i++) parts[i] = NerdoraXlsx.getChunk(i);
+
+        const raw = atob(parts.join(""));
+        const bytes = new Uint8Array(raw.length);
+        const stride = 32768;
+        for (let start = 0; start < raw.length; start += stride) {
+          const end = Math.min(start + stride, raw.length);
+          for (let i = start; i < end; i++) bytes[i] = raw.charCodeAt(i);
+        }
+        return bytes;
+      }
+
+      function escapeRegex(value) {
+        return value.replace(/[.*+?^$\{\}()|[\]\\]/g, "\\$&");
+      }
+
+      function normalizeSpreadsheetXml(xml) {
+        let result = xml;
+        for (const namespaceUri of SPREADSHEET_NS) {
+          const escapedUri = escapeRegex(namespaceUri);
+          const declaration = new RegExp(
+            'xmlns:([A-Za-z_][A-Za-z0-9_.-]*)=["\\\']' + escapedUri + '["\\\']'
+          );
+          const match = result.match(declaration);
+          if (!match) continue;
+
+          const prefix = match[1];
+          const prefixedTag = new RegExp("<(/?)" + escapeRegex(prefix) + ":", "g");
+          result = result.replace(prefixedTag, "<$1");
+          result = result.replace(match[0], 'xmlns="' + namespaceUri + '"');
+        }
+        return result;
+      }
+
+      async function normalizeXlsxForLuckyExcel(bytes) {
+        if (!window.JSZip) return bytes;
+
+        const zip = await JSZip.loadAsync(bytes);
+        const jobs = [];
+        let changed = false;
+
+        zip.forEach((relativePath, entry) => {
+          if (entry.dir || !relativePath.toLowerCase().endsWith(".xml")) return;
+          if (!relativePath.startsWith("xl/")) return;
+
+          jobs.push((async () => {
+            const original = await entry.async("string");
+            const normalized = normalizeSpreadsheetXml(original);
+            if (normalized !== original) {
+              changed = true;
+              zip.file(relativePath, normalized);
+            }
+          })());
+        });
+
+        await Promise.all(jobs);
+        if (!changed) return bytes;
+
+        return new Uint8Array(
+          await zip.generateAsync({
+            type: "uint8array",
+            compression: "DEFLATE",
+            compressionOptions: { level: 6 }
+          })
+        );
+      }
+
+      function asExcelFile(bytes) {
+        const type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        try {
+          return new File([bytes], "Nerdora.xlsx", { type });
+        } catch (_) {
+          const blob = new Blob([bytes], { type });
+          blob.name = "Nerdora.xlsx";
+          return blob;
+        }
+      }
+
+      function numberFromKey(value, fallback = 0) {
+        const n = Number(value);
+        return Number.isFinite(n) ? n : fallback;
+      }
+
+      function cellHasMeaning(cell) {
+        if (!cell) return false;
+        const v = cell.v;
+        if (v == null) return false;
+        if (typeof v !== "object") return String(v).length > 0;
+        if (v.m != null && String(v.m).length > 0) return true;
+        if (v.v != null && String(v.v).length > 0) return true;
+        return !!(
+          v.bg || v.fc || v.ff || v.bl || v.it || v.un || v.cl ||
+          v.fs || v.ht != null || v.vt != null || v.tb != null ||
+          v.tr != null || v.rt != null || v.mc
+        );
+      }
+
+      function getMeaningfulBounds(sheet) {
+        let maxRow = 0;
+        let maxCol = 0;
+
+        const cells = Array.isArray(sheet.celldata) ? sheet.celldata : [];
+        for (const cell of cells) {
+          if (!cellHasMeaning(cell)) continue;
+          maxRow = Math.max(maxRow, numberFromKey(cell.r));
+          maxCol = Math.max(maxCol, numberFromKey(cell.c));
+        }
+
+        const config = sheet.config || {};
+        const merges = config.merge || {};
+        Object.values(merges).forEach(m => {
+          if (!m) return;
+          const r = numberFromKey(m.r);
+          const c = numberFromKey(m.c);
+          const rs = Math.max(1, numberFromKey(m.rs, 1));
+          const cs = Math.max(1, numberFromKey(m.cs, 1));
+          maxRow = Math.max(maxRow, r + rs - 1);
+          maxCol = Math.max(maxCol, c + cs - 1);
+        });
+
+        const images = sheet.images || {};
+        if (Object.keys(images).length) {
+          maxRow = Math.max(maxRow, 20);
+          maxCol = Math.max(maxCol, 10);
+        }
+
+        maxRow = Math.min(maxRow, MAX_RENDER_ROWS - 1);
+        maxCol = Math.min(maxCol, MAX_RENDER_COLS - 1);
+
+        return { maxRow, maxCol };
+      }
+
+      function buildDimensions(sheet, maxRow, maxCol) {
+        const config = sheet.config || {};
+        const rowlen = config.rowlen || {};
+        const columnlen = config.columnlen || {};
+        const rowhidden = config.rowhidden || {};
+        const colhidden = config.colhidden || {};
+
+        const defaultRow = numberFromKey(sheet.defaultRowHeight, DEFAULT_ROW_HEIGHT) || DEFAULT_ROW_HEIGHT;
+        const defaultCol = numberFromKey(sheet.defaultColWidth, DEFAULT_COL_WIDTH) || DEFAULT_COL_WIDTH;
+
+        const rows = [];
+        const cols = [];
+        const y = [0];
+        const x = [0];
+
+        for (let r = 0; r <= maxRow; r++) {
+          const h = Object.prototype.hasOwnProperty.call(rowhidden, String(r))
+            ? 0
+            : Math.max(0, numberFromKey(rowlen[String(r)], defaultRow));
+          rows.push(h);
+          y.push(y[y.length - 1] + h);
+        }
+
+        for (let c = 0; c <= maxCol; c++) {
+          const w = Object.prototype.hasOwnProperty.call(colhidden, String(c))
+            ? 0
+            : Math.max(0, numberFromKey(columnlen[String(c)], defaultCol));
+          cols.push(w);
+          x.push(x[x.length - 1] + w);
+        }
+
+        return { rows, cols, x, y, width: x[x.length - 1], height: y[y.length - 1] };
+      }
+
+      function borderCss(style) {
+        if (!style) return null;
+
+        const code = numberFromKey(style.style, 1);
+        const color = style.color || "#000";
+        let width = 1;
+        let line = "solid";
+
+        if (code === 2) width = 0.5;
+        if (code === 3) line = "dotted";
+        if ([4,5,6,9,10,11,12].includes(code)) line = "dashed";
+        if (code === 7) { line = "double"; width = 3; }
+        if ([8,9,10,11].includes(code)) width = 2;
+        if (code === 13) width = 3;
+
+        return width + "px " + line + " " + color;
+      }
+
+      function buildBorderMap(sheet) {
+        const result = new Map();
+        const borderInfo = (sheet.config && sheet.config.borderInfo) || [];
+
+        for (const item of borderInfo) {
+          if (!item || item.rangeType !== "cell" || !item.value) continue;
+          const v = item.value;
+          const key = numberFromKey(v.row_index) + "_" + numberFromKey(v.col_index);
+          const border = {};
+          if (v.l) border.left = borderCss(v.l);
+          if (v.r) border.right = borderCss(v.r);
+          if (v.t) border.top = borderCss(v.t);
+          if (v.b) border.bottom = borderCss(v.b);
+          result.set(key, border);
+        }
+
+        return result;
+      }
+
+      function buildMergeMap(sheet) {
+        const config = sheet.config || {};
+        const merges = config.merge || {};
+        const origins = new Map();
+        const covered = new Set();
+
+        Object.values(merges).forEach(m => {
+          if (!m) return;
+          const r = numberFromKey(m.r);
+          const c = numberFromKey(m.c);
+          const rs = Math.max(1, numberFromKey(m.rs, 1));
+          const cs = Math.max(1, numberFromKey(m.cs, 1));
+          origins.set(r + "_" + c, { r, c, rs, cs });
+
+          for (let rr = r; rr < r + rs; rr++) {
+            for (let cc = c; cc < c + cs; cc++) {
+              if (rr !== r || cc !== c) covered.add(rr + "_" + cc);
+            }
+          }
+        });
+
+        return { origins, covered };
+      }
+
+      function createRichText(value) {
+        const fragment = document.createDocumentFragment();
+        const rich = value && value.ct && Array.isArray(value.ct.s) ? value.ct.s : null;
+
+        if (rich && rich.length) {
+          rich.forEach(run => {
+            const span = document.createElement("span");
+            span.textContent = run.v == null ? "" : String(run.v);
+            if (run.ff && typeof run.ff === "string") span.style.fontFamily = run.ff;
+            if (run.fc) span.style.color = run.fc;
+            if (run.fs) span.style.fontSize = run.fs + "pt";
+            if (run.bl === 1) span.style.fontWeight = "700";
+            if (run.it === 1) span.style.fontStyle = "italic";
+
+            const deco = [];
+            if (run.un) deco.push("underline");
+            if (run.cl) deco.push("line-through");
+            if (deco.length) span.style.textDecoration = deco.join(" ");
+
+            fragment.appendChild(span);
+          });
+          return fragment;
+        }
+
+        const display =
+          value && value.m != null ? value.m :
+          value && value.v != null ? value.v :
+          "";
+
+        fragment.appendChild(document.createTextNode(String(display)));
+        return fragment;
+      }
+
+      function applyCellStyle(el, content, value) {
+        const v = value && typeof value === "object" ? value : {};
+
+        if (v.bg) el.style.background = v.bg;
+        if (v.fc) el.style.color = v.fc;
+        if (v.ff && typeof v.ff === "string") el.style.fontFamily = v.ff;
+        else el.style.fontFamily = "Calibri, Carlito, Arial, sans-serif";
+
+        if (v.fs) el.style.fontSize = v.fs + "pt";
+        if (v.bl === 1) el.style.fontWeight = "700";
+        if (v.it === 1) el.style.fontStyle = "italic";
+
+        const deco = [];
+        if (v.un) deco.push("underline");
+        if (v.cl) deco.push("line-through");
+        if (deco.length) el.style.textDecoration = deco.join(" ");
+
+        const ht = numberFromKey(v.ht, -1);
+        if (ht === 0) { el.style.justifyContent = "center"; el.style.textAlign = "center"; }
+        else if (ht === 2) { el.style.justifyContent = "flex-end"; el.style.textAlign = "right"; }
+        else { el.style.justifyContent = "flex-start"; el.style.textAlign = "left"; }
+
+        const vt = numberFromKey(v.vt, 0);
+        if (vt === 1) el.style.alignItems = "flex-start";
+        else if (vt === 2) el.style.alignItems = "flex-end";
+        else el.style.alignItems = "center";
+
+        const tb = numberFromKey(v.tb, 1);
+        if (tb === 2) el.classList.add("wrap");
+        else if (tb === 0) el.classList.add("clip");
+
+        if (numberFromKey(v.tr, 0) === 3) el.classList.add("vertical-text");
+
+        const rotation = numberFromKey(v.rt, 0);
+        if (rotation && rotation !== 255) {
+          content.style.transform = "rotate(" + rotation + "deg)";
+          content.style.transformOrigin = "center center";
+        }
+      }
+
+      function renderImages(sheet, stage) {
+        const images = sheet.images || {};
+        Object.values(images).forEach(img => {
+          if (!img || !img.src) return;
+          const d = img.default || {};
+          const width = Math.max(1, numberFromKey(d.width || img.originWidth, 1));
+          const height = Math.max(1, numberFromKey(d.height || img.originHeight, 1));
+
+          const el = document.createElement("img");
+          el.className = "sheet-image";
+          el.src = img.src;
+          el.style.left = numberFromKey(d.left, 0) + "px";
+          el.style.top = numberFromKey(d.top, 0) + "px";
+          el.style.width = width + "px";
+          el.style.height = height + "px";
+          stage.appendChild(el);
+        });
+      }
+
+      function renderSheet(sheet) {
+        const host = document.getElementById("sheetHost");
+        const empty = document.getElementById("empty");
+        host.replaceChildren();
+        empty.style.display = "none";
+
+        const { maxRow, maxCol } = getMeaningfulBounds(sheet);
+        const dims = buildDimensions(sheet, maxRow, maxCol);
+        const { origins, covered } = buildMergeMap(sheet);
+        const borderMap = buildBorderMap(sheet);
+
+        const cells = Array.isArray(sheet.celldata) ? sheet.celldata : [];
+        const meaningful = cells.filter(cell => {
+          if (!cellHasMeaning(cell)) return false;
+          const r = numberFromKey(cell.r);
+          const c = numberFromKey(cell.c);
+          return r <= maxRow && c <= maxCol && !covered.has(r + "_" + c);
+        });
+
+        const stage = document.createElement("div");
+        stage.className = "sheet-stage";
+        stage.style.width = Math.max(1, dims.width) + "px";
+        stage.style.height = Math.max(1, dims.height) + "px";
+
+        for (const cell of meaningful) {
+          const r = numberFromKey(cell.r);
+          const c = numberFromKey(cell.c);
+          const key = r + "_" + c;
+          const merge = origins.get(key);
+          const rs = merge ? merge.rs : 1;
+          const cs = merge ? merge.cs : 1;
+
+          const rightIndex = Math.min(dims.x.length - 1, c + cs);
+          const bottomIndex = Math.min(dims.y.length - 1, r + rs);
+
+          const left = dims.x[c] || 0;
+          const top = dims.y[r] || 0;
+          const width = Math.max(0, (dims.x[rightIndex] || left) - left);
+          const height = Math.max(0, (dims.y[bottomIndex] || top) - top);
+
+          if (width <= 0 || height <= 0) continue;
+
+          const el = document.createElement("div");
+          el.className = "cell";
+          el.style.left = left + "px";
+          el.style.top = top + "px";
+          el.style.width = width + "px";
+          el.style.height = height + "px";
+
+          const content = document.createElement("div");
+          content.className = "cell-content";
+          const value = cell.v && typeof cell.v === "object" ? cell.v : { v: cell.v };
+          applyCellStyle(el, content, value);
+          content.appendChild(createRichText(value));
+          el.appendChild(content);
+
+          const b = borderMap.get(key);
+          if (b) {
+            if (b.left) el.style.borderLeft = b.left;
+            if (b.right) el.style.borderRight = b.right;
+            if (b.top) el.style.borderTop = b.top;
+            if (b.bottom) el.style.borderBottom = b.bottom;
+          }
+
+          stage.appendChild(el);
+        }
+
+        renderImages(sheet, stage);
+
+        if (!meaningful.length && !Object.keys(sheet.images || {}).length) {
+          empty.style.display = "block";
+        } else {
+          host.appendChild(stage);
+        }
+
+        const viewport = document.getElementById("viewport");
+        viewport.scrollLeft = 0;
+        viewport.scrollTop = 0;
+      }
+
+      function renderTabs() {
+        const tabs = document.getElementById("tabs");
+        tabs.replaceChildren();
+
+        const sheets = workbook && Array.isArray(workbook.sheets) ? workbook.sheets : [];
+        if (sheets.length <= 1) {
+          tabs.classList.remove("visible");
+          return;
+        }
+
+        tabs.classList.add("visible");
+        sheets.forEach((sheet, index) => {
+          const button = document.createElement("button");
+          button.className = "tab" + (index === activeSheetIndex ? " active" : "");
+          button.textContent = sheet && sheet.name ? sheet.name : "Aba " + (index + 1);
+          button.addEventListener("click", () => {
+            activeSheetIndex = index;
+            renderTabs();
+            renderSheet(sheets[index]);
+          });
+          tabs.appendChild(button);
+        });
+      }
+
+      function startStaticViewer(exportJson) {
+        const sheets = Array.isArray(exportJson && exportJson.sheets)
+          ? exportJson.sheets.filter(Boolean)
+          : [];
+
+        if (!sheets.length) {
+          throw new Error("Nenhuma aba válida foi encontrada no XLSX.");
+        }
+
+        workbook = { info: exportJson.info || {}, sheets };
+        activeSheetIndex = Math.max(0, sheets.findIndex(s => String(s.status) === "1"));
+        if (activeSheetIndex < 0) activeSheetIndex = 0;
+
+        renderTabs();
+        renderSheet(sheets[activeSheetIndex]);
+        NerdoraXlsx.onRendered(sheets.length);
+      }
+
+      async function start() {
+        try {
+          if (!window.LuckyExcel) {
+            throw new Error("Motor de leitura Excel não carregou.");
+          }
+
+          if (document.fonts && document.fonts.ready) {
+            await document.fonts.ready;
+          }
+
+          const originalBytes = decodeBase64Chunks();
+          const compatibleBytes = await normalizeXlsxForLuckyExcel(originalBytes);
+          const file = asExcelFile(compatibleBytes);
+
+          LuckyExcel.transformExcelToLucky(
+            file,
+            function (exportJson) {
+              try {
+                startStaticViewer(exportJson);
+              } catch (error) {
+                NerdoraXlsx.onError(error && error.message ? error.message : String(error));
+              }
+            },
+            function (error) {
+              NerdoraXlsx.onError(
+                error && error.message
+                  ? error.message
+                  : "O arquivo XLSX não pôde ser convertido para visualização."
+              );
+            }
+          );
+        } catch (error) {
+          NerdoraXlsx.onError(error && error.message ? error.message : String(error));
+        }
+      }
+
+      window.addEventListener("load", start, { once: true });
+    })();
+  </script>
+</body>
+</html>
