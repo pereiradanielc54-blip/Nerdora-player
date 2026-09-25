@@ -664,31 +664,27 @@ jobs:
           files = Path("extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt")
           s = files.read_text(encoding="utf-8")
 
-          old = '''        if (ready && !forceRescan) {
-              val paths = withContext(Dispatchers.IO) { UniversalFileIndexCache.readPaths(context) }
-              allFiles = withContext(Dispatchers.IO) {
-                  paths.asSequence().map(::File).filterNot(::isInsideNerdoraTrash).map(::deviceItem).toList()
-              }
-              scanLimited = UniversalFileIndexCache.wasLimited(context)
-          } else {'''
-
-          new = '''        if (ready && !forceRescan) {
-              val paths = withContext(Dispatchers.IO) { UniversalFileIndexCache.readPaths(context) }
+          path_line = '            val paths = withContext(Dispatchers.IO) { UniversalFileIndexCache.readPaths(context) }'
+          path_replacement = '''            val paths = withContext(Dispatchers.IO) { UniversalFileIndexCache.readPaths(context) }
               val quickPaths = withContext(Dispatchers.IO) { scanQuickPublicFolders(root) }
-              val mergedPaths = (paths + quickPaths).distinct()
-              allFiles = withContext(Dispatchers.IO) {
-                  mergedPaths.asSequence().map(::File).filterNot(::isInsideNerdoraTrash).map(::deviceItem).toList()
-              }
-              scanLimited = UniversalFileIndexCache.wasLimited(context)
+              val mergedPaths = (paths + quickPaths).distinct()'''
+          assert path_line in s or 'scanQuickPublicFolders(root)' in s, "Linha readPaths não encontrada"
+          s = s.replace(path_line, path_replacement, 1)
+
+          old_map = '                paths.asSequence().map(::File).filterNot(::isInsideNerdoraTrash).map(::deviceItem).toList()'
+          new_map = '                mergedPaths.asSequence().map(::File).filterNot(::isInsideNerdoraTrash).map(::deviceItem).toList()'
+          assert old_map in s or new_map in s, "Linha de montagem do cache não encontrada"
+          s = s.replace(old_map, new_map, 1)
+
+          scan_line = '            scanLimited = UniversalFileIndexCache.wasLimited(context)'
+          scan_replacement = '''            scanLimited = UniversalFileIndexCache.wasLimited(context)
               if (mergedPaths.size != paths.size) {
                   withContext(Dispatchers.IO) {
                       UniversalFileIndexCache.replace(context, mergedPaths, scanLimited)
                   }
-              }
-          } else {'''
-
-          assert old in s or 'scanQuickPublicFolders(root)' in s, "Bloco de cache da v0.9.4 não encontrado"
-          s = s.replace(old, new, 1)
+              }'''
+          assert scan_line in s or 'mergedPaths.size != paths.size' in s, "Linha wasLimited não encontrada"
+          s = s.replace(scan_line, scan_replacement, 1)
 
           helper_anchor = 'private fun scanTrashFiles(): List<DeviceFileItem>'
           helper = '''private fun scanQuickPublicFolders(root: File, limit: Int = 6000): List<String> {
@@ -727,6 +723,7 @@ jobs:
           grep -q 'scanQuickPublicFolders(root)' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           grep -q 'Environment.DIRECTORY_DOWNLOADS' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           grep -q 'Environment.DIRECTORY_DOCUMENTS' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'mergedPaths.size != paths.size' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           grep -q 'ext in setOf("xls", "xlsx")' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           grep -q 'DocumentKind.XLSX -> HighFidelityXlsxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
