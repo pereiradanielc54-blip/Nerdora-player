@@ -1,0 +1,969 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=8.0, user-scalable=yes" />
+  <link rel="stylesheet" href="../docx_renderer/font-aliases.css" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #e9edf0;
+      -webkit-text-size-adjust: 100%;
+      font-family: Calibri, Carlito, Arial, sans-serif;
+    }
+
+    #app {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      background: #e9edf0;
+    }
+
+    #viewport {
+      flex: 1 1 auto;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      box-sizing: border-box;
+      padding: 12px 10px 18px;
+    }
+
+    #sheetHost {
+      width: 100%;
+      min-height: 1px;
+    }
+
+    .sheet-wrapper {
+      position: relative;
+      margin: 0 auto 18px;
+    }
+
+    .sheet-stage {
+      position: relative;
+      background: #ffffff;
+      box-shadow: 0 2px 14px rgba(0,0,0,.18);
+      transform-origin: top left;
+      overflow: visible;
+    }
+
+    .cell {
+      position: absolute;
+      box-sizing: border-box;
+      display: flex;
+      min-width: 0;
+      min-height: 0;
+      padding: 1px 3px;
+      color: #000;
+      background: transparent;
+      overflow: visible;
+    }
+
+    .cell-content {
+      width: 100%;
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      align-items: inherit;
+      justify-content: inherit;
+      white-space: nowrap;
+      overflow: visible;
+      line-height: 1.18;
+    }
+
+    .cell.wrap .cell-content {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      overflow: hidden;
+    }
+
+    .cell.clip .cell-content {
+      overflow: hidden;
+      text-overflow: clip;
+    }
+
+    .cell.vertical-text .cell-content {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+    }
+
+    #tabs {
+      flex: 0 0 auto;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px 10px;
+      overflow-x: auto;
+      background: rgba(255,255,255,.98);
+      border-top: 1px solid rgba(0,0,0,.10);
+      box-shadow: 0 -2px 8px rgba(0,0,0,.06);
+      scrollbar-width: none;
+    }
+
+    #tabs::-webkit-scrollbar { display: none; }
+    #tabs.visible { display: flex; }
+
+    .tab {
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 14px;
+      background: #e8eaed;
+      color: #263238;
+      font: inherit;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .tab.active {
+      background: #153f33;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    #empty {
+      display: none;
+      margin: 20px auto;
+      padding: 26px 20px;
+      max-width: 420px;
+      text-align: center;
+      color: #455a64;
+      font-size: 14px;
+      background: #fff;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="viewport">
+      <div id="sheetHost"></div>
+      <div id="empty">Esta aba não possui conteúdo visível.</div>
+    </div>
+    <div id="tabs"></div>
+  </div>
+
+  <script src="../docx_renderer/jszip.min.js"></script>
+  <script>
+    (() => {
+      const DEFAULT_COL_WIDTH_PX = 64;
+      const DEFAULT_ROW_HEIGHT_PX = 20;
+      const MAX_RENDER_ROWS = 3000;
+      const MAX_RENDER_COLS = 400;
+      const BUILTIN_NUMFMTS = {
+        0: "General", 1: "0", 2: "0.00", 3: "#,##0", 4: "#,##0.00",
+        9: "0%", 10: "0.00%", 14: "mm-dd-yy", 15: "d-mmm-yy",
+        16: "d-mmm", 17: "mmm-yy", 18: "h:mm AM/PM", 19: "h:mm:ss AM/PM",
+        20: "h:mm", 21: "h:mm:ss", 22: "m/d/yy h:mm"
+      };
+
+      let workbook = null;
+      let activeSheetIndex = 0;
+      let currentStage = null;
+
+      function decodeBase64Chunks() {
+        const total = NerdoraXlsx.getChunkCount();
+        const parts = new Array(total);
+        for (let i = 0; i < total; i++) parts[i] = NerdoraXlsx.getChunk(i);
+
+        const raw = atob(parts.join(""));
+        const bytes = new Uint8Array(raw.length);
+        const stride = 32768;
+        for (let start = 0; start < raw.length; start += stride) {
+          const end = Math.min(start + stride, raw.length);
+          for (let i = start; i < end; i++) bytes[i] = raw.charCodeAt(i);
+        }
+        return bytes;
+      }
+
+      function parseXml(text, label) {
+        const doc = new DOMParser().parseFromString(text, "application/xml");
+        if (doc.getElementsByTagName("parsererror").length) {
+          throw new Error("XML inválido em " + label + ".");
+        }
+        return doc;
+      }
+
+      function elements(parent, localName) {
+        return Array.from(parent.getElementsByTagNameNS("*", localName));
+      }
+
+      function directChild(parent, localName) {
+        return Array.from(parent.children || []).find(el => el.localName === localName) || null;
+      }
+
+      function directChildren(parent, localName) {
+        return Array.from(parent.children || []).filter(el => el.localName === localName);
+      }
+
+      function relationshipId(el) {
+        const attrs = Array.from(el.attributes || []);
+        const found = attrs.find(a => a.localName === "id" && /relationships/i.test(a.namespaceURI || ""));
+        return found ? found.value : (el.getAttribute("r:id") || "");
+      }
+
+      function normalizePartPath(baseDir, target) {
+        if (!target) return "";
+        if (target.startsWith("/")) return target.slice(1);
+        const parts = (baseDir + "/" + target).split("/");
+        const out = [];
+        for (const part of parts) {
+          if (!part || part === ".") continue;
+          if (part === "..") out.pop();
+          else out.push(part);
+        }
+        return out.join("/");
+      }
+
+      async function readZipText(zip, path, optional = false) {
+        const entry = zip.file(path);
+        if (!entry) {
+          if (optional) return null;
+          throw new Error("Parte XLSX ausente: " + path);
+        }
+        return entry.async("string");
+      }
+
+      function colorFromElement(el) {
+        if (!el) return null;
+        const rgb = el.getAttribute("rgb");
+        if (rgb) {
+          const hex = rgb.length === 8 ? rgb.slice(2) : rgb;
+          if (/^[0-9A-Fa-f]{6}$/.test(hex)) return "#" + hex;
+        }
+        return null;
+      }
+
+      function excelColumnWidthToPx(width) {
+        if (!Number.isFinite(width) || width <= 0) return DEFAULT_COL_WIDTH_PX;
+        return Math.max(1, Math.floor(width * 7 + 5));
+      }
+
+      function pointsToPx(points) {
+        if (!Number.isFinite(points) || points <= 0) return DEFAULT_ROW_HEIGHT_PX;
+        return Math.max(1, Math.round(points * 96 / 72));
+      }
+
+      function parseCellRef(ref) {
+        const m = /^([A-Za-z]+)(\d+)$/.exec(ref || "");
+        if (!m) return null;
+        let col = 0;
+        for (const ch of m[1].toUpperCase()) {
+          col = col * 26 + (ch.charCodeAt(0) - 64);
+        }
+        return { row: Math.max(0, Number(m[2]) - 1), col: Math.max(0, col - 1) };
+      }
+
+      function parseRangeRef(ref) {
+        const parts = String(ref || "").split(":");
+        const a = parseCellRef(parts[0]);
+        const b = parseCellRef(parts[1] || parts[0]);
+        if (!a || !b) return null;
+        return {
+          minRow: Math.min(a.row, b.row),
+          maxRow: Math.max(a.row, b.row),
+          minCol: Math.min(a.col, b.col),
+          maxCol: Math.max(a.col, b.col)
+        };
+      }
+
+      function unionBounds(a, b) {
+        if (!a) return b ? { ...b } : null;
+        if (!b) return { ...a };
+        return {
+          minRow: Math.min(a.minRow, b.minRow),
+          minCol: Math.min(a.minCol, b.minCol),
+          maxRow: Math.max(a.maxRow, b.maxRow),
+          maxCol: Math.max(a.maxCol, b.maxCol)
+        };
+      }
+
+      function extractRawBounds(xmlText) {
+        let bounds = null;
+
+        const cellRegex = /<(?:[A-Za-z_][A-Za-z0-9_.-]*:)?c[^>]* r=["']([A-Za-z]+[0-9]+)["']/g;
+        let match;
+        while ((match = cellRegex.exec(xmlText)) !== null) {
+          const ref = parseCellRef(match[1]);
+          if (!ref) continue;
+          bounds = unionBounds(bounds, {
+            minRow: ref.row,
+            maxRow: ref.row,
+            minCol: ref.col,
+            maxCol: ref.col
+          });
+        }
+
+        const mergeRegex = /<(?:[A-Za-z_][A-Za-z0-9_.-]*:)?mergeCell[^>]* ref=["']([^"']+)["']/g;
+        while ((match = mergeRegex.exec(xmlText)) !== null) {
+          const range = parseRangeRef(match[1]);
+          if (range) bounds = unionBounds(bounds, range);
+        }
+
+        return bounds;
+      }
+
+      function parseFont(fontEl) {
+        if (!fontEl) return {};
+        const nameEl = directChild(fontEl, "name");
+        const sizeEl = directChild(fontEl, "sz");
+        return {
+          name: nameEl ? nameEl.getAttribute("val") : null,
+          size: sizeEl ? Number(sizeEl.getAttribute("val")) : null,
+          color: colorFromElement(directChild(fontEl, "color")),
+          bold: !!directChild(fontEl, "b"),
+          italic: !!directChild(fontEl, "i"),
+          underline: !!directChild(fontEl, "u"),
+          strike: !!directChild(fontEl, "strike")
+        };
+      }
+
+      function parseFill(fillEl) {
+        if (!fillEl) return null;
+        const pattern = directChild(fillEl, "patternFill");
+        if (!pattern) return null;
+        if ((pattern.getAttribute("patternType") || "") !== "solid") return null;
+        return colorFromElement(directChild(pattern, "fgColor")) ||
+               colorFromElement(directChild(pattern, "bgColor"));
+      }
+
+      function parseBorderSide(borderEl, sideName) {
+        const side = directChild(borderEl, sideName);
+        if (!side) return null;
+        const style = side.getAttribute("style");
+        if (!style) return null;
+        return { style, color: colorFromElement(directChild(side, "color")) || "#000000" };
+      }
+
+      function parseBorder(borderEl) {
+        if (!borderEl) return {};
+        return {
+          left: parseBorderSide(borderEl, "left"),
+          right: parseBorderSide(borderEl, "right"),
+          top: parseBorderSide(borderEl, "top"),
+          bottom: parseBorderSide(borderEl, "bottom")
+        };
+      }
+
+      function parseAlignment(xf) {
+        const a = directChild(xf, "alignment");
+        if (!a) return {};
+        return {
+          horizontal: a.getAttribute("horizontal") || null,
+          vertical: a.getAttribute("vertical") || null,
+          wrapText: a.getAttribute("wrapText") === "1" || a.getAttribute("wrapText") === "true",
+          shrinkToFit: a.getAttribute("shrinkToFit") === "1" || a.getAttribute("shrinkToFit") === "true",
+          textRotation: Number(a.getAttribute("textRotation") || 0)
+        };
+      }
+
+      function parseStyles(doc) {
+        const root = doc.documentElement;
+        const numFmtMap = new Map(Object.entries(BUILTIN_NUMFMTS).map(([k,v]) => [Number(k), v]));
+
+        const numFmts = directChild(root, "numFmts");
+        if (numFmts) {
+          directChildren(numFmts, "numFmt").forEach(el => {
+            numFmtMap.set(Number(el.getAttribute("numFmtId")), el.getAttribute("formatCode") || "General");
+          });
+        }
+
+        const fontsParent = directChild(root, "fonts");
+        const fillsParent = directChild(root, "fills");
+        const bordersParent = directChild(root, "borders");
+        const xfsParent = directChild(root, "cellXfs");
+
+        const fonts = fontsParent ? directChildren(fontsParent, "font").map(parseFont) : [{}];
+        const fills = fillsParent ? directChildren(fillsParent, "fill").map(parseFill) : [null];
+        const borders = bordersParent ? directChildren(bordersParent, "border").map(parseBorder) : [{}];
+        const xfs = xfsParent ? directChildren(xfsParent, "xf").map(xf => {
+          const fontId = Number(xf.getAttribute("fontId") || 0);
+          const fillId = Number(xf.getAttribute("fillId") || 0);
+          const borderId = Number(xf.getAttribute("borderId") || 0);
+          const numFmtId = Number(xf.getAttribute("numFmtId") || 0);
+          return {
+            font: fonts[fontId] || {},
+            fill: fills[fillId] || null,
+            border: borders[borderId] || {},
+            numFmtId,
+            numFmt: numFmtMap.get(numFmtId) || "General",
+            alignment: parseAlignment(xf)
+          };
+        }) : [{ font:{}, fill:null, border:{}, numFmtId:0, numFmt:"General", alignment:{} }];
+
+        return { xfs, numFmtMap };
+      }
+
+      function parseSharedStrings(doc) {
+        if (!doc) return [];
+        return elements(doc, "si").map(si => elements(si, "t").map(t => t.textContent || "").join(""));
+      }
+
+      function borderCss(side) {
+        if (!side) return null;
+        const style = side.style || "thin";
+        const color = side.color || "#000";
+        let width = 1;
+        let line = "solid";
+
+        if (style === "hair") width = 0.5;
+        if (style === "dotted") line = "dotted";
+        if (/dash/i.test(style)) line = "dashed";
+        if (style === "double") { width = 3; line = "double"; }
+        if (/^medium/i.test(style)) width = 2;
+        if (style === "thick") width = 3;
+
+        return width + "px " + line + " " + color;
+      }
+
+      function styleHasVisibleFormatting(style) {
+        if (!style) return false;
+        const f = style.font || {};
+        const b = style.border || {};
+        return !!(
+          style.fill ||
+          b.left || b.right || b.top || b.bottom ||
+          f.bold || f.italic || f.underline || f.strike ||
+          f.color || f.size || f.name ||
+          style.alignment.wrapText || style.alignment.textRotation
+        );
+      }
+
+      function decimalPlaces(formatCode, fallback = 0) {
+        const clean = String(formatCode || "").replace(/"[^"]*"/g, "");
+        const m = /[0#]+\.([0#]+)/.exec(clean);
+        return m ? m[1].length : fallback;
+      }
+
+      function formatExcelDate(serial, formatCode) {
+        const ms = Date.UTC(1899, 11, 30) + Number(serial) * 86400000;
+        const d = new Date(ms);
+        if (Number.isNaN(d.getTime())) return String(serial);
+
+        const pad = n => String(n).padStart(2, "0");
+        const day = pad(d.getUTCDate());
+        const month = pad(d.getUTCMonth() + 1);
+        const year = d.getUTCFullYear();
+        const hour = pad(d.getUTCHours());
+        const min = pad(d.getUTCMinutes());
+        const sec = pad(d.getUTCSeconds());
+
+        const code = String(formatCode || "").toLowerCase();
+        const hasDate = /[dy]/.test(code);
+        const hasTime = /[hs]/.test(code);
+
+        if (hasDate && hasTime) return day + "/" + month + "/" + year + " " + hour + ":" + min;
+        if (hasTime) return hour + ":" + min + (code.includes("ss") ? ":" + sec : "");
+        return day + "/" + month + "/" + year;
+      }
+
+      function formatNumber(value, style) {
+        if (!Number.isFinite(value)) return String(value);
+        const code = String((style && style.numFmt) || "General");
+        const stripped = code
+          .replace(/"[^"]*"/g, "")
+          .replace(/\[[^\]]*\]/g, "")
+          .replace(/\\./g, "");
+
+        const dateLike = (style && style.numFmtId >= 14 && style.numFmtId <= 22) ||
+          ((/[dy]/i.test(stripped)) && /[m]/i.test(stripped));
+        if (dateLike) return formatExcelDate(value, code);
+
+        if (code.includes("%")) {
+          const decimals = decimalPlaces(code, 0);
+          return (value * 100).toLocaleString("pt-BR", {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+          }) + "%";
+        }
+
+        const decimals = decimalPlaces(code, Number.isInteger(value) ? 0 : 2);
+        const grouped = /#,##|#\.##|#,##0/.test(code);
+        const options = {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals,
+          useGrouping: grouped
+        };
+
+        if (/R\$/i.test(code)) {
+          return "R$ " + value.toLocaleString("pt-BR", options);
+        }
+
+        if (/[$€£]/.test(code)) {
+          const symbol = (code.match(/[$€£]/) || [""])[0];
+          return symbol + " " + value.toLocaleString("pt-BR", options);
+        }
+
+        if (code === "General") return String(value);
+        return value.toLocaleString("pt-BR", options);
+      }
+
+      function parseCellValue(cellEl, sharedStrings, style) {
+        const type = cellEl.getAttribute("t") || "";
+        const vEl = directChild(cellEl, "v");
+        const raw = vEl ? (vEl.textContent || "") : "";
+
+        if (type === "s") {
+          const idx = Number(raw);
+          return { raw, display: sharedStrings[idx] || "" };
+        }
+
+        if (type === "inlineStr") {
+          const isEl = directChild(cellEl, "is");
+          const text = isEl ? elements(isEl, "t").map(t => t.textContent || "").join("") : "";
+          return { raw: text, display: text };
+        }
+
+        if (type === "str") return { raw, display: raw };
+        if (type === "b") return { raw, display: raw === "1" ? "TRUE" : "FALSE" };
+        if (type === "e") return { raw, display: raw };
+
+        if (raw !== "" && Number.isFinite(Number(raw))) {
+          const numeric = Number(raw);
+          return { raw: numeric, display: formatNumber(numeric, style) };
+        }
+
+        return { raw, display: raw };
+      }
+
+      function parseSheetXml(xmlText, label, styles, sharedStrings) {
+        const doc = parseXml(xmlText, label);
+        const rawBounds = extractRawBounds(xmlText);
+        const sheetFormat = elements(doc, "sheetFormatPr")[0] || null;
+        const defaultRowHeight = sheetFormat
+          ? pointsToPx(Number(sheetFormat.getAttribute("defaultRowHeight") || 15))
+          : DEFAULT_ROW_HEIGHT_PX;
+        const defaultColWidth = sheetFormat && sheetFormat.getAttribute("defaultColWidth")
+          ? excelColumnWidthToPx(Number(sheetFormat.getAttribute("defaultColWidth")))
+          : DEFAULT_COL_WIDTH_PX;
+
+        const columnWidths = new Map();
+        const hiddenCols = new Set();
+        elements(doc, "col").forEach(col => {
+          const min = Math.max(1, Number(col.getAttribute("min") || 1));
+          const max = Math.max(min, Number(col.getAttribute("max") || min));
+          const hidden = col.getAttribute("hidden") === "1";
+          const width = col.getAttribute("width")
+            ? excelColumnWidthToPx(Number(col.getAttribute("width")))
+            : defaultColWidth;
+          for (let n = min; n <= max && n <= MAX_RENDER_COLS; n++) {
+            columnWidths.set(n - 1, hidden ? 0 : width);
+            if (hidden) hiddenCols.add(n - 1);
+          }
+        });
+
+        const rowHeights = new Map();
+        const hiddenRows = new Set();
+        elements(doc, "row").forEach(row => {
+          const index = Math.max(0, Number(row.getAttribute("r") || 1) - 1);
+          const hidden = row.getAttribute("hidden") === "1";
+          if (hidden) hiddenRows.add(index);
+          rowHeights.set(index, hidden ? 0 : (
+            row.getAttribute("ht") ? pointsToPx(Number(row.getAttribute("ht"))) : defaultRowHeight
+          ));
+        });
+
+        const cells = [];
+        const cellMap = new Map();
+        elements(doc, "c").forEach(cellEl => {
+          const ref = parseCellRef(cellEl.getAttribute("r"));
+          if (!ref || ref.row >= MAX_RENDER_ROWS || ref.col >= MAX_RENDER_COLS) return;
+          const styleIndex = Number(cellEl.getAttribute("s") || 0);
+          const style = styles.xfs[styleIndex] || styles.xfs[0] || {};
+          const value = parseCellValue(cellEl, sharedStrings, style);
+          const item = { row: ref.row, col: ref.col, styleIndex, style, value };
+          cells.push(item);
+          cellMap.set(ref.row + "_" + ref.col, item);
+        });
+
+        const merges = elements(doc, "mergeCell")
+          .map(el => parseRangeRef(el.getAttribute("ref")))
+          .filter(Boolean)
+          .filter(m => m.minRow < MAX_RENDER_ROWS && m.minCol < MAX_RENDER_COLS);
+
+        return {
+          cells, cellMap, merges, rawBounds,
+          columnWidths, rowHeights, hiddenCols, hiddenRows,
+          defaultColWidth, defaultRowHeight
+        };
+      }
+
+      function computeUsedBounds(sheet) {
+        let minRow = Infinity, minCol = Infinity, maxRow = -1, maxCol = -1;
+
+        for (const cell of sheet.cells) {
+          const visible = String(cell.value.display || "").length > 0 || styleHasVisibleFormatting(cell.style);
+          if (!visible) continue;
+          minRow = Math.min(minRow, cell.row);
+          minCol = Math.min(minCol, cell.col);
+          maxRow = Math.max(maxRow, cell.row);
+          maxCol = Math.max(maxCol, cell.col);
+        }
+
+        for (const merge of sheet.merges) {
+          const origin = sheet.cellMap.get(merge.minRow + "_" + merge.minCol);
+          const visible = origin &&
+            (String(origin.value.display || "").length > 0 || styleHasVisibleFormatting(origin.style));
+          if (!visible) continue;
+          minRow = Math.min(minRow, merge.minRow);
+          minCol = Math.min(minCol, merge.minCol);
+          maxRow = Math.max(maxRow, merge.maxRow);
+          maxCol = Math.max(maxCol, merge.maxCol);
+        }
+
+        let semanticBounds = null;
+        if (Number.isFinite(minRow)) {
+          semanticBounds = {
+            minRow: Math.max(0, minRow),
+            minCol: Math.max(0, minCol),
+            maxRow: Math.min(MAX_RENDER_ROWS - 1, maxRow),
+            maxCol: Math.min(MAX_RENDER_COLS - 1, maxCol)
+          };
+        }
+
+        const bounds = unionBounds(semanticBounds, sheet.rawBounds);
+        if (!bounds) return null;
+
+        return {
+          minRow: Math.max(0, bounds.minRow),
+          minCol: Math.max(0, bounds.minCol),
+          maxRow: Math.min(MAX_RENDER_ROWS - 1, bounds.maxRow),
+          maxCol: Math.min(MAX_RENDER_COLS - 1, bounds.maxCol)
+        };
+      }
+
+      function buildGeometry(sheet, bounds) {
+        const colX = new Map();
+        const rowY = new Map();
+        let x = 0;
+        let y = 0;
+
+        for (let c = bounds.minCol; c <= bounds.maxCol; c++) {
+          colX.set(c, x);
+          x += sheet.hiddenCols.has(c) ? 0 : (sheet.columnWidths.get(c) || sheet.defaultColWidth);
+        }
+
+        for (let r = bounds.minRow; r <= bounds.maxRow; r++) {
+          rowY.set(r, y);
+          y += sheet.hiddenRows.has(r) ? 0 : (sheet.rowHeights.get(r) || sheet.defaultRowHeight);
+        }
+
+        const colRight = c => {
+          let total = colX.get(c) || 0;
+          total += sheet.hiddenCols.has(c) ? 0 : (sheet.columnWidths.get(c) || sheet.defaultColWidth);
+          return total;
+        };
+        const rowBottom = r => {
+          let total = rowY.get(r) || 0;
+          total += sheet.hiddenRows.has(r) ? 0 : (sheet.rowHeights.get(r) || sheet.defaultRowHeight);
+          return total;
+        };
+
+        return { colX, rowY, colRight, rowBottom, width: Math.max(1, x), height: Math.max(1, y) };
+      }
+
+      function buildMergeMaps(merges) {
+        const origins = new Map();
+        const covered = new Set();
+        for (const m of merges) {
+          origins.set(m.minRow + "_" + m.minCol, m);
+          for (let r = m.minRow; r <= m.maxRow; r++) {
+            for (let c = m.minCol; c <= m.maxCol; c++) {
+              if (r !== m.minRow || c !== m.minCol) covered.add(r + "_" + c);
+            }
+          }
+        }
+        return { origins, covered };
+      }
+
+      function mergedBorder(sheet, merge, sideName) {
+        if (!merge) return null;
+        const coords = [];
+        if (sideName === "left") {
+          for (let r = merge.minRow; r <= merge.maxRow; r++) coords.push([r, merge.minCol]);
+        } else if (sideName === "right") {
+          for (let r = merge.minRow; r <= merge.maxRow; r++) coords.push([r, merge.maxCol]);
+        } else if (sideName === "top") {
+          for (let c = merge.minCol; c <= merge.maxCol; c++) coords.push([merge.minRow, c]);
+        } else if (sideName === "bottom") {
+          for (let c = merge.minCol; c <= merge.maxCol; c++) coords.push([merge.maxRow, c]);
+        }
+
+        for (const [r,c] of coords) {
+          const cell = sheet.cellMap.get(r + "_" + c);
+          const side = cell && cell.style && cell.style.border && cell.style.border[sideName];
+          if (side) return side;
+        }
+        return null;
+      }
+
+      function applyStyle(el, content, style, merge, sheet) {
+        const font = (style && style.font) || {};
+        const alignment = (style && style.alignment) || {};
+        const border = (style && style.border) || {};
+
+        if (style && style.fill) el.style.background = style.fill;
+        if (font.color) el.style.color = font.color;
+        if (font.name) el.style.fontFamily = '"' + font.name + '", Calibri, Carlito, Arial, sans-serif';
+        if (font.size) el.style.fontSize = font.size + "pt";
+        if (font.bold) el.style.fontWeight = "700";
+        if (font.italic) el.style.fontStyle = "italic";
+
+        const decorations = [];
+        if (font.underline) decorations.push("underline");
+        if (font.strike) decorations.push("line-through");
+        if (decorations.length) el.style.textDecoration = decorations.join(" ");
+
+        switch (alignment.horizontal) {
+          case "center":
+          case "centerContinuous":
+            el.style.justifyContent = "center";
+            el.style.textAlign = "center";
+            break;
+          case "right":
+            el.style.justifyContent = "flex-end";
+            el.style.textAlign = "right";
+            break;
+          default:
+            el.style.justifyContent = "flex-start";
+            el.style.textAlign = "left";
+        }
+
+        switch (alignment.vertical) {
+          case "top": el.style.alignItems = "flex-start"; break;
+          case "bottom": el.style.alignItems = "flex-end"; break;
+          default: el.style.alignItems = "center";
+        }
+
+        if (alignment.wrapText) el.classList.add("wrap");
+        else el.classList.add("clip");
+
+        if (alignment.textRotation === 255) {
+          el.classList.add("vertical-text");
+        } else if (alignment.textRotation) {
+          let rotation = alignment.textRotation;
+          if (rotation > 90) rotation = 90 - rotation;
+          content.style.transform = "rotate(" + rotation + "deg)";
+          content.style.transformOrigin = "center center";
+        }
+
+        const left = merge ? mergedBorder(sheet, merge, "left") : border.left;
+        const right = merge ? mergedBorder(sheet, merge, "right") : border.right;
+        const top = merge ? mergedBorder(sheet, merge, "top") : border.top;
+        const bottom = merge ? mergedBorder(sheet, merge, "bottom") : border.bottom;
+
+        if (left) el.style.borderLeft = borderCss(left);
+        if (right) el.style.borderRight = borderCss(right);
+        if (top) el.style.borderTop = borderCss(top);
+        if (bottom) el.style.borderBottom = borderCss(bottom);
+      }
+
+      function renderCell(stage, sheet, geometry, bounds, cell, merge) {
+        const row = cell.row;
+        const col = cell.col;
+        if (row < bounds.minRow || row > bounds.maxRow || col < bounds.minCol || col > bounds.maxCol) return;
+
+        const maxRow = merge ? Math.min(merge.maxRow, bounds.maxRow) : row;
+        const maxCol = merge ? Math.min(merge.maxCol, bounds.maxCol) : col;
+
+        const left = geometry.colX.get(col) || 0;
+        const top = geometry.rowY.get(row) || 0;
+        const right = geometry.colRight(maxCol);
+        const bottom = geometry.rowBottom(maxRow);
+        const width = Math.max(0, right - left);
+        const height = Math.max(0, bottom - top);
+        if (width <= 0 || height <= 0) return;
+
+        const el = document.createElement("div");
+        el.className = "cell";
+        el.style.left = left + "px";
+        el.style.top = top + "px";
+        el.style.width = width + "px";
+        el.style.height = height + "px";
+
+        const content = document.createElement("div");
+        content.className = "cell-content";
+        content.textContent = cell.value.display == null ? "" : String(cell.value.display);
+
+        applyStyle(el, content, cell.style, merge, sheet);
+
+        el.appendChild(content);
+        stage.appendChild(el);
+      }
+
+      function applyFitToWidth() {
+        if (!currentStage) return;
+        const viewport = document.getElementById("viewport");
+        const wrapper = currentStage.wrapper;
+        const stage = currentStage.stage;
+        const naturalWidth = currentStage.width;
+        const naturalHeight = currentStage.height;
+        const available = Math.max(120, viewport.clientWidth - 20);
+        const scale = Math.max(0.12, Math.min(1, available / naturalWidth));
+
+        stage.style.transform = "scale(" + scale + ")";
+        wrapper.style.width = Math.max(1, naturalWidth * scale) + "px";
+        wrapper.style.height = Math.max(1, naturalHeight * scale) + "px";
+      }
+
+      function renderSheet(sheetMeta) {
+        const host = document.getElementById("sheetHost");
+        const empty = document.getElementById("empty");
+        host.replaceChildren();
+        empty.style.display = "none";
+        currentStage = null;
+
+        const sheet = sheetMeta.parsed;
+        const bounds = computeUsedBounds(sheet);
+        if (!bounds) {
+          empty.style.display = "block";
+          return;
+        }
+
+        const geometry = buildGeometry(sheet, bounds);
+        const mergeMaps = buildMergeMaps(sheet.merges);
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "sheet-wrapper";
+
+        const stage = document.createElement("div");
+        stage.className = "sheet-stage";
+        stage.style.width = geometry.width + "px";
+        stage.style.height = geometry.height + "px";
+
+        const rendered = new Set();
+
+        for (const cell of sheet.cells) {
+          const key = cell.row + "_" + cell.col;
+          if (mergeMaps.covered.has(key)) continue;
+
+          const merge = mergeMaps.origins.get(key) || null;
+          const visible = String(cell.value.display || "").length > 0 ||
+            styleHasVisibleFormatting(cell.style) ||
+            !!merge;
+          if (!visible) continue;
+
+          renderCell(stage, sheet, geometry, bounds, cell, merge);
+          rendered.add(key);
+        }
+
+        for (const merge of sheet.merges) {
+          const key = merge.minRow + "_" + merge.minCol;
+          if (rendered.has(key)) continue;
+          const origin = sheet.cellMap.get(key);
+          if (!origin) continue;
+          renderCell(stage, sheet, geometry, bounds, origin, merge);
+        }
+
+        wrapper.appendChild(stage);
+        host.appendChild(wrapper);
+        currentStage = { wrapper, stage, width: geometry.width, height: geometry.height };
+
+        requestAnimationFrame(() => {
+          applyFitToWidth();
+          const viewport = document.getElementById("viewport");
+          viewport.scrollLeft = 0;
+          viewport.scrollTop = 0;
+        });
+      }
+
+      function renderTabs() {
+        const tabs = document.getElementById("tabs");
+        tabs.replaceChildren();
+
+        const sheets = workbook ? workbook.sheets : [];
+        if (sheets.length <= 1) {
+          tabs.classList.remove("visible");
+          return;
+        }
+
+        tabs.classList.add("visible");
+        sheets.forEach((sheet, index) => {
+          const button = document.createElement("button");
+          button.className = "tab" + (index === activeSheetIndex ? " active" : "");
+          button.textContent = sheet.name || ("Aba " + (index + 1));
+          button.addEventListener("click", () => {
+            activeSheetIndex = index;
+            renderTabs();
+            renderSheet(sheets[index]);
+          });
+          tabs.appendChild(button);
+        });
+      }
+
+      async function parseWorkbook(bytes) {
+        const zip = await JSZip.loadAsync(bytes);
+
+        const workbookXml = parseXml(await readZipText(zip, "xl/workbook.xml"), "workbook.xml");
+        const relsXml = parseXml(await readZipText(zip, "xl/_rels/workbook.xml.rels"), "workbook.xml.rels");
+        const stylesText = await readZipText(zip, "xl/styles.xml", true);
+        const stringsText = await readZipText(zip, "xl/sharedStrings.xml", true);
+
+        const styles = stylesText
+          ? parseStyles(parseXml(stylesText, "styles.xml"))
+          : { xfs:[{font:{},fill:null,border:{},numFmtId:0,numFmt:"General",alignment:{}}] };
+        const sharedStrings = stringsText
+          ? parseSharedStrings(parseXml(stringsText, "sharedStrings.xml"))
+          : [];
+
+        const relMap = new Map();
+        elements(relsXml, "Relationship").forEach(rel => {
+          relMap.set(rel.getAttribute("Id"), normalizePartPath("xl", rel.getAttribute("Target")));
+        });
+
+        const sheets = [];
+        for (const sheetEl of elements(workbookXml, "sheet")) {
+          const state = (sheetEl.getAttribute("state") || "visible").toLowerCase();
+          if (state === "hidden" || state === "veryhidden") continue;
+
+          const rid = relationshipId(sheetEl);
+          const path = relMap.get(rid);
+          if (!path) continue;
+
+          const xmlText = await readZipText(zip, path, true);
+          if (!xmlText) continue;
+
+          const parsed = parseSheetXml(xmlText, path, styles, sharedStrings);
+          sheets.push({
+            name: sheetEl.getAttribute("name") || ("Aba " + (sheets.length + 1)),
+            path,
+            parsed
+          });
+        }
+
+        if (!sheets.length) throw new Error("Nenhuma aba visível foi encontrada no XLSX.");
+        return { sheets };
+      }
+
+      async function start() {
+        try {
+          if (!window.JSZip) throw new Error("Motor XLSX não carregou.");
+
+          if (document.fonts && document.fonts.ready) {
+            await document.fonts.ready;
+          }
+
+          workbook = await parseWorkbook(decodeBase64Chunks());
+          activeSheetIndex = 0;
+          renderTabs();
+          renderSheet(workbook.sheets[activeSheetIndex]);
+          NerdoraXlsx.onRendered(workbook.sheets.length);
+        } catch (error) {
+          console.error(error);
+          NerdoraXlsx.onError(error && error.message ? error.message : String(error));
+        }
+      }
+
+      let resizeTimer = null;
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(applyFitToWidth, 80);
+      });
+
+      window.addEventListener("load", start, { once: true });
+    })();
+  </script>
+</body>
+</html>
