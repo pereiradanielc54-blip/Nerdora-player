@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.11 XLSX Bounds Fix
+name: Nerdora Player - Build v0.9.12 XLSX Safe Bounds
 
 on:
   workflow_dispatch:
@@ -910,6 +910,87 @@ jobs:
           grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           echo "v0.9.11: área do XLSX é derivada das células reais do XML e o viewport ocupa 100% da altura."
 
+      - name: Aplicar correção segura da área XLSX v0.9.12
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp .github/overlays/v0.9.12/viewer.html \
+            extracted_project/app/src/main/assets/xlsx_renderer/viewer.html
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 72/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.12"/' extracted_project/app/build.gradle.kts
+
+          VIEWER="extracted_project/app/src/main/assets/xlsx_renderer/viewer.html"
+
+          grep -q 'versionName = "0.9.12"' extracted_project/app/build.gradle.kts
+          grep -q 'function extractRawBounds' "$VIEWER"
+          grep -q 'A-Za-z0-9_.-' "$VIEWER"
+          grep -q 'rawBounds' "$VIEWER"
+          grep -q 'getElementsByTagNameNS("\*"' "$VIEWER"
+          ! grep -q 'nodeLocalName' "$VIEWER"
+          ! grep -q 'body.has-tabs #viewport' "$VIEWER"
+          ! grep -q 'position: fixed' "$VIEWER"
+          ! grep -q 'LuckyExcel.transformExcelToLucky' "$VIEWER"
+          ! grep -q 'luckysheet.create' "$VIEWER"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path("extracted_project/app/src/main/assets/xlsx_renderer/viewer.html").read_text(encoding="utf-8")
+          scripts = re.findall(r'<script>([\s\S]*?)</script>', html)
+          assert scripts, "Script inline XLSX v0.9.12 não encontrado"
+          Path("/tmp/xlsx-v0912.js").write_text("\n".join(scripts), encoding="utf-8")
+
+          # Garante que a expressão publicada é a versão segura sem barras duplicadas.
+          assert 'const cellRegex = /<(?:[A-Za-z_][A-Za-z0-9_.-]*:)?c[^>]* r=' in html
+          assert 'const mergeRegex = /<(?:[A-Za-z_][A-Za-z0-9_.-]*:)?mergeCell[^>]* ref=' in html
+          assert '[\\\\w.-]*' not in html
+          PY
+          node --check /tmp/xlsx-v0912.js
+
+          node <<'JS'
+          function parseCellRef(ref) {
+            const m = /^([A-Za-z]+)(\d+)$/.exec(ref || "");
+            if (!m) return null;
+            let col = 0;
+            for (const ch of m[1].toUpperCase()) col = col * 26 + (ch.charCodeAt(0) - 64);
+            return { row: Number(m[2]) - 1, col: col - 1 };
+          }
+          function unionBounds(a,b) {
+            if (!a) return b ? {...b} : null;
+            return {
+              minRow: Math.min(a.minRow,b.minRow),
+              minCol: Math.min(a.minCol,b.minCol),
+              maxRow: Math.max(a.maxRow,b.maxRow),
+              maxCol: Math.max(a.maxCol,b.maxCol)
+            };
+          }
+          function bounds(xml) {
+            let out = null;
+            const re = /<(?:[A-Za-z_][A-Za-z0-9_.-]*:)?c[^>]* r=["']([A-Za-z]+[0-9]+)["']/g;
+            let m, count = 0;
+            while ((m = re.exec(xml)) !== null) {
+              count++;
+              const p = parseCellRef(m[1]);
+              out = unionBounds(out,{minRow:p.row,maxRow:p.row,minCol:p.col,maxCol:p.col});
+            }
+            return {out,count};
+          }
+          const xml = '<x:worksheet><x:sheetData><x:row r="1"><x:c r="A1"/></x:row><x:row r="20"><x:c r="H20"/></x:row></x:sheetData></x:worksheet>';
+          const result = bounds(xml);
+          if (result.count !== 2 || result.out.maxRow !== 19 || result.out.maxCol !== 7) {
+            console.error(result);
+            process.exit(1);
+          }
+          console.log("Regressão A1:H20 validada:", result);
+          JS
+
+          test -s extracted_project/app/src/main/assets/docx_renderer/jszip.min.js
+          grep -q 'DocumentKind.XLSX -> HighFidelityXlsxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          echo "v0.9.12: parser visual da v0.9.10 restaurado e área estendida pelas referências reais do XML."
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
@@ -983,7 +1064,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.11"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.12"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -1013,11 +1094,13 @@ jobs:
           grep -q 'computeUsedBounds' app/src/main/assets/xlsx_renderer/viewer.html
           grep -q 'extractRawBounds' app/src/main/assets/xlsx_renderer/viewer.html
           grep -q 'rawBounds' app/src/main/assets/xlsx_renderer/viewer.html
-          grep -q 'body.has-tabs #viewport' app/src/main/assets/xlsx_renderer/viewer.html
+          grep -q 'getElementsByTagNameNS("\*"' app/src/main/assets/xlsx_renderer/viewer.html
           grep -q 'applyFitToWidth' app/src/main/assets/xlsx_renderer/viewer.html
+          ! grep -q 'nodeLocalName' app/src/main/assets/xlsx_renderer/viewer.html
+          ! grep -q 'body.has-tabs #viewport' app/src/main/assets/xlsx_renderer/viewer.html
           ! grep -q 'LuckyExcel.transformExcelToLucky' app/src/main/assets/xlsx_renderer/viewer.html
           ! grep -q 'luckysheet.create' app/src/main/assets/xlsx_renderer/viewer.html
-          echo "Nerdora Player v0.9.11 validado."
+          echo "Nerdora Player v0.9.12 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -1066,7 +1149,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.11 assinada
+      - name: Publicar Release pública v0.9.12 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -1075,8 +1158,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Correção de corte do Excel"
-          NOTES="Nerdora Player v0.9.11: corrige o corte que fazia o Excel exibir apenas a primeira linha. A área da folha passa a usar diretamente todas as referências de células e mesclas existentes no XML do XLSX, além da análise visual, evitando que o documento termine logo após o título. O parser de namespaces foi reforçado para Android WebView e o visualizador agora ocupa 100% da altura disponível, com abas fixadas no rodapé e a folha rolável acima. Mantém ajuste automático à largura e não altera o leitor Word."
+          TITLE="Nerdora Player v${VERSION} — Excel área completa"
+          NOTES="Nerdora Player v0.9.12: corrige a regressão de tela em branco da v0.9.11. O parser visual comprovado da v0.9.10 foi restaurado sem as alterações de namespace que quebraram a renderização. A única mudança estrutural mantida é a detecção segura da área real pelas referências de células e mesclas do XML; o caso de teste A1:H20 é validado no build. Assim o documento volta a aparecer e não deve encerrar a folha logo após o título. O leitor Word permanece inalterado."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
