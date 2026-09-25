@@ -311,7 +311,7 @@
       function extractRawBounds(xmlText) {
         let bounds = null;
 
-        const cellRegex = /<(?:[A-Za-z_][\\w.-]*:)?c\\b[^>]*\\br=["']([A-Za-z]+\\d+)["']/g;
+        const cellRegex = /<(?:[A-Za-z_][\w.-]*:)?c\b[^>]*\br=["']([A-Za-z]+\d+)["']/g;
         let match;
         while ((match = cellRegex.exec(xmlText)) !== null) {
           const ref = parseCellRef(match[1]);
@@ -322,14 +322,14 @@
           });
         }
 
-        const mergeRegex = /<(?:[A-Za-z_][\\w.-]*:)?mergeCell\\b[^>]*\\bref=["']([^"']+)["']/g;
+        const mergeRegex = /<(?:[A-Za-z_][\w.-]*:)?mergeCell\b[^>]*\bref=["']([^"']+)["']/g;
         while ((match = mergeRegex.exec(xmlText)) !== null) {
           const range = parseRangeRef(match[1]);
           if (range) bounds = unionBounds(bounds, range);
         }
 
         if (!bounds) {
-          const dimensionRegex = /<(?:[A-Za-z_][\\w.-]*:)?dimension\\b[^>]*\\bref=["']([^"']+)["']/;
+          const dimensionRegex = /<(?:[A-Za-z_][\w.-]*:)?dimension\b[^>]*\bref=["']([^"']+)["']/;
           const dimension = dimensionRegex.exec(xmlText);
           if (dimension) bounds = parseRangeRef(dimension[1]);
         }
