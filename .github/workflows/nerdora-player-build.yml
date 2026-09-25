@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.10 XLSX Final Fit
+name: Nerdora Player - Build v0.9.11 XLSX Bounds Fix
 
 on:
   workflow_dispatch:
@@ -863,6 +863,53 @@ jobs:
           grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           echo "v0.9.10: Excel usa recorte da área útil, leitura OOXML direta e ajuste automático à largura."
 
+      - name: Aplicar correção definitiva da área XLSX v0.9.11
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp .github/overlays/v0.9.11/viewer.html \
+            extracted_project/app/src/main/assets/xlsx_renderer/viewer.html
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 71/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.11"/' extracted_project/app/build.gradle.kts
+
+          VIEWER="extracted_project/app/src/main/assets/xlsx_renderer/viewer.html"
+
+          grep -q 'versionName = "0.9.11"' extracted_project/app/build.gradle.kts
+          grep -q 'extractRawBounds' "$VIEWER"
+          grep -q 'unionBounds' "$VIEWER"
+          grep -q 'rawBounds' "$VIEWER"
+          grep -q 'body.has-tabs #viewport' "$VIEWER"
+          grep -q 'position: fixed' "$VIEWER"
+          grep -q 'height: 100vh' "$VIEWER"
+          grep -q 'nodeLocalName' "$VIEWER"
+          grep -q 'getElementsByTagName("\*")' "$VIEWER"
+          grep -q 'parseSheetXml(xmlText, path' "$VIEWER"
+          ! grep -q 'LuckyExcel.transformExcelToLucky' "$VIEWER"
+          ! grep -q 'luckysheet.create' "$VIEWER"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path("extracted_project/app/src/main/assets/xlsx_renderer/viewer.html").read_text(encoding="utf-8")
+          scripts = re.findall(r'<script>([\s\S]*?)</script>', html)
+          assert scripts, "Script inline XLSX v0.9.11 não encontrado"
+          Path("/tmp/xlsx-v0911.js").write_text("\n".join(scripts), encoding="utf-8")
+
+          # Teste de regressão do caso que estava cortando: XML prefixado com células até H20.
+          cell_re = re.compile(r'<(?:[A-Za-z_][\w.-]*:)?c\b[^>]*\br=["\']([A-Za-z]+\d+)["\']')
+          sample = '<x:worksheet><x:sheetData><x:row r="1"><x:c r="A1"/></x:row><x:row r="20"><x:c r="H20"/></x:row></x:sheetData></x:worksheet>'
+          refs = cell_re.findall(sample)
+          assert refs == ["A1", "H20"], refs
+          PY
+          node --check /tmp/xlsx-v0911.js
+
+          test -s extracted_project/app/src/main/assets/docx_renderer/jszip.min.js
+          grep -q 'DocumentKind.XLSX -> HighFidelityXlsxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          echo "v0.9.11: área do XLSX é derivada das células reais do XML e o viewport ocupa 100% da altura."
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
@@ -936,7 +983,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.10"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.11"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -964,11 +1011,13 @@ jobs:
           grep -q 'scanQuickPublicFolders(root)' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           grep -q 'parseWorkbook' app/src/main/assets/xlsx_renderer/viewer.html
           grep -q 'computeUsedBounds' app/src/main/assets/xlsx_renderer/viewer.html
+          grep -q 'extractRawBounds' app/src/main/assets/xlsx_renderer/viewer.html
+          grep -q 'rawBounds' app/src/main/assets/xlsx_renderer/viewer.html
+          grep -q 'body.has-tabs #viewport' app/src/main/assets/xlsx_renderer/viewer.html
           grep -q 'applyFitToWidth' app/src/main/assets/xlsx_renderer/viewer.html
-          grep -q 'sheet-stage' app/src/main/assets/xlsx_renderer/viewer.html
           ! grep -q 'LuckyExcel.transformExcelToLucky' app/src/main/assets/xlsx_renderer/viewer.html
           ! grep -q 'luckysheet.create' app/src/main/assets/xlsx_renderer/viewer.html
-          echo "Nerdora Player v0.9.10 validado."
+          echo "Nerdora Player v0.9.11 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -1017,7 +1066,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.10 assinada
+      - name: Publicar Release pública v0.9.11 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -1026,8 +1075,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Excel final enquadrado"
-          NOTES="Nerdora Player v0.9.10: corrige a visualização final do Excel para mostrar a área realmente utilizada da planilha, sem grandes espaços vazios. O XLSX passa a ser lido diretamente do OOXML local, preservando células, fórmulas com valor salvo, estilos, larguras, alturas, mesclas, bordas e formatos comuns. A folha é recortada pela área útil e recebe ajuste automático à largura da tela. O selo flutuante que cobria o topo foi removido, e os nomes das abas passam a ser lidos pelo XML, corrigindo entidades como &amp;. Mantém a descoberta rápida de arquivos e não altera o leitor Word."
+          TITLE="Nerdora Player v${VERSION} — Correção de corte do Excel"
+          NOTES="Nerdora Player v0.9.11: corrige o corte que fazia o Excel exibir apenas a primeira linha. A área da folha passa a usar diretamente todas as referências de células e mesclas existentes no XML do XLSX, além da análise visual, evitando que o documento termine logo após o título. O parser de namespaces foi reforçado para Android WebView e o visualizador agora ocupa 100% da altura disponível, com abas fixadas no rodapé e a folha rolável acima. Mantém ajuste automático à largura e não altera o leitor Word."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
