@@ -784,3 +784,44 @@ body.reduceMotion .bootGlow{animation:none!important}
   .recentCallsBar{margin-top:6px}.recentCalls{gap:4px}.recentBall{width:30px;height:28px;border-radius:8px}.recentBall b{font-size:10px}
   .tauntVisible{display:grid;grid-template-columns:repeat(2,1fr)}.tauntChip,.tauntOpenBtn{width:100%;padding:8px 6px!important}.tauntMenu{bottom:82px}
 }
+
+/* LAYOUT POLISH V37 — conversation-only, adaptive history, non-shifting notices */
+.compactConversation{display:flex!important;justify-content:center!important;margin:10px auto 4px!important}
+.conversationOnlyBtn{min-width:142px!important;padding:9px 14px!important}
+.conversationMenu{bottom:46px!important;width:min(94vw,410px)!important;grid-template-columns:1fr!important;padding:11px!important}
+.conversationMenuHead{display:block;padding:2px 3px 8px;border-bottom:1px solid rgba(255,255,255,.065)}.conversationMenuHead strong{display:block;font-size:10px}.conversationMenuHead small{display:block;margin-top:2px;color:#74677d;font-size:8px}
+.conversationGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding-top:8px}.conversationGrid button{width:100%;text-align:left!important}
+.conversationRecent{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06)}.conversationRecent>span{display:block;margin-bottom:5px;color:#766a7f;font-size:7px;font-weight:900;letter-spacing:.6px}.conversationFeed{max-height:92px;overflow:auto}
+.quickChatBlock{display:none!important}
+
+/* transient notices float over the game panel instead of changing card position */
+.main{position:relative!important}
+.gameNotices{position:absolute;z-index:24;top:96px;left:50%;transform:translateX(-50%);width:min(calc(100% - 24px),520px);pointer-events:none;display:grid;gap:6px}
+.gameNotices .eventBanner,.gameNotices .nearBingo{width:fit-content!important;max-width:100%!important;margin:0 auto!important;box-shadow:0 10px 28px rgba(0,0,0,.30);backdrop-filter:blur(12px)}
+.gameNotices .eventBanner{background:linear-gradient(135deg,rgba(48,26,76,.94),rgba(74,22,63,.92))!important}
+.gameNotices .nearBingo{background:rgba(59,34,15,.94)!important}
+.spectatorBanner{margin:8px auto 0!important}
+
+/* history uses all remaining vertical space; oldest entries disappear only when capacity is full */
+.historyPanel{display:flex!important;flex-direction:column!important;min-height:0!important}
+.historyPanel>label{flex:0 0 auto}
+.historyFill{flex:1 1 auto!important;min-height:210px!important;max-height:none!important;overflow:hidden!important;align-content:start!important;grid-auto-rows:34px!important}
+.historyPanel .achievementsBox,.historyPanel>h3,.historyPanel>.note{flex:0 0 auto}
+.historyFill .hball{min-width:0!important}
+@media(min-width:901px){
+  .game{align-items:stretch!important}
+  .historyPanel{height:calc(100vh - 112px)!important;max-height:840px!important}
+  .historyFill{min-height:0!important}
+}
+@media(max-width:900px){
+  .historyPanel{min-height:420px!important}
+  .historyFill{min-height:260px!important}
+}
+@media(max-width:560px){
+  .conversationOnlyBtn{width:100%!important}
+  .conversationMenu{bottom:48px!important}
+  .conversationGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gameNotices{top:90px;width:calc(100% - 16px)}
+  .gameNotices .eventBanner,.gameNotices .nearBingo{font-size:9px!important}
+  .historyPanel{min-height:380px!important}.historyFill{min-height:240px!important}
+}
