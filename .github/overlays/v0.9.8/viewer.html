@@ -1,0 +1,337 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=6.0, user-scalable=yes" />
+
+  <link rel="stylesheet" href="../docx_renderer/font-aliases.css" />
+  <link rel="stylesheet" href="luckysheet/plugins/css/pluginsCss.css" />
+  <link rel="stylesheet" href="luckysheet/plugins/plugins.css" />
+  <link rel="stylesheet" href="luckysheet/css/luckysheet.css" />
+  <link rel="stylesheet" href="luckysheet/assets/iconfont/iconfont.css" />
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      min-width: 100%;
+      min-height: 100%;
+      overflow: hidden;
+      background: #ffffff;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    #luckysheet {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      min-width: 280px;
+      min-height: 280px;
+      margin: 0;
+      padding: 0;
+      outline: none;
+      background: #ffffff;
+    }
+
+    .luckysheet-stat-area {
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="luckysheet"></div>
+
+  <script src="../docx_renderer/jszip.min.js"></script>
+  <script src="luckysheet/plugins/js/plugin.js"></script>
+  <script src="luckysheet/luckysheet.umd.js"></script>
+  <script src="luckyexcel.umd.js"></script>
+
+  <script>
+    (() => {
+      const SPREADSHEET_NS = [
+        "http://schemas.openxmlformats.org/spreadsheetml/2006/main",
+        "http://purl.oclc.org/ooxml/spreadsheetml/main"
+      ];
+
+      function decodeBase64Chunks() {
+        const total = NerdoraXlsx.getChunkCount();
+        const parts = new Array(total);
+        for (let i = 0; i < total; i++) parts[i] = NerdoraXlsx.getChunk(i);
+
+        const raw = atob(parts.join(""));
+        const bytes = new Uint8Array(raw.length);
+        const stride = 32768;
+
+        for (let start = 0; start < raw.length; start += stride) {
+          const end = Math.min(start + stride, raw.length);
+          for (let i = start; i < end; i++) bytes[i] = raw.charCodeAt(i);
+        }
+        return bytes;
+      }
+
+      function escapeRegex(value) {
+        return value.replace(/[.*+?^$\{\}()|[\]\\]/g, "\\$&");
+      }
+
+      function normalizeSpreadsheetXml(xml) {
+        let result = xml;
+
+        for (const namespaceUri of SPREADSHEET_NS) {
+          const escapedUri = escapeRegex(namespaceUri);
+          const declaration = new RegExp(
+            'xmlns:([A-Za-z_][A-Za-z0-9_.-]*)=["\\\']' + escapedUri + '["\\\']'
+          );
+          const match = result.match(declaration);
+
+          if (!match) continue;
+
+          const prefix = match[1];
+          const prefixedTag = new RegExp("<(/?)" + escapeRegex(prefix) + ":", "g");
+          result = result.replace(prefixedTag, "<$1");
+          result = result.replace(match[0], 'xmlns="' + namespaceUri + '"');
+        }
+
+        return result;
+      }
+
+      async function normalizeXlsxForLuckyExcel(bytes) {
+        if (!window.JSZip) return bytes;
+
+        const zip = await JSZip.loadAsync(bytes);
+        const jobs = [];
+        let changed = false;
+
+        zip.forEach((relativePath, entry) => {
+          if (entry.dir || !relativePath.toLowerCase().endsWith(".xml")) return;
+          if (!relativePath.startsWith("xl/")) return;
+
+          jobs.push((async () => {
+            const original = await entry.async("string");
+            const normalized = normalizeSpreadsheetXml(original);
+            if (normalized !== original) {
+              changed = true;
+              zip.file(relativePath, normalized);
+            }
+          })());
+        });
+
+        await Promise.all(jobs);
+
+        if (!changed) return bytes;
+
+        return new Uint8Array(
+          await zip.generateAsync({
+            type: "uint8array",
+            compression: "DEFLATE",
+            compressionOptions: { level: 6 }
+          })
+        );
+      }
+
+      function asExcelFile(bytes) {
+        const type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        try {
+          return new File([bytes], "Nerdora.xlsx", { type });
+        } catch (_) {
+          const blob = new Blob([bytes], { type });
+          blob.name = "Nerdora.xlsx";
+          return blob;
+        }
+      }
+
+      async function waitForContainer() {
+        const root = document.getElementById("luckysheet");
+
+        for (let i = 0; i < 40; i++) {
+          const rect = root.getBoundingClientRect();
+          if (rect.width >= 200 && rect.height >= 200) return;
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+
+        throw new Error("A área da planilha não recebeu tamanho válido.");
+      }
+
+      function hideMutationUi() {
+        [
+          ".luckysheet-sheets-add",
+          ".luckysheet-sheets-m",
+          ".luckysheet-sheet-area .luckysheet-sheets-add"
+        ].forEach(selector => {
+          document.querySelectorAll(selector).forEach(el => {
+            el.style.display = "none";
+          });
+        });
+      }
+
+      function forceGridResize() {
+        try {
+          window.dispatchEvent(new Event("resize"));
+        } catch (_) {}
+
+        try {
+          if (window.luckysheet && typeof luckysheet.resize === "function") {
+            luckysheet.resize();
+          }
+        } catch (_) {}
+      }
+
+      async function confirmGridReady(expectedSheets) {
+        for (let i = 0; i < 30; i++) {
+          const canvas = document.getElementById("luckysheetTableContent");
+          const columnHeader = document.getElementById("luckysheet-cols-h-c");
+          const rowHeader = document.getElementById("luckysheet-rows-h");
+
+          if (
+            canvas &&
+            canvas.width > 80 &&
+            canvas.height > 80 &&
+            columnHeader &&
+            rowHeader
+          ) {
+            let count = expectedSheets;
+            try {
+              const file = luckysheet.getLuckysheetfile();
+              if (Array.isArray(file) && file.length) count = file.length;
+            } catch (_) {}
+
+            NerdoraXlsx.onRendered(Math.max(1, count));
+            return;
+          }
+
+          forceGridResize();
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        throw new Error("A planilha foi lida, mas a grade não conseguiu inicializar.");
+      }
+
+      async function renderWorkbook(exportJson) {
+        const sheets = Array.isArray(exportJson && exportJson.sheets)
+          ? exportJson.sheets
+          : [];
+
+        if (!sheets.length) {
+          throw new Error("Nenhuma aba válida foi encontrada no XLSX.");
+        }
+
+        await waitForContainer();
+
+        luckysheet.create({
+          container: "luckysheet",
+          data: sheets,
+          title: exportJson.info && exportJson.info.name ? exportJson.info.name : "Planilha",
+          lang: "en",
+
+          allowEdit: false,
+          allowCopy: true,
+          allowUpdate: false,
+          fullscreenmode: false,
+
+          showtoolbar: false,
+          showinfobar: false,
+          sheetFormulaBar: false,
+          showsheetbar: true,
+          showstatisticBar: false,
+
+          enableAddRow: false,
+          enableAddBackTop: false,
+          forceCalculation: false,
+          userInfo: false,
+          showConfigWindowResize: false,
+
+          cellRightClickConfig: {
+            copy: false,
+            copyAs: false,
+            paste: false,
+            insertRow: false,
+            insertColumn: false,
+            deleteRow: false,
+            deleteColumn: false,
+            deleteCell: false,
+            hideRow: false,
+            hideColumn: false,
+            rowHeight: false,
+            columnWidth: false,
+            clear: false,
+            matrix: false,
+            sort: false,
+            filter: false,
+            chart: false,
+            image: false,
+            link: false,
+            data: false,
+            cellFormat: false
+          },
+
+          sheetRightClickConfig: {
+            delete: false,
+            copy: false,
+            rename: false,
+            color: false,
+            hide: false,
+            move: false
+          }
+        });
+
+        hideMutationUi();
+
+        requestAnimationFrame(() => {
+          forceGridResize();
+          requestAnimationFrame(forceGridResize);
+        });
+
+        setTimeout(forceGridResize, 250);
+        setTimeout(forceGridResize, 700);
+
+        await confirmGridReady(sheets.length);
+      }
+
+      async function start() {
+        try {
+          if (!window.LuckyExcel || !window.luckysheet) {
+            throw new Error("Motor de visualização Excel não carregou.");
+          }
+
+          if (document.fonts && document.fonts.ready) {
+            await document.fonts.ready;
+          }
+
+          const originalBytes = decodeBase64Chunks();
+          const compatibleBytes = await normalizeXlsxForLuckyExcel(originalBytes);
+          const file = asExcelFile(compatibleBytes);
+
+          LuckyExcel.transformExcelToLucky(
+            file,
+            function (exportJson) {
+              renderWorkbook(exportJson).catch(error => {
+                NerdoraXlsx.onError(error && error.message ? error.message : String(error));
+              });
+            },
+            function (error) {
+              NerdoraXlsx.onError(
+                error && error.message
+                  ? error.message
+                  : "O arquivo XLSX não pôde ser convertido para visualização."
+              );
+            }
+          );
+        } catch (error) {
+          NerdoraXlsx.onError(error && error.message ? error.message : String(error));
+        }
+      }
+
+      window.addEventListener("load", start, { once: true });
+
+      window.addEventListener("beforeunload", () => {
+        try { luckysheet.destroy(); } catch (_) {}
+      });
+    })();
+  </script>
+</body>
+</html>
