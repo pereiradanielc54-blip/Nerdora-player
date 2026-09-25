@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.5 High Fidelity DOCX
+name: Nerdora Player - Build v0.9.6 High Fidelity XLSX
 
 on:
   workflow_dispatch:
@@ -573,6 +573,86 @@ jobs:
           node --check "$ASSETS/docx-renderer.umd.js"
           echo "DOCX alta fidelidade v0.9.5 aplicado com docx-renderer 0.2.2 e fontes métricas livres."
 
+      - name: Aplicar Excel Viewer v0.9.6
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp .github/overlays/v0.9.6/HighFidelityXlsxViewer.kt \
+            extracted_project/app/src/main/java/com/nerdora/player/ui/HighFidelityXlsxViewer.kt
+
+          ASSETS="extracted_project/app/src/main/assets/xlsx_renderer"
+          rm -rf "$ASSETS"
+          mkdir -p "$ASSETS/luckysheet" "$ASSETS/licenses"
+          cp .github/overlays/v0.9.6/viewer.html "$ASSETS/viewer.html"
+
+          rm -rf /tmp/nerdora-xlsx-web
+          mkdir -p /tmp/nerdora-xlsx-web
+          cd /tmp/nerdora-xlsx-web
+          npm init -y >/dev/null 2>&1
+          npm install --silent --no-audit --no-fund \
+            luckysheet@2.1.13 \
+            luckyexcel@1.0.0
+
+          cp -R node_modules/luckysheet/dist/. "$GITHUB_WORKSPACE/$ASSETS/luckysheet/"
+          cp node_modules/luckyexcel/dist/luckyexcel.umd.js "$GITHUB_WORKSPACE/$ASSETS/luckyexcel.umd.js"
+
+          for PACKAGE in luckysheet luckyexcel; do
+            LIC=$(find "node_modules/$PACKAGE" -maxdepth 2 -type f -iname 'LICENSE*' | head -n 1 || true)
+            if [ -n "$LIC" ]; then
+              cp "$LIC" "$GITHUB_WORKSPACE/$ASSETS/licenses/$PACKAGE-LICENSE.txt"
+            fi
+          done
+
+          cd "$GITHUB_WORKSPACE"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          viewer = Path("extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt")
+          text = viewer.read_text(encoding="utf-8")
+
+          text, title_count = re.subn(
+              r'DocumentKind\.XLSX\s*->\s*"[^"]*"',
+              'DocumentKind.XLSX -> "Excel • alta fidelidade • somente leitura"',
+              text,
+              count=1,
+          )
+          assert title_count == 1 or 'DocumentKind.XLSX -> "Excel • alta fidelidade • somente leitura"' in text, "Título XLSX não encontrado"
+
+          if 'DocumentKind.XLSX -> HighFidelityXlsxViewer(context, document)' not in text:
+              pattern = re.compile(
+                  r'DocumentKind\.XLSX\s*->\s*RichHtmlViewer\([^\n]*?\)\s*\{\s*OfficeHtmlReader\.readXlsx\([^\n]*?\)\s*\}'
+              )
+              text, route_count = pattern.subn(
+                  'DocumentKind.XLSX -> HighFidelityXlsxViewer(context, document)',
+                  text,
+                  count=1,
+              )
+              assert route_count == 1, "Rota XLSX antiga não encontrada"
+
+          viewer.write_text(text, encoding="utf-8")
+          PY
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 66/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.6"/' extracted_project/app/build.gradle.kts
+
+          grep -q 'versionName = "0.9.6"' extracted_project/app/build.gradle.kts
+          grep -q 'DocumentKind.XLSX -> HighFidelityXlsxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          grep -q 'fun HighFidelityXlsxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/HighFidelityXlsxViewer.kt
+          test -s "$ASSETS/luckyexcel.umd.js"
+          test -s "$ASSETS/luckysheet/luckysheet.umd.js"
+          test -s "$ASSETS/luckysheet/css/luckysheet.css"
+          test -s "$ASSETS/luckysheet/plugins/js/plugin.js"
+          grep -q 'LuckyExcel.transformExcelToLucky' "$ASSETS/viewer.html"
+          grep -q 'cellUpdateBefore' "$ASSETS/viewer.html"
+          grep -q '../docx_renderer/font-aliases.css' "$ASSETS/viewer.html"
+          node --check "$ASSETS/luckyexcel.umd.js"
+          node --check "$ASSETS/luckysheet/luckysheet.umd.js"
+          echo "Excel Viewer v0.9.6 aplicado com LuckyExcel 1.0.0 + Luckysheet 2.1.13, somente leitura."
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
@@ -646,7 +726,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.5"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.6"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -667,7 +747,11 @@ jobs:
           test -s app/src/main/assets/docx_renderer/docx-renderer.umd.js
           test -s app/src/main/assets/docx_renderer/fonts/carlito-400.woff2
           grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
-          echo "Nerdora Player v0.9.5 validado."
+          test -f app/src/main/java/com/nerdora/player/ui/HighFidelityXlsxViewer.kt
+          test -s app/src/main/assets/xlsx_renderer/luckyexcel.umd.js
+          test -s app/src/main/assets/xlsx_renderer/luckysheet/luckysheet.umd.js
+          grep -q 'DocumentKind.XLSX -> HighFidelityXlsxViewer' app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          echo "Nerdora Player v0.9.6 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -716,7 +800,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.5 assinada
+      - name: Publicar Release pública v0.9.6 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -725,8 +809,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — DOCX alta fidelidade"
-          NOTES="Nerdora Player v0.9.5: teste do novo leitor DOCX de alta fidelidade com docx-renderer 0.2.2 executado totalmente offline no WebView. O motor reconstrói páginas, margens, cabeçalhos, rodapés, tabelas, imagens, objetos ancorados, listas, seções e paginação do Word com muito mais fidelidade que o antigo DOCX→HTML simples. Inclui substitutas métricas livres para fontes comuns: Carlito para Calibri, Caladea para Cambria, Arimo para Arial, Tinos para Times New Roman e Cousine para Courier New. Fontes proprietárias Microsoft não são redistribuídas. Mantém hotfix de Arquivos, atualizador interno e assinatura permanente."
+          TITLE="Nerdora Player v${VERSION} — Excel alta fidelidade"
+          NOTES="Nerdora Player v0.9.6: adiciona um novo visualizador XLSX somente leitura baseado em LuckyExcel 1.0.0 + Luckysheet 2.1.13, executado offline no WebView. Preserva estilos de célula, bordas, formatos numéricos, datas, porcentagens, fórmulas importadas, células mescladas, larguras de coluna, alturas de linha e múltiplas abas com fidelidade muito maior que o antigo XLSX→HTML. Reaproveita as fontes métricas livres já incluídas na v0.9.5 para Calibri, Cambria, Arial, Times New Roman e Courier New. Edição, exclusão, colagem e alterações ficam bloqueadas: é um visualizador. O leitor Word v0.9.5 permanece inalterado."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
