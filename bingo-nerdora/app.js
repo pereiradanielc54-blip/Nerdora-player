@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-var APP_VERSION="35";
+var APP_VERSION="36";
 var $=function(id){return document.getElementById(id)};
 var E={
 home:$("home"),game:$("game"),name:$("name"),create:$("create"),openJoin:$("openJoin"),joinBox:$("joinBox"),room:$("roomInput"),join:$("join"),net:$("net"),bootSplash:$("bootSplash"),bootStatus:$("bootStatus"),bootProgressFill:$("bootProgressFill"),
@@ -444,49 +444,32 @@ function finishBoot(text){
 }
 function versionNumber(v){var n=parseInt(String(v||"0").replace(/\D+/g,""),10);return Number.isFinite(n)?n:0}
 function promiseTimeout(p,ms){return Promise.race([p,new Promise(function(resolve){setTimeout(function(){resolve(null)},ms)})])}
-async function checkLatestVersion(){
-  var safety=setTimeout(function(){finishBoot("Jogo pronto! A verificação continuará na próxima abertura.")},6500);
-  bootStep("Verificando a versão mais recente...",18);
+function remoteVersionUrl(){return "https://raw.githubusercontent.com/pereiradanielc54-blip/Nerdora-player/bingo-nerdora-prototype/bingo-nerdora/version.json?t="+Date.now()}
+async function backgroundUpdateCheck(){
+  if(!navigator.onLine)return;
   try{
-    if(navigator.onLine){
-      var checkUrl="./index.html?__nerdora_update="+Date.now();
-      var controller=window.AbortController?new AbortController():null;
-      var abortTimer=controller?setTimeout(function(){try{controller.abort()}catch(e){}},3200):null;
-      var res=await fetch(checkUrl,{cache:"no-store",headers:{"Cache-Control":"no-cache"},signal:controller?controller.signal:undefined});
-      if(abortTimer)clearTimeout(abortTimer);
-      if(res&&res.ok){
-        bootStep("Comparando atualizações...",42);
-        var html=await res.text(),match=html.match(/data-app-version=["']([^"']+)["']/i),
-            remote=match&&match[1]?String(match[1]):APP_VERSION,
-            localN=versionNumber(APP_VERSION),remoteN=versionNumber(remote),
-            attempted=sessionStorage.getItem("bingoNerdoraUpdateAttempt");
-        if(remoteN>localN&&attempted!==remote){
-          bootStep("Nova versão encontrada • atualizando...",68);
-          sessionStorage.setItem("bingoNerdoraUpdateAttempt",remote);
-          try{var reg0=await promiseTimeout(setupPwa(),1800);if(reg0)await promiseTimeout(reg0.update(),1800)}catch(e){}
-          clearTimeout(safety);
-          var u=new URL(location.href);u.searchParams.set("v",remote);u.searchParams.set("fresh",Date.now().toString());
-          setTimeout(function(){location.replace(u.toString())},260);
-          return false
-        }
-        if(remoteN<=localN){
-          sessionStorage.removeItem("bingoNerdoraUpdateAttempt");
-          bootStep(remoteN<localN?"Servidor sincronizando • mantendo versão atual...":"Você já está na versão mais recente.",58)
-        }else if(attempted===remote){
-          bootStep("Atualização já aplicada • abrindo jogo...",62)
-        }
-      }
-    }else bootStep("Sem internet • abrindo versão salva...",48);
-  }catch(e){
-    bootStep(navigator.onLine?"Verificação indisponível • abrindo versão atual...":"Sem internet • abrindo versão salva...",55)
-  }
-  bootStep("Sincronizando arquivos do jogo...",74);
-  try{
-    var reg=await promiseTimeout(setupPwa(),1600);
-    if(reg){await promiseTimeout(reg.update(),1600);bootStep("Arquivos sincronizados...",90)}
+    var res=await fetch(remoteVersionUrl(),{cache:"no-store"});
+    if(!res||!res.ok)return;
+    var info=await res.json(),remote=String(info.version||APP_VERSION),localN=versionNumber(APP_VERSION),remoteN=versionNumber(remote);
+    if(remoteN<=localN){sessionStorage.removeItem("bingoNerdoraUpdateAttempt");return}
+    var attempted=sessionStorage.getItem("bingoNerdoraUpdateAttempt");
+    if(attempted===remote)return;
+    sessionStorage.setItem("bingoNerdoraUpdateAttempt",remote);
+    toast("Nova versão "+remote+" encontrada • atualizando...");
+    try{var reg=await promiseTimeout(setupPwa(),2200);if(reg)await promiseTimeout(reg.update(),2200)}catch(e){}
+    setTimeout(function(){
+      var u=new URL(location.href);u.searchParams.set("v",remote);u.searchParams.set("fresh",Date.now().toString());location.replace(u.toString())
+    },700)
   }catch(e){}
-  clearTimeout(safety);
-  finishBoot(navigator.onLine?"Jogo atualizado e pronto!":"Modo offline pronto!");
+}
+async function checkLatestVersion(){
+  bootStep(navigator.onLine?"Abrindo Bingo Nerdora...":"Abrindo versão salva...",35);
+  try{
+    await promiseTimeout(setupPwa(),900);
+    bootStep("Preparando sua sala...",72)
+  }catch(e){}
+  finishBoot("Tudo pronto!");
+  setTimeout(backgroundUpdateCheck,900);
   return true
 }
 function setupControls(){refreshAudioButtons();
