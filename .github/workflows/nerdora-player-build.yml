@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.7 XLSX Discovery Fix
+name: Nerdora Player - Build v0.9.8 XLSX Renderer Fix
 
 on:
   workflow_dispatch:
@@ -729,6 +729,46 @@ jobs:
           grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           echo "v0.9.7: índice rápido passa a descobrir automaticamente arquivos novos em Download e Documents."
 
+      - name: Aplicar correção do renderer XLSX v0.9.8
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp .github/overlays/v0.9.8/viewer.html \
+            extracted_project/app/src/main/assets/xlsx_renderer/viewer.html
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 68/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.8"/' extracted_project/app/build.gradle.kts
+
+          VIEWER="extracted_project/app/src/main/assets/xlsx_renderer/viewer.html"
+
+          grep -q 'versionName = "0.9.8"' extracted_project/app/build.gradle.kts
+          grep -q 'allowEdit: false' "$VIEWER"
+          grep -q 'normalizeXlsxForLuckyExcel' "$VIEWER"
+          grep -q '../docx_renderer/jszip.min.js' "$VIEWER"
+          grep -q 'fullscreenmode: false' "$VIEWER"
+          grep -q 'confirmGridReady' "$VIEWER"
+          ! grep -q 'cellUpdateBefore' "$VIEWER"
+          ! grep -q 'installReadOnlyGuards' "$VIEWER"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path("extracted_project/app/src/main/assets/xlsx_renderer/viewer.html").read_text(encoding="utf-8")
+          scripts = re.findall(r'<script>([\s\S]*?)</script>', html)
+          assert scripts, "Script inline do XLSX viewer não encontrado"
+          Path("/tmp/xlsx-viewer-inline.js").write_text("\n".join(scripts), encoding="utf-8")
+          PY
+          node --check /tmp/xlsx-viewer-inline.js
+
+          test -s extracted_project/app/src/main/assets/docx_renderer/jszip.min.js
+          test -s extracted_project/app/src/main/assets/xlsx_renderer/luckyexcel.umd.js
+          test -s extracted_project/app/src/main/assets/xlsx_renderer/luckysheet/luckysheet.umd.js
+
+          grep -q 'DocumentKind.XLSX -> HighFidelityXlsxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          echo "v0.9.8: XLSX usa somente leitura nativo, resize seguro e normalização de namespaces OOXML."
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
@@ -802,7 +842,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.7"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.8"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -828,7 +868,9 @@ jobs:
           test -s app/src/main/assets/xlsx_renderer/luckysheet/luckysheet.umd.js
           grep -q 'DocumentKind.XLSX -> HighFidelityXlsxViewer' app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           grep -q 'scanQuickPublicFolders(root)' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
-          echo "Nerdora Player v0.9.7 validado."
+          grep -q 'allowEdit: false' app/src/main/assets/xlsx_renderer/viewer.html
+          grep -q 'normalizeXlsxForLuckyExcel' app/src/main/assets/xlsx_renderer/viewer.html
+          echo "Nerdora Player v0.9.8 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -877,7 +919,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.7 assinada
+      - name: Publicar Release pública v0.9.8 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -886,8 +928,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Correção de arquivos novos"
-          NOTES="Nerdora Player v0.9.7: corrige arquivos recém-baixados que não apareciam na aba Arquivos devido ao índice persistente criado para acelerar o carregamento. O Nerdora continua abrindo o cache instantaneamente, mas agora faz uma descoberta leve em Download e Documents e adiciona arquivos novos ao índice sem executar uma varredura completa do celular. Mantém o Excel de alta fidelidade v0.9.6 e o Word de alta fidelidade v0.9.5 inalterados."
+          TITLE="Nerdora Player v${VERSION} — Correção do Excel Viewer"
+          NOTES="Nerdora Player v0.9.8: corrige o visualizador Excel em duas frentes. O modo somente leitura passa a usar a opção nativa allowEdit=false do Luckysheet, removendo bloqueios manuais que podiam impedir a grade de desenhar; o renderer também aguarda dimensões válidas do WebView e força o resize do canvas após a criação. Além disso, uma camada de compatibilidade normaliza namespaces OOXML prefixados, como <x:workbook> e <x:worksheet>, que são válidos no Excel mas não eram reconhecidos pelo parser antigo do LuckyExcel. Mantém descoberta rápida de arquivos da v0.9.7 e não altera o leitor Word."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
