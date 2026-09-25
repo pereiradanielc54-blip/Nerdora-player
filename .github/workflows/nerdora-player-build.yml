@@ -289,10 +289,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "=== arquivos relacionados a update/release/github/download ==="
-          grep -RIlE 'update|atualiza|release|github|DownloadManager|browser_download_url|ACTION_VIEW|REQUEST_INSTALL_PACKAGES' extracted_project/app/src/main/java extracted_project/app/src/main/AndroidManifest.xml 2>/dev/null || true
-          echo "=== ocorrências com contexto ==="
-          grep -RInE -C 5 'update|atualiza|release|github|DownloadManager|browser_download_url|ACTION_VIEW|REQUEST_INSTALL_PACKAGES' extracted_project/app/src/main/java extracted_project/app/src/main/AndroidManifest.xml 2>/dev/null | head -n 1200 || true
+          echo "=== UpdateChecker.kt ==="
+          cat extracted_project/app/src/main/java/com/nerdora/player/UpdateChecker.kt
+          echo "=== UpdateInstaller.kt ==="
+          cat extracted_project/app/src/main/java/com/nerdora/player/UpdateInstaller.kt
+          echo "=== UpdateUi.kt ==="
+          cat extracted_project/app/src/main/java/com/nerdora/player/ui/UpdateUi.kt
+          echo "=== SettingsScreen updater block ==="
+          sed -n '1,260p' extracted_project/app/src/main/java/com/nerdora/player/ui/SettingsScreen.kt
+          echo "=== NerdoraPlayerApp update usage ==="
+          grep -nE -C 10 'Update|update' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt || true
+          echo "=== AndroidManifest update/install ==="
+          grep -nE -C 5 'REQUEST_INSTALL_PACKAGES|provider|FileProvider' extracted_project/app/src/main/AndroidManifest.xml || true
+          exit 1
 
       - name: Encontrar projeto Android
         id: android
