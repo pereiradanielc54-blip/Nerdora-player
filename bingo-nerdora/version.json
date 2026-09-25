@@ -1,5 +1,5 @@
 {
-  "version": "37",
+  "version": "38",
   "updated": "2026-09-25",
-  "notes": "Conversation menu consolidated, adaptive full-height call history, floating game notices."
+  "notes": "Conversation emoji moved beside play/pause controls; top call history expands to available width."
 }
