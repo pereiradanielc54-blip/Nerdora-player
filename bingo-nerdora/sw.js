@@ -1,5 +1,5 @@
-const CACHE="bingo-nerdora-v34";
-const VERSION="34";
+const CACHE="bingo-nerdora-v35";
+const VERSION="35";
 const CORE=["./","./index.html","./style.css","./app.js","./extras.js","./manifest.json","./icon.svg","./assets/bingo-cover.webp","./assets/neon-theme.mp3"];
 
 self.addEventListener("install",event=>{
