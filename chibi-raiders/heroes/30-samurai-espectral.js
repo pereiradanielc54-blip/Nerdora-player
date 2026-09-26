@@ -1,0 +1,3 @@
+/* Nerdora Chibi Raiders — Herói #30: Samurai Espectral */
+window.NERDORA_HERO_SOURCE=window.NERDORA_HERO_SOURCE||{};
+window.NERDORA_HERO_SOURCE["samurai_espectral"]={"number":30,"id":"samurai_espectral","name":"Samurai Espectral","rarity":"EP","color":"#8A2BE2","colorName":"Roxo","img":"","atlasPage":2,"atlasCol":4,"atlasRow":1,"emoji":"👹","class":"Assassina","position":"front","style":"melee","type":"physical","finalBase":true,"ultimateFinal":true,"hp":1450,"pa":330,"ma":90,"pd":130,"md":122,"speed":140,"cr":0.24,"dg":0.16,"ult":{"name":"Corte Fantasma","kind":"multi","ratio":0.68,"hits":5,"effect":"execute"}};
