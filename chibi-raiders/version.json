@@ -1,5 +1,7 @@
 {
-  "version": "0.9.0",
-  "build": "2026-09-25-v0.9-progression",
-  "notes": "Campanha 1-1 a 1-5, recompensas, evolução dos 10 heróis, Ouro/EXP/Essência, fases desbloqueáveis e persistência local."
+  "version": "0.9.1",
+  "entry": "./index-0.9.1.html",
+  "serviceWorker": "./sw-0.9.1.js",
+  "build": "2026-09-26-v0.9.1-update-fix",
+  "notes": "Correção do carregamento/atualização. Assets versionados impedem mistura de cache entre versões. Mantém campanha e progressão v0.9."
 }
