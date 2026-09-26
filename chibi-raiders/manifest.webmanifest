@@ -2,13 +2,21 @@
   "name": "Nerdora Chibi Raiders",
   "short_name": "Chibi Raiders",
   "id": "./",
-  "description": "RPG mobile Gacha/Turn-based do universo Nerdora.",
-  "start_url": "./index-4.0.0.html",
+  "description": "RPG mobile turn-based do universo Nerdora com 20 heróis oficiais, raridades, campanha, gacha e endgame.",
+  "start_url": "./index-4.1.0.html",
   "scope": "./",
   "display": "standalone",
+  "display_override": [
+    "fullscreen",
+    "standalone"
+  ],
   "orientation": "landscape",
-  "background_color": "#050811",
-  "theme_color": "#0d111c",
+  "background_color": "#050710",
+  "theme_color": "#120b24",
+  "categories": [
+    "games",
+    "entertainment"
+  ],
   "icons": [
     {
       "src": "./icon-192.webp",
@@ -20,7 +28,7 @@
       "src": "./icon-512.webp",
       "sizes": "512x512",
       "type": "image/webp",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ]
 }
