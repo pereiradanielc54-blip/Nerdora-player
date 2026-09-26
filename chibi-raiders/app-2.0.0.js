@@ -121,8 +121,8 @@ const AFK_CAP_MS=12*60*60*1000;
 const AFK_RATES={goldPerMin:18,expPerMin:4,essencePerMin:.04};
 
 const AUDIO_ASSETS={
- menu:"./audio/menu-theme.mp3",
- battle:"./audio/battle-theme.mp3",
+ menu:"./audio/menu-theme.wav",
+ battle:"./audio/battle-theme.wav",
  click:"./audio/ui-click.wav",
  impact:"./audio/impact.wav",
  ultimateReady:"./audio/ultimate-ready.wav",
@@ -593,7 +593,7 @@ function renderTower(){
  const start=Math.max(1,Math.min(floor-1,TOWER_MAX-4));
  $("#towerMilestones").innerHTML=Array.from({length:5},(_,i)=>start+i).filter(x=>x<=TOWER_MAX).map(fl=>{
   const rw=towerReward(fl),cleared=fl<=save.towerBest,current=fl===floor;
-  return `<div class="towerFloorCard ${cleared?"cleared":""} ${current?"current":""}"><div class="towerFloorNo">${cleared?"✓":fl}</div><div><b>Andar ${fl}${fl%5===0?" • Elite":""}</b><small>Inimigos Nv.${Math.ceil(fl/2)} • força ×${towerScale(fl).toFixed(2)}</small></div><div class="towerReward">🔷 <strong>+${rw.crystals}</strong>🪙 ${rw.gold}</div></div>`;
+  return `<div class="towerFloorCard ${cleared?"cleared":""} ${current?"current":""}"><div class="towerFloorNo">${cleared?"✓":fl}</div><div><b>Andar ${fl}${fl%5===0?" • Elite":""}</b><small>Inimigos Nv.${Math.ceil(fl/2)} • força ×${towerScale(fl).toFixed(2)}</small></div><div class="towerReward">🔷 <strong>+${rw.crystals}</strong>🪙 ${rw.gold}${rw.stones?"<br>🌟 +"+rw.stones:""}</div></div>`;
  }).join("");
  $("#startTower").textContent=completed?"⚔️ Repetir Andar 50":"⚔️ Desafiar Andar "+floor;
  $("#startTower").disabled=used().length!==5;renderResources();
