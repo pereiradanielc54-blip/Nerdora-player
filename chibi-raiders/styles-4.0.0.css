@@ -1852,3 +1852,104 @@ body{
  .rarityFlashCore{min-width:155px;padding:15px 20px}
  .rarityFlashCore span{font-size:34px}
 }
+
+
+/* =========================================================
+   v4.0.0 — AVATARES OFICIAIS POR URL + CORES LIDAS DO OBJETO
+   ========================================================= */
+.heroPortrait,.heroManageEmoji,.avatar,.heroDetailAvatar,.awakenHeroAvatar,.awakenAvatar,.bigEmoji,.ccAvatar,.opponentPortrait{
+ position:relative;display:grid;place-items:center;overflow:hidden
+}
+.heroPortraitImage img,
+.heroManageEmoji img,.avatar img,.heroDetailAvatar img,.awakenHeroAvatar img,.awakenAvatar img,.bigEmoji img,.ccAvatar img,.opponentPortrait img{
+ width:100%;height:100%;object-fit:contain;display:block
+}
+.heroPortraitImage i{
+ position:absolute;inset:0;display:none;place-items:center;font-style:normal
+}
+.heroPortraitImage.imgError img{display:none}
+.heroPortraitImage.imgError i{display:grid}
+.heroPortraitFallback{line-height:1}
+
+.heroManageEmoji{
+ width:48px;height:48px;min-width:48px;border-radius:14px;
+ background:linear-gradient(145deg,#1d2536,#101622);
+ border:1px solid color-mix(in srgb,var(--rarity,#fff) 72%,#33405a);
+ box-shadow:0 0 12px color-mix(in srgb,var(--rarity,#fff) 30%,transparent);
+ font-size:30px
+}
+.rosterHead .avatar{
+ width:42px;height:42px;min-width:42px;border-radius:12px;
+ background:#101725;border:1px solid color-mix(in srgb,var(--rarity,#fff) 65%,#2f3a52);
+ font-size:26px
+}
+.heroDetailAvatar,.awakenAvatar{
+ width:78px!important;height:78px!important;border-radius:20px!important;
+ background:linear-gradient(145deg,#202942,#111724)!important;
+ border:1px solid var(--rarity,#465778)!important;
+ box-shadow:0 0 18px color-mix(in srgb,var(--rarity,#fff) 36%,transparent)
+}
+.awakenHeroAvatar{
+ width:44px;height:44px;min-width:44px;border-radius:13px;
+ background:#161d2b;border:1px solid color-mix(in srgb,var(--rarity,#fff) 60%,#34405a);
+ font-size:27px
+}
+.summonCard .bigEmoji{
+ width:72px;height:72px;margin:2px auto 5px;border-radius:18px;
+ background:radial-gradient(circle,color-mix(in srgb,var(--rarity,#fff) 18%,#171d29),#0e1420);
+ border:1px solid color-mix(in srgb,var(--rarity,#fff) 58%,#303a50);
+ font-size:38px
+}
+.combatCard .ccAvatar{
+ overflow:visible!important;background:rgba(20,28,42,.76)!important;
+ border-color:var(--rarity,#4a5773)!important;
+ box-shadow:0 0 10px color-mix(in srgb,var(--rarity,#fff) 35%,transparent)
+}
+.combatCard .ccAvatar img{transform:scale(1.34);filter:drop-shadow(0 4px 4px rgba(0,0,0,.34))}
+.opponentUnit{
+ width:38px;height:38px;padding:0!important;overflow:hidden;
+ border-color:var(--rarity,#2b3750)!important;
+ box-shadow:0 0 8px color-mix(in srgb,var(--rarity,#fff) 28%,transparent)
+}
+.opponentPortrait{width:100%;height:100%;font-size:19px}
+
+/* O JS injeta --rarity diretamente de hero.color */
+.heroManageCard[class*="rarity-"],
+.rosterCard[class*="rarity-"],
+.awakenHeroCard[class*="rarity-"],
+.summonCard[class*="rarity-"],
+.heroDetail[class*="rarity-"],
+.slot.filled[class*="rarity-"],
+.combatCard[class*="rarity-"]{
+ border-color:var(--rarity)!important
+}
+.heroManageCard[class*="rarity-"] .heroManageName,
+.rosterCard[class*="rarity-"] .rarityName,
+.awakenHeroCard[class*="rarity-"] .rarityName,
+.summonCard[class*="rarity-"] .rarityName,
+.heroDetail[class*="rarity-"] .heroDetailTitle h2,
+.combatCard[class*="rarity-"] .ccName{
+ color:var(--rarity)!important;
+ text-shadow:0 0 8px color-mix(in srgb,var(--rarity) 58%,transparent)
+}
+
+/* Roster oficial */
+.officialRosterLegend{
+ display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
+ margin-bottom:8px;padding:8px 10px;border-radius:12px;background:#0f1623;border:1px solid #303c55
+}
+.officialRosterLegend>div:first-child b{font-size:9px}.officialRosterLegend>div:first-child span{display:block;font-size:6px;color:#94a2ba;margin-top:2px}
+.officialRarityList{display:flex;gap:4px;flex-wrap:wrap}
+
+/* Imagens transparentes no campo de batalha ficam maiores que o card */
+@media(orientation:landscape){
+ .combatCard .ccAvatar.heroPortraitImage{width:44px!important;height:44px!important}
+ .heroManageEmoji.heroPortraitImage img,.avatar.heroPortraitImage img,.bigEmoji.heroPortraitImage img{padding:2px;box-sizing:border-box}
+}
+@media(orientation:landscape) and (max-height:430px){
+ .heroManageEmoji{width:40px;height:40px;min-width:40px}
+ .rosterHead .avatar{width:34px;height:34px;min-width:34px}
+ .heroDetailAvatar,.awakenAvatar{width:62px!important;height:62px!important}
+ .summonCard .bigEmoji{width:58px;height:58px}
+ .combatCard .ccAvatar.heroPortraitImage{width:32px!important;height:32px!important}
+}
