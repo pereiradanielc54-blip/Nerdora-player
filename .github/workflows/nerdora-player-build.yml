@@ -1419,15 +1419,18 @@ jobs:
       - name: Diagnóstico temporário da Home
         shell: bash
         run: |
-          echo "=== NERDORA_PLAYER_APP_BEGIN ==="
-          cat extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
-          echo "=== NERDORA_PLAYER_APP_END ==="
-          echo "=== UI_FILES_BEGIN ==="
-          find extracted_project/app/src/main/java/com/nerdora/player/ui -maxdepth 1 -type f -printf '%f\n' | sort
-          echo "=== UI_FILES_END ==="
-          echo "=== DRAWABLES_BEGIN ==="
-          find extracted_project/app/src/main/res -maxdepth 2 -type f \\( -path '*/drawable*/*' -o -path '*/mipmap*/*' \\) -printf '%P\n' | sort | head -n 250
-          echo "=== DRAWABLES_END ==="
+          echo "=== HOME_SCREEN_BEGIN ==="
+          cat extracted_project/app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
+          echo "=== HOME_SCREEN_END ==="
+          echo "=== THEME_BEGIN ==="
+          cat extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraTheme.kt
+          echo "=== THEME_END ==="
+          echo "=== MEDIA_COMPONENTS_BEGIN ==="
+          cat extracted_project/app/src/main/java/com/nerdora/player/ui/MediaComponents.kt
+          echo "=== MEDIA_COMPONENTS_END ==="
+          echo "=== SAMPLE_MEDIA_BEGIN ==="
+          cat extracted_project/app/src/main/java/com/nerdora/player/data/SampleMedia.kt
+          echo "=== SAMPLE_MEDIA_END ==="
 
       - name: Encontrar projeto Android
         id: android
