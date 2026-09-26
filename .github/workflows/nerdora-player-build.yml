@@ -1685,17 +1685,25 @@ jobs:
           assert sig_old in text, "Settings signature marker não encontrado"
           text = text.replace(sig_old, sig_new, 1)
 
-          privacy_old = '''            ActionSetting(Icons.Rounded.Lock, "Mídia oculta", "$hiddenCount item(ns). Protegido pela biometria/tela de bloqueio.", onOpenPrivate)
-              ActionSetting(Icons.Rounded.DeleteSweep, "Lixeira do Nerdora", "$trashCount item(ns). Não apaga os arquivos físicos do celular.", onOpenTrash)
-              ActionSetting(Icons.Rounded.DeleteSweep, "Limpar histórico", "Apaga a lista de reproduzidos recentemente", onClearHistory)
-              Text("A área oculta e a lixeira são camadas do Nerdora: os arquivos originais continuam no armazenamento do Android.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)'''
-          privacy_new = '''            ActionSetting(Icons.Rounded.Lock, "Mídia oculta", "$hiddenCount item(ns). Protegido pela biometria/tela de bloqueio.", onOpenPrivate)
-              ActionSetting(Icons.Rounded.DeleteSweep, "Itens removidos da Biblioteca", "$trashCount item(ns). O arquivo físico continua no celular.", onOpenTrash)
-              ActionSetting(Icons.Rounded.DeleteSweep, "Lixeira de arquivos", "Arquivos movidos fisicamente para a área de recuperação do Nerdora.", onOpenFileTrash)
-              ActionSetting(Icons.Rounded.DeleteSweep, "Limpar histórico", "Limpa mídia e arquivos reproduzidos/abertos recentemente", onClearHistory)
-              Text("Ocultar e remover da Biblioteca não apagam o arquivo. A Lixeira de arquivos é a área usada pelo gerenciador para mover arquivos físicos.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)'''
-          assert privacy_old in text, "Settings privacy block não encontrado"
-          text = text.replace(privacy_old, privacy_new, 1)
+          trash_line = '            ActionSetting(Icons.Rounded.DeleteSweep, "Lixeira do Nerdora", "$trashCount item(ns). Não apaga os arquivos físicos do celular.", onOpenTrash)'
+          assert trash_line in text, "linha da antiga lixeira de Settings não encontrada"
+          text = text.replace(
+              trash_line,
+              '            ActionSetting(Icons.Rounded.DeleteSweep, "Itens removidos da Biblioteca", "$trashCount item(ns). O arquivo físico continua no celular.", onOpenTrash)\n'
+              '            ActionSetting(Icons.Rounded.DeleteSweep, "Lixeira de arquivos", "Arquivos movidos fisicamente para a área de recuperação do Nerdora.", onOpenFileTrash)',
+              1
+          )
+          text = text.replace(
+              '            ActionSetting(Icons.Rounded.DeleteSweep, "Limpar histórico", "Apaga a lista de reproduzidos recentemente", onClearHistory)',
+              '            ActionSetting(Icons.Rounded.DeleteSweep, "Limpar histórico", "Limpa mídia e arquivos reproduzidos/abertos recentemente", onClearHistory)',
+              1
+          )
+          text = text.replace(
+              '            Text("A área oculta e a lixeira são camadas do Nerdora: os arquivos originais continuam no armazenamento do Android.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)',
+              '            Text("Ocultar e remover da Biblioteca não apagam o arquivo. A Lixeira de arquivos é a área usada pelo gerenciador para mover arquivos físicos.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)',
+              1
+          )
+
           text = text.replace('title = { Text("Nerdora Player 0.9.0 — Visual Refresh") }', 'title = { Text("Nerdora Player 0.9.19 — Reorganização Funcional") }', 1)
           path.write_text(text, encoding="utf-8")
 
