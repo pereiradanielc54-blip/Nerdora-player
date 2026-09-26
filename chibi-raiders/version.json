@@ -2,6 +2,6 @@
   "version": "5.1.1",
   "entry": "./index-5.1.1.html",
   "serviceWorker": "./sw-5.1.1.js",
-  "build": "2026-09-26-v5.1.1-navigation-recovery",
-  "notes": "Hotfix crítico: corrige seletor múltiplo que interrompia renderResources e bloqueava navegação, restaura todos os botões inferiores, mantém a barra inferior visível no Lobby, adiciona roteamento redundante por data-route e inicialização tolerante a falhas."
+  "build": "2026-09-26-v5.1.1-navigation-worldboss-hotfix",
+  "notes": "Corrige bloqueio dos botões causado por seletores múltiplos incorretos, torna o Screen Manager tolerante a falhas, garante exibição/rolagem dos 40 heróis e corrige a cutscene do Chefe Épico para nunca bloquear o início da Raid."
 }
