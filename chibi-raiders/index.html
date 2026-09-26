@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d111c">
+<title>Nerdora Chibi Raiders v0.9.0</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
-<link rel="icon" href="./icon.svg">
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Nerdora Chibi Raiders v0.8.0</title>
 <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
+
 <div id="updateSplash" class="updateSplash">
   <div class="updateCard">
     <div class="updateLogo">N</div>
@@ -19,37 +20,79 @@
       <button id="splashInstallBtn" class="btn primary" style="display:none">📲 Instalar</button>
       <button id="splashUpdateBtn" class="btn gold" style="display:none">⬆ Atualizar agora</button>
     </div>
-    <div class="small" style="margin-top:10px">Versão local: 0.8.0</div>
+    <div class="small" style="margin-top:10px">Versão local: 0.9.0</div>
   </div>
 </div>
-<div id="game">
 
+<div id="game">
   <section id="homeScreen" class="screen active">
     <div class="topbar">
       <div class="brand">NERDORA <span>CHIBI RAIDERS</span></div>
-      <div class="badge">v0.8.0 • Horizontal</div>
+      <div class="badge">v0.9.0</div>
     </div>
+
+    <div class="resourceBar">
+      <span>🪙 <b id="homeGold">0</b></span>
+      <span>⭐ Conta Nv.<b id="homeAccountLevel">1</b></span>
+      <span>✨ <b id="homeEssence">0</b></span>
+    </div>
+
     <div class="section">
       <div class="heroTitle card">
-        <div class="small">RPG MOBILE • GACHA / TURN-BASED</div>
-        <h1>Monte a equipa.<br>Domine a iniciativa.</h1>
-        <p>Protótipo completo em um único HTML: formação Front-line/Back-line, Speed, Rage, Ultimates, crítico, esquiva e combate automático.</p>
+        <div class="small">CAPÍTULO 1 • DESPERTAR DE NERDORA</div>
+        <h1>Monte a equipa.<br>Avance pela campanha.</h1>
+        <p>Complete fases, receba Ouro e EXP, melhore os seus heróis e desbloqueie desafios cada vez mais fortes.</p>
         <div class="pills">
+          <span class="pill">5 fases</span>
           <span class="pill">10 heróis</span>
-          <span class="pill">5×5</span>
-          <span class="pill">Speed Initiative</span>
-          <span class="pill">Rage 0–100</span>
-          <span class="pill">Ultimate Manual/Auto</span>
+          <span class="pill">Progressão salva</span>
+          <span class="pill">Level Up</span>
         </div>
       </div>
+
       <div class="homeActions card" style="margin-top:10px">
-        <button id="goFormation" class="btn primary">⚔️ Montar formação</button>
-        <button id="quickBattle" class="btn gold">⚡ Batalha rápida</button>
+        <button id="goCampaign" class="btn primary">🗺️ Campanha</button>
+        <button id="goFormation" class="btn">⚔️ Formação</button>
+        <button id="goHeroes" class="btn">🧙 Heróis e atributos</button>
+        <button id="quickBattle" class="btn gold">⚡ Jogar fase selecionada</button>
         <button id="installAppBtn" class="btn ghost" style="display:none">📲 Instalar aplicativo</button>
         <button id="checkUpdateBtn" class="btn ghost">🔄 Verificar atualização</button>
         <div id="homeUpdateNotice" class="updateNotice"></div>
-        <div class="small">Na batalha rápida, o jogo monta uma formação automática com 5 heróis.</div>
       </div>
+    </div>
+  </section>
+
+  <section id="campaignScreen" class="screen">
+    <div class="topbar">
+      <button id="campaignBack" class="btn ghost">←</button>
+      <div class="brand">CAMPANHA</div>
+      <div class="badge">Capítulo 1</div>
+    </div>
+    <div class="resourceBar">
+      <span>🪙 <b id="campaignGold">0</b></span>
+      <span>⭐ EXP <b id="campaignExp">0</b></span>
+    </div>
+    <div class="section">
+      <div class="campaignHeader card">
+        <div>
+          <div class="small">MAPA</div>
+          <h2>Vale das Primeiras Chamas</h2>
+          <p>Fase 1-1 é introdutória. Cada etapa seguinte aumenta gradualmente nível, HP, ataque e defesa dos inimigos.</p>
+        </div>
+      </div>
+      <div id="stageGrid" class="stageGrid"></div>
+    </div>
+  </section>
+
+  <section id="heroesScreen" class="screen">
+    <div class="topbar">
+      <button id="heroesBack" class="btn ghost">←</button>
+      <div class="brand">HERÓIS</div>
+      <div class="badge">🪙 <span id="heroesGold">0</span></div>
+    </div>
+    <div class="section heroesPage">
+      <div id="heroManageGrid" class="heroManageGrid"></div>
+      <div id="heroDetail" class="heroDetail card"></div>
     </div>
   </section>
 
@@ -60,9 +103,10 @@
       <div class="badge"><span id="selectedCount">0</span>/5</div>
     </div>
     <div class="section">
+      <div id="formationStageInfo" class="formationStageInfo card"></div>
       <div class="formationExplain card">
         <strong>🛡️ Front-line x Back-line</strong>
-        <div class="small">Front-line recebe +15% DEF Física, +10% DEF Mágica e mais aggro. Ataques básicos melee não alcançam a Back-line enquanto algum Front-line estiver vivo.</div>
+        <div class="small">Front-line recebe bônus defensivo e protege a retaguarda contra ataques melee. Os níveis dos seus heróis alteram HP e Ataque durante a batalha.</div>
       </div>
       <div id="formationBoard" class="formationBoard"></div>
       <div class="lineHeader">HERÓIS DISPONÍVEIS — toque num slot e depois num herói</div>
@@ -74,7 +118,7 @@
   <section id="battleScreen" class="screen">
     <div class="topbar">
       <button id="battleBack" class="btn ghost">←</button>
-      <div class="brand" style="font-size:14px">BATALHA</div>
+      <div class="brand" id="battleStageName">FASE 1-1</div>
       <div id="battleState" class="badge">EM BATALHA</div>
     </div>
     <div class="battleShell">
@@ -107,18 +151,12 @@
         </div>
 
         <div class="rotateHint">
-          <div>
-            <strong>📱 Gire o celular</strong>
-            <span>A batalha foi desenhada para modo horizontal. Em PWA instalado, o jogo tentará abrir em paisagem automaticamente.</span>
-          </div>
-       </div>
-       <div id="ultBanner" class="ultBanner"></div>
+          <div><strong>📱 Gire o celular</strong><span>A batalha foi desenhada para modo horizontal.</span></div>
+        </div>
+        <div id="ultBanner" class="ultBanner"></div>
 
         <div class="logPanel">
-          <div class="logHeader">
-            <span>REGISTRO</span>
-            <span id="actionLabel" class="small">Preparando...</span>
-          </div>
+          <div class="logHeader"><span>REGISTRO</span><span id="actionLabel" class="small">Preparando...</span></div>
           <div id="battleLog" class="log"></div>
         </div>
       </div>
@@ -127,11 +165,17 @@
 </div>
 
 <div id="resultModal" class="modal">
-  <div class="modalCard">
+  <div class="modalCard resultCard">
+    <div id="resultBadge" class="resultBadge">🏆</div>
     <h2 id="resultTitle">Vitória!</h2>
+    <div id="resultStage" class="resultStage"></div>
     <div id="resultText" class="small"></div>
     <div id="resultRewards" class="rewards"></div>
-    <button id="resultBtn" class="btn primary" style="width:100%">Voltar ao início</button>
+    <div class="resultActions">
+      <button id="nextStageBtn" class="btn primary">Próxima fase →</button>
+      <button id="retryBtn" class="btn gold">↻ Tentar novamente</button>
+      <button id="resultMenuBtn" class="btn ghost">Voltar ao menu</button>
+    </div>
   </div>
 </div>
 
