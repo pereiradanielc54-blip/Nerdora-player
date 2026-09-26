@@ -1,7 +1,7 @@
 {
-  "version": "1.1.0",
-  "entry": "./index-1.1.0.html",
-  "serviceWorker": "./sw-1.1.0.js",
-  "build": "2026-09-26-v1.1.0-vfx-missions-guild-mobile-ui",
-  "notes": "VFX de combate, texto flutuante aprimorado, missões diárias, conquistas, guildas/facções com bônus passivos, contribuição, navegação inferior fixa e feedback visual/sonoro de cliques."
+  "version": "1.2.0",
+  "entry": "./index-1.2.0.html",
+  "serviceWorker": "./sw-1.2.0.js",
+  "build": "2026-09-26-v1.2.0-endgame",
+  "notes": "World Boss diário com ranking de dano, Star-Up de 1 a 5 estrelas, Torre do Abismo com 50 andares, Cristais Abissais, transições de tela e recompensas flutuantes."
 }
