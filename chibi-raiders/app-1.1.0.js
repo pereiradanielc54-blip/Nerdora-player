@@ -91,7 +91,7 @@ const SLOTS=[
 ];
 const POS={F1:{x:57,y:18},F2:{x:57,y:59},B1:{x:4,y:4},B2:{x:4,y:37},B3:{x:4,y:70}};
 
-function todayKey(){return new Date().toISOString().slice(0,10)}
+function todayKey(){const d=new Date(),p=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())}
 function blankEquipment(){return{weapon:null,armor:null,helmet:null,accessory:null}}
 function defaultSave(){
  const heroLevels={},shards={},owned={},equipment={};
