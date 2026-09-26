@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.20 Operações Reais de Arquivos
+name: Nerdora Player - Build v0.9.21 Coerência Funcional
 
 on:
   workflow_dispatch:
@@ -1755,6 +1755,35 @@ jobs:
           ! grep -q 'LibraryStore.setHidden(context, current.id, true)' extracted_project/app/src/main/java/com/nerdora/player/ui/MediaViewerScreen.kt
           grep -q '<files-path name="private_files"' extracted_project/app/src/main/res/xml/file_paths.xml
           echo "v0.9.20: operações reais de arquivos aplicadas."
+      - name: Aplicar Coerência Funcional v0.9.21
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp .github/overlays/v0.9.21/HomeScreen.kt extracted_project/app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
+          cp .github/overlays/v0.9.21/LibraryScreen.kt extracted_project/app/src/main/java/com/nerdora/player/ui/LibraryScreen.kt
+          cp .github/overlays/v0.9.21/NerdoraCentralScreen.kt extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraCentralScreen.kt
+          cp .github/overlays/v0.9.21/GlobalSearchScreen.kt extracted_project/app/src/main/java/com/nerdora/player/ui/GlobalSearchScreen.kt
+          cp .github/overlays/v0.9.21/NerdoraPlayerApp.kt extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          cp .github/overlays/v0.9.21/PrivateVaultStore.kt extracted_project/app/src/main/java/com/nerdora/player/PrivateVaultStore.kt
+          cp .github/overlays/v0.9.21/PrivateVaultScreen.kt extracted_project/app/src/main/java/com/nerdora/player/ui/PrivateVaultScreen.kt
+          cp .github/overlays/v0.9.21/PrivateVaultAudioPlayer.kt extracted_project/app/src/main/java/com/nerdora/player/ui/PrivateVaultAudioPlayer.kt
+          cp .github/overlays/v0.9.21/RealFileOperations.kt extracted_project/app/src/main/java/com/nerdora/player/RealFileOperations.kt
+          cp .github/overlays/v0.9.21/UniversalFileIndexCache.kt extracted_project/app/src/main/java/com/nerdora/player/UniversalFileIndexCache.kt
+          python3 .github/overlays/v0.9.21/apply.py
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 81/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.21"/' extracted_project/app/build.gradle.kts
+
+          grep -q 'versionName = "0.9.21"' extracted_project/app/build.gradle.kts
+          grep -q 'onHideToVault' extracted_project/app/src/main/java/com/nerdora/player/ui/LibraryScreen.kt
+          grep -q 'PrivateVaultAudioPlayer' extracted_project/app/src/main/java/com/nerdora/player/ui/MediaViewerScreen.kt
+          grep -q 'onOpenFile = ::openPhysicalFile' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          grep -q 'Pastas protegidas agora podem ser abertas' extracted_project/app/src/main/java/com/nerdora/player/ui/PrivateVaultScreen.kt
+          grep -q 'Renomear, excluir e Cofre funcionam' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'removePrefix' extracted_project/app/src/main/java/com/nerdora/player/UniversalFileIndexCache.kt
+          echo "v0.9.21: coerência funcional aplicada."
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
@@ -1828,7 +1857,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.20"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.21"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -1879,7 +1908,12 @@ jobs:
           grep -q 'PrivateVaultStore.hideMedia' app/src/main/java/com/nerdora/player/ui/MediaViewerScreen.kt
           grep -q 'Cofre privado' app/src/main/java/com/nerdora/player/ui/PrivateVaultScreen.kt
           grep -q '<files-path name="private_files"' app/src/main/res/xml/file_paths.xml
-          echo "Nerdora Player v0.9.20 validado."
+          test -f app/src/main/java/com/nerdora/player/ui/PrivateVaultAudioPlayer.kt
+          grep -q 'onHideToVault' app/src/main/java/com/nerdora/player/ui/LibraryScreen.kt
+          grep -q 'PrivateVaultAudioPlayer' app/src/main/java/com/nerdora/player/ui/MediaViewerScreen.kt
+          grep -q 'onOpenFile = ::openPhysicalFile' app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          grep -q 'Removidos antigos' app/src/main/java/com/nerdora/player/ui/SettingsScreen.kt
+          echo "Nerdora Player v0.9.21 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -1928,7 +1962,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.20 assinada
+      - name: Publicar Release pública v0.9.21 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -1937,8 +1971,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Operações Reais de Arquivos"
-          NOTES="Nerdora Player v0.9.20: ativa operações reais no armazenamento. Renomear altera o nome físico do arquivo e atualiza o índice de mídia; Excluir definitivamente remove o arquivo do celular; Ocultar move arquivos e pastas para o Cofre privado interno do Nerdora, fora do armazenamento compartilhado e invisível aos gerenciadores comuns sem root. O Cofre é protegido pela autenticação já usada no app, permite abrir, restaurar e excluir definitivamente e oferece migração dos ocultos antigos. Mantém a Lixeira de arquivos como opção recuperável separada."
+          TITLE="Nerdora Player v${VERSION} — Coerência Funcional"
+          NOTES="Nerdora Player v0.9.21: elimina incoerências detectadas na auditoria. A seleção múltipla da Biblioteca agora usa Cofre e exclusão físicos; Recentes não mostra mídia falsa; o atalho repetido de Arquivos na Home virou Cofre; a Central Nerdora usa Downloads, Cofre, arquivos grandes e abrir link; a Busca Global abre o arquivo diretamente e oferece Mostrar na pasta; pastas dentro do Cofre podem ser navegadas; áudio do Cofre usa player privado sem mini player global nem histórico/favoritos/playlists; o modo SAF ganha renomear, excluir e Cofre; a lixeira passa a restaurar pastas; e o índice mestre é atualizado após renomear, ocultar, excluir e restaurar."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
