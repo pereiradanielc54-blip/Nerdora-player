@@ -39,6 +39,36 @@ const HEROES=[
 {id:"aetherion",name:"Aetherion, Dragão Celestial",rarity:"SSR",emoji:"🐲",role:"Guerreiro Mítico",line:"front",style:"melee",type:"physical",hp:2140,pa:368,ma:188,pd:198,md:182,sp:110,cr:.19,dg:.10,ult:{name:"Ascensão Dracônica",kind:"multi",ratio:.74,hits:5,effect:"break"}}
 ];
 
+function rarityMeta(heroOrCode){
+ const code=typeof heroOrCode==="string"?heroOrCode:(heroOrCode?.rarity||"C");
+ return RARITY_CONFIG[code]||RARITY_CONFIG.C;
+}
+function heroRarityClass(h){return "rarity-"+rarityMeta(h).code}
+function sortedHeroes(list=HEROES){
+ return [...list].sort((a,b)=>{
+  const d=rarityMeta(b).rank-rarityMeta(a).rank;
+  if(d)return d;
+  const ownDiff=Number(!!save?.owned?.[b.id])-Number(!!save?.owned?.[a.id]);
+  if(ownDiff)return ownDiff;
+  return a.name.localeCompare(b.name,"pt-BR");
+ });
+}
+function rollRarity(){
+ const n=Math.random()*100;
+ let acc=0;
+ for(const code of RARITY_ORDER){acc+=RARITY_CONFIG[code].rate;if(n<acc)return code}
+ return "C";
+}
+function pickHeroByRarity(code,type="standard"){
+ const pool=HEROES.filter(h=>h.rarity===code);
+ if(!pool.length)return HEROES[Math.floor(Math.random()*HEROES.length)];
+ if(type==="event"&&code===rarityMeta(hero(LIMITED_HERO_ID)).code){
+  const weighted=[...pool,hero(LIMITED_HERO_ID)];
+  return weighted[Math.floor(Math.random()*weighted.length)];
+ }
+ return pool[Math.floor(Math.random()*pool.length)];
+}
+
 const STAGES=[
 {id:1,code:"1-1",name:"Portões do Vale",enemyLevel:1,scale:.58,power:"Muito fácil",rewards:{gold:600,exp:250,essence:2,diamonds:35,shards:1}},
 {id:2,code:"1-2",name:"Trilha dos Goblins",enemyLevel:2,scale:.68,power:"Fácil",rewards:{gold:760,exp:320,essence:3,diamonds:45,shards:1}},
@@ -308,13 +338,13 @@ function guildBonuses(){
  return{atk:(save.guildAttack||0)*.01,def:(save.guildDefense||0)*.01,hp:(save.guildHp||0)*.015};
 }
 function heroStats(h){
- const lv=save.heroLevels[h.id]||1,b=gearBonus(h.id),g=guildBonuses(),stars=clamp(save.stars[h.id]||1,1,5),sm=STAR_MULT[stars]||1;
- const hp=Math.round((Math.round(h.hp*(1+.08*(lv-1))*sm)+b.hp)*(1+g.hp));
- const pa=Math.round((Math.round(h.pa*(1+.07*(lv-1))*sm)+b.pa)*(1+g.atk));
- const ma=Math.round((Math.round(h.ma*(1+.07*(lv-1))*sm)+b.ma)*(1+g.atk));
- const pd=Math.round((Math.round(h.pd*(1+.045*(lv-1))*sm)+b.pd)*(1+g.def));
- const md=Math.round((Math.round(h.md*(1+.045*(lv-1))*sm)+b.md)*(1+g.def));
- return{level:lv,stars,hp,pa,ma,pd,md,sp:Math.round(h.sp*(1+.004*(lv-1)))+b.sp,cr:h.cr,dg:h.dg};
+ const lv=save.heroLevels[h.id]||1,b=gearBonus(h.id),g=guildBonuses(),stars=clamp(save.stars[h.id]||1,1,5),sm=STAR_MULT[stars]||1,rm=rarityMeta(h);
+ const hp=Math.round((Math.round(h.hp*rm.statMult*(1+.08*(lv-1))*sm)+b.hp)*(1+g.hp));
+ const pa=Math.round((Math.round(h.pa*rm.statMult*(1+.07*(lv-1))*sm)+b.pa)*(1+g.atk));
+ const ma=Math.round((Math.round(h.ma*rm.statMult*(1+.07*(lv-1))*sm)+b.ma)*(1+g.atk));
+ const pd=Math.round((Math.round(h.pd*rm.statMult*(1+.045*(lv-1))*sm)+b.pd)*(1+g.def));
+ const md=Math.round((Math.round(h.md*rm.statMult*(1+.045*(lv-1))*sm)+b.md)*(1+g.def));
+ return{level:lv,stars,rarity:h.rarity,hp,pa,ma,pd,md,sp:Math.round(h.sp*rm.speedMult*(1+.004*(lv-1)))+b.sp,cr:h.cr,dg:h.dg};
 }
 function addGear(id,qty=1){save.gearInventory[id]=(save.gearInventory[id]||0)+qty}
 const SCREEN_ROUTES={
@@ -1100,7 +1130,7 @@ function buyShop(id){
 /* COMBATE */
 class Unit{
  constructor(h,team,slot,opt={}){
-  const enemy=team==="enemy",lv=opt.level||1,scale=opt.scale||1,st=enemy?{hp:Math.round(h.hp*scale),pa:Math.round(h.pa*scale),ma:Math.round(h.ma*scale),pd:Math.round(h.pd*scale),md:Math.round(h.md*scale),sp:Math.round(h.sp*(.94+scale*.06)),cr:h.cr*.65,dg:h.dg*.60}:heroStats(h);
+  const enemy=team==="enemy",lv=opt.level||1,scale=opt.scale||1,rm=rarityMeta(h),st=enemy?{hp:Math.round(h.hp*rm.statMult*scale),pa:Math.round(h.pa*rm.statMult*scale),ma:Math.round(h.ma*rm.statMult*scale),pd:Math.round(h.pd*rm.statMult*scale),md:Math.round(h.md*rm.statMult*scale),sp:Math.round(h.sp*rm.speedMult*(.94+scale*.06)),cr:h.cr*.65,dg:h.dg*.60}:heroStats(h);
   Object.assign(this,{
    h,team,slot,level:enemy?lv:st.level,id:team+"_"+h.id+"_"+slot.id,name:h.name,emoji:h.emoji,role:h.role,style:h.style,type:h.type,
    maxHp:st.hp,pa:st.pa,ma:st.ma,basePd:st.pd,baseMd:st.md,baseSp:st.sp,cr:st.cr,dg:st.dg,hp:st.hp,rage:0,dead:false,
@@ -1155,7 +1185,7 @@ class Battle{
  async ult(u){
   if(u.rage<100||u.dead)return;
   u.rage=0;u.readyAlerted=false;u.queued=false;
-  const z=u.h.ult,aw=u.awakening||0,ratio=z.ratio*(1+aw*.08);
+  const z=u.h.ult,aw=u.awakening||0,ratio=z.ratio*rarityMeta(u.h).ultMult*(1+aw*.08);
   banner(u.emoji+" "+z.name+"!");this.log("━━━━━━━━ 💥 ULTIMATE • "+u.name+" usa "+z.name+(aw?" • Despertar "+aw:"")+"! ━━━━━━━━","ultimate");
   AudioEngine.sfx("ultimate");renderBattle();requestAnimationFrame(()=>{fxCard(u,"ultimateCast");fxUltimateScreen();haptic([20,25,45])});await this.delay(900);
 
