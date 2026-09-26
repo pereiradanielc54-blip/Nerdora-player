@@ -1144,7 +1144,8 @@ jobs:
             @office-kit/xlsx@0.21.1 \
             esbuild@0.25.9
 
-          npx esbuild "$GITHUB_WORKSPACE/.github/overlays/v0.9.15/officekit-viewer.ts" \
+          cp "$GITHUB_WORKSPACE/.github/overlays/v0.9.15/officekit-viewer.ts" ./officekit-viewer.ts
+          npx esbuild ./officekit-viewer.ts \
             --bundle \
             --format=iife \
             --global-name=NerdoraOfficeKit \
