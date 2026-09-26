@@ -486,7 +486,7 @@ function pushChatMessage(seed=false){
 }
 function startGlobalChat(){
  clearInterval(chatTimer);renderChatState();const box=$("#chatMessages");if(box&&!box.children.length){pushChatMessage(true);pushChatMessage(true);pushChatMessage(true)}
- chatTimer=setInterval(()=>{if(!document.hidden)pushChatMessage(false)},6500);
+ chatTimer=setInterval(()=>{if(!document.hidden&&$("#homeScreen")?.classList.contains("active"))pushChatMessage(false)},6500);
 }
 function toggleGlobalChat(){save.chatCollapsed=!save.chatCollapsed;persist();renderChatState()}
 function dailyGuildWarReset(){
@@ -1176,7 +1176,7 @@ class Battle{
    this.log("🛡️ Drakko protege a equipa com "+Math.round(shield*100)+"% de escudo.","ultimate");
   }else{
    const healPct=.05+lv*.006;this.living(this.p).forEach(u=>{const n=Math.round(u.maxHp*healPct);u.hp=Math.min(u.maxHp,u.hp+n)});
-   const t=this.weak(this.e);if(t&&!t.dead){const n=Math.round((220+lv*35)*(1-t.md/(t.md+600)));t.hp=Math.max(0,t.hp-n);if(!t.hp)this.kill(t,null);this.log("🔥 Fênix causa "+n+" de dano e cura a equipa.","ultimate")}
+   const t=this.weak(this.e);if(t&&!t.dead){const n=Math.round((220+lv*35)*(1-t.md/(t.md+600)));const actual=Math.min(t.hp,n);t.hp=Math.max(0,t.hp-n);if(this.context.mode==="boss"&&t.h.id==="vorak")this.context.damage=(this.context.damage||0)+actual;if(!t.hp)this.kill(t,null);this.log("🔥 Fênix causa "+n+" de dano e cura a equipa.","ultimate")}
   }
   renderBattle();await this.delay(650);
  }
