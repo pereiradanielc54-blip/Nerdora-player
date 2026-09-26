@@ -2893,48 +2893,95 @@ button{touch-action:manipulation;user-select:none}
 
 
 /* =========================================================
-   v5.1.1 — NAVIGATION RECOVERY
-   A barra inferior fica sempre disponível no Lobby e menus.
-   Só desaparece durante o combate.
+   v5.1.1 — NAVIGATION + WORLD BOSS HOTFIX
    ========================================================= */
-.bottomNav{
- z-index:10000!important;
- pointer-events:auto!important;
- display:grid!important;
- grid-template-columns:repeat(5,1fr)!important;
- bottom:max(6px,env(safe-area-inset-bottom))!important;
-}
-#game.lobby-mode .bottomNav,
-#game:not(.battle-mode) .bottomNav{
- display:grid!important;
- pointer-events:auto!important;
-}
-#game.battle-mode .bottomNav{
+
+/* A cutscene precisa dominar a tela inteira e nunca disputar toque com a barra inferior. */
+body.story-open .bottomNav,
+body.story-open .lobbyQuickDock,
+body.story-open .globalChat,
+body.story-open .lobbySideDock{
  display:none!important;
  pointer-events:none!important;
 }
-#homeScreen{
- padding-bottom:76px!important;
+.storyModal{
+ z-index:99999!important;
+ pointer-events:none!important;
 }
-.lobbyQuickDock{
- bottom:74px!important;
- z-index:9990!important;
-}
-.lobbySideDock{z-index:9980!important}
-.lobbyTopbar{z-index:9970!important}
-#heroManageGrid{
- position:relative;
- z-index:5;
+.storyModal.show{
+ display:block!important;
  pointer-events:auto!important;
 }
-.heroCollectionCard{
+.storyScene{
+ z-index:1!important;
  pointer-events:auto!important;
- touch-action:manipulation!important;
 }
-@media(orientation:landscape) and (max-height:430px){
- #homeScreen{padding-bottom:60px!important}
- .bottomNav{height:50px!important;padding:3px!important;bottom:3px!important}
- .bottomNav button span{font-size:15px!important}
- .bottomNav button small{font-size:5.5px!important}
- .lobbyQuickDock{bottom:56px!important}
+.storyShade,.storyAvatar{pointer-events:none!important}
+.storyBox{
+ z-index:10!important;
+ max-height:min(48vh,260px)!important;
+ overflow-y:auto!important;
+ overflow-x:hidden!important;
+ box-sizing:border-box!important;
+ padding-bottom:max(14px,env(safe-area-inset-bottom))!important;
+ pointer-events:auto!important;
 }
+.storyControls{
+ position:sticky!important;
+ bottom:0!important;
+ z-index:12!important;
+ min-height:38px!important;
+ padding-top:7px!important;
+ background:linear-gradient(180deg,rgba(10,14,24,0),rgba(10,14,24,.96) 28%)!important;
+}
+.storyControls .btn{
+ min-height:34px!important;
+ display:inline-flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ pointer-events:auto!important;
+}
+#storyNext{min-width:96px!important}
+#storySkip{min-width:66px!important}
+#storyHint{display:block!important}
+
+/* A barra inferior só existe fora do Lobby, batalha e cutscenes. */
+#game.lobby-mode .bottomNav,
+#game.battle-mode .bottomNav,
+body.story-open .bottomNav{
+ display:none!important;
+ pointer-events:none!important;
+}
+#game:not(.lobby-mode):not(.battle-mode) .bottomNav{display:grid!important}
+
+/* Garante prioridade de toque da navegação. */
+.bottomNav{z-index:1000!important;pointer-events:auto!important}
+.bottomNav button{pointer-events:auto!important;touch-action:manipulation!important}
+.screen.active{pointer-events:auto!important}
+.screen:not(.active){pointer-events:none!important}
+
+/* Portrait fallback para navegadores que ainda não entraram em landscape. */
+@media (orientation:portrait){
+ .storyAvatar{left:8%!important;bottom:210px!important;font-size:min(42vw,190px)!important}
+ .storyBox{
+  left:5%!important;right:5%!important;
+  bottom:max(18px,env(safe-area-inset-bottom))!important;
+  min-height:150px!important;max-height:42vh!important
+ }
+ .storyText{font-size:14px!important;min-height:58px!important}
+ .storySpeaker{font-size:12px!important}
+ .storyControls{gap:8px!important;flex-wrap:wrap!important}
+ .storyControls span{flex:1 1 100%!important;margin-right:0!important}
+ .storyControls .btn{flex:1 1 42%!important;font-size:10px!important}
+}
+
+/* Coleção: garante área rolável suficiente para os 40 heróis. */
+#heroesScreen .heroesCollectionPage{
+ height:auto!important;
+ min-height:calc(100dvh - 60px)!important;
+ overflow-y:auto!important;
+ -webkit-overflow-scrolling:touch
+}
+#heroesScreen #heroManageGrid,
+#heroesScreen .heroCollectionCard{pointer-events:auto!important}
+#heroesScreen .heroCollectionCard{touch-action:manipulation!important}
