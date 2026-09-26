@@ -356,7 +356,7 @@ function addVipPoints(points,reason=""){
 function spendDiamonds(amount,reason=""){
  amount=Math.max(0,Math.round(amount||0));
  if(save.diamonds<amount)return false;
- save.diamonds-=amount;save.diamondsSpent=(save.diamondsSpent||0)+amount;addVipPoints(amount,reason);
+ save.diamonds-=amount;save.diamondsSpent=(save.diamondsSpent||0)+amount;addVipPoints(amount,reason);dailyArenaReset();
  return true;
 }
 function renderVip(){
@@ -1428,5 +1428,5 @@ async function updateNow(){status("Abrindo a nova versão…");try{const v=remot
 if("serviceWorker"in navigator){addEventListener("load",()=>{navigator.serviceWorker.register("./sw-3.0.0.js",{scope:"./",updateViaCache:"none"}).then(r=>{reg=r;r.update().catch(()=>{})}).catch(()=>{});checkUpdate(false)})}else addEventListener("load",()=>checkUpdate(false));
 setTimeout(()=>hideSplash(0),3500);
 
-resetDailyMissions();dailyArenaReset();dailyWorldBossReset();renderResources();renderCampaign();renderFormation();renderHeroes();renderPortal();renderShop();renderMissions("daily");renderGuild();renderWorldBoss();renderTower();renderAwakening();renderAfk();AudioEngine.updateButton();updateMissionIndicators();startAfkTicker();processOfflineRewards();showScreen("lobby",{skipRender:true});
+resetDailyMissions();dailyArenaReset();dailyWorldBossReset();dailyGuildWarReset();renderResources();renderVip();renderBattlePass();renderPets();renderCampaign();renderFormation();renderHeroes();renderPortal();renderShop();renderMissions("daily");renderGuild();renderWorldBoss();renderTower();renderAwakening();renderAfk();AudioEngine.updateButton();updateMissionIndicators();startAfkTicker();startGlobalChat();processOfflineRewards();showScreen("lobby",{skipRender:true});
 })();
