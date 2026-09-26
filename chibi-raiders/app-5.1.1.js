@@ -473,7 +473,7 @@ function showScreen(nameOrId,options={}){
  if(!target){console.warn("[ScreenManager] Ecrã não encontrado:",nameOrId,id);return false}
 
  // Primeiro muda de tela. Assim uma falha de renderização nunca bloqueia o clique.
- $(".screen").forEach(e=>{e.classList.remove("active","screenEnter")});
+ $$(".screen").forEach(e=>{e.classList.remove("active","screenEnter")});
  target.classList.add("active");
  void target.offsetWidth;
  target.classList.add("screenEnter");
@@ -485,7 +485,7 @@ function showScreen(nameOrId,options={}){
  }
 
  const nav=options.nav??route.nav??"";
- $(".bottomNav button[data-nav]").forEach(b=>b.classList.toggle("active",b.dataset.nav===nav));
+ $$(".bottomNav button[data-nav]").forEach(b=>b.classList.toggle("active",b.dataset.nav===nav));
 
  if(typeof route.before==="function"&&!options.skipRender)safeUiCall(route.before,"render:"+nameOrId);
  safeUiCall(()=>renderResources(),"resources");
@@ -515,7 +515,7 @@ function renderLobbyIdentity(){
    if(!h)return '<span class="lobbySquadEmpty">＋</span>';
    return '<button class="lobbySquadHero '+heroRarityClass(h)+'" style="'+heroRarityStyle(h)+'" data-hero="'+h.id+'" aria-label="'+h.name+'">'+heroPortrait(h,"lobbySquadPortrait")+'<i>'+h.rarity+'</i></button>';
   }).join("");
-  $$(".lobbySquadHero[data-hero]").forEach(b=>b.addEventListener("click",()=>openHeroDetail(b.dataset.hero)));
+  $$$(".lobbySquadHero[data-hero]").forEach(b=>b.addEventListener("click",()=>openHeroDetail(b.dataset.hero)));
  }
  const spotlight=$("#lobbySpotlight");if(spotlight){
   const ids=["drako","morgana","seraphina"],heroes=ids.map(hero).filter(Boolean);
