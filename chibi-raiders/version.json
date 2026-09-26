@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0",
-  "entry": "./index-1.0.0.html",
-  "serviceWorker": "./sw-1.0.0.js",
-  "build": "2026-09-26-v1.0.0-gacha-arena-shop",
-  "notes": "Portal de Invocação, duplicatas em fragmentos, equipamentos por slot, drops, Arena assíncrona simulada por IA, moedas/rating diários, Loja e persistência/migração do save v0.9."
+  "version": "1.0.1",
+  "entry": "./index-1.0.1.html",
+  "serviceWorker": "./sw-1.0.1.js",
+  "build": "2026-09-26-v1.0.1-official-icon",
+  "notes": "Usa a imagem enviada pelo usuário como ícone oficial do aplicativo e na tela de carregamento, sem alterar a arte. Mantém todos os sistemas da v1.0.0."
 }
