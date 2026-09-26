@@ -772,17 +772,19 @@ function guildUpgradeCost(type){const lv=save[type]||0;return 80+lv*60}
 function renderGuild(){
  const panel=$("#guildPanel");if(!panel)return;
  if(!save.guildId){
-  panel.innerHTML=`<div class="guildIntro card"><div class="small">FACÇÕES DE NERDORA</div><h2>Escolha sua Guilda</h2><p>Entre em uma facção para liberar melhorias permanentes para todos os heróis. Ao entrar, você recebe 100 Moedas de Contribuição para começar.</p><div class="guildChoices">${GUILDS.map(g=>`<div class="guildChoice"><div class="guildEmblem">${g.emblem}</div><div><b>${g.name}</b><small>${g.motto}</small></div><button class="btn joinGuildBtn" data-id="${g.id}">Entrar</button></div>`).join("")}</div></div>`;
-  $(".joinGuildBtn").forEach(b=>b.onclick=()=>joinGuild(b.dataset.id));return;
+  panel.innerHTML='<div class="guildIntro card"><div class="small">FACÇÕES DE NERDORA</div><h2>Escolha sua Guilda</h2><p>Entre em uma facção para liberar melhorias permanentes e o Mapa de Guerra.</p><div class="guildChoices">'+GUILDS.map(g=>'<div class="guildChoice"><div class="guildEmblem">'+g.emblem+'</div><div><b>'+g.name+'</b><small>'+g.motto+'</small></div><button class="btn joinGuildBtn" data-id="'+g.id+'">Entrar</button></div>').join("")+'</div></div>';
+  $$(".joinGuildBtn").forEach(b=>b.addEventListener("click",()=>joinGuild(b.dataset.id)));return;
  }
+ dailyGuildWarReset();
  const g=GUILDS.find(x=>x.id===save.guildId)||GUILDS[0];
  const upgrades=[
   {key:"guildAttack",icon:"⚔️",name:"Ofensiva da Guilda",desc:"+1% ATQ Físico e Mágico por nível",lv:save.guildAttack||0},
   {key:"guildDefense",icon:"🛡️",name:"Muralha da Guilda",desc:"+1% DEF Física e Mágica por nível",lv:save.guildDefense||0},
   {key:"guildHp",icon:"❤️",name:"Vitalidade da Guilda",desc:"+1,5% HP por nível",lv:save.guildHp||0}
  ];
- panel.innerHTML=`<div class="guildMain card"><div class="small">SUA FACÇÃO</div><h2>${g.emblem} ${g.name}</h2><p>${g.motto}</p><div class="guildSummary"><div class="guildStat"><b>${save.guildContribution}</b><span>CONTRIBUIÇÃO</span></div><div class="guildStat"><b>+${save.guildAttack||0}%</b><span>ATAQUE</span></div><div class="guildStat"><b>+${save.guildDefense||0}%</b><span>DEFESA</span></div></div><div class="guildUpgradeGrid">${upgrades.map(u=>{const cost=guildUpgradeCost(u.key),max=u.lv>=10;return `<div class="guildUpgrade"><div><b>${u.icon} ${u.name} • Nv.${u.lv}</b><small>${u.desc}</small></div><button class="btn guildUpgradeBtn" data-key="${u.key}" ${max||save.guildContribution<cost?"disabled":""}>${max?"Máx.":"🤝 "+cost}</button></div>`}).join("")}</div><div class="guildMembers"><h3>Membros ativos</h3>${g.members.map((m,i)=>`<div class="guildMember"><span>${i===0?"👑":"•"} ${m}</span><span>Poder ${(9200-i*530).toLocaleString("pt-BR")}</span></div>`).join("")}</div></div>`;
- $(".guildUpgradeBtn").forEach(b=>b.onclick=()=>upgradeGuild(b.dataset.key));
+ panel.innerHTML='<div class="guildMain card"><div class="small">SUA FACÇÃO</div><h2>'+g.emblem+' '+g.name+'</h2><p>'+g.motto+'</p><div class="guildSummary"><div class="guildStat"><b>'+save.guildContribution+'</b><span>CONTRIBUIÇÃO</span></div><div class="guildStat"><b>+'+(save.guildAttack||0)+'%</b><span>ATAQUE</span></div><div class="guildStat"><b>+'+(save.guildDefense||0)+'%</b><span>DEFESA</span></div></div><div class="guildUpgradeGrid">'+upgrades.map(u=>{const cost=guildUpgradeCost(u.key),max=u.lv>=10;return '<div class="guildUpgrade"><div><b>'+u.icon+' '+u.name+' • Nv.'+u.lv+'</b><small>'+u.desc+'</small></div><button class="btn guildUpgradeBtn" data-key="'+u.key+'" '+(max||save.guildContribution<cost?'disabled':'')+'>'+(max?'Máx.':'🤝 '+cost)+'</button></div>'}).join("")+'</div><div class="guildMembers"><h3>Membros ativos</h3>'+g.members.map((m,k)=>'<div class="guildMember"><span>'+(k===0?'👑':'•')+' '+m+'</span><span>Poder '+(9200-k*530).toLocaleString("pt-BR")+'</span></div>').join("")+'</div></div>'+guildWarHtml();
+ $$(".guildUpgradeBtn").forEach(b=>b.addEventListener("click",()=>upgradeGuild(b.dataset.key)));
+ $$(".guildWarBtn").forEach(b=>b.addEventListener("click",()=>startGuildWarBattle(b.dataset.castle)));
 }
 function joinGuild(id){
  const g=GUILDS.find(x=>x.id===id);if(!g||save.guildId)return;
