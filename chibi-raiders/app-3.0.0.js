@@ -290,6 +290,9 @@ function heroStats(h){
 function addGear(id,qty=1){save.gearInventory[id]=(save.gearInventory[id]||0)+qty}
 const SCREEN_ROUTES={
  lobby:{id:"homeScreen",nav:""},
+ vip:{id:"vipScreen",nav:"",before:()=>renderVip()},
+ passe:{id:"battlePassScreen",nav:"",before:()=>renderBattlePass()},
+ mascotes:{id:"petsScreen",nav:"",before:()=>renderPets()},
  campanha:{id:"campaignScreen",nav:"",before:()=>renderCampaign()},
  formacao:{id:"formationScreen",nav:"synergy",before:()=>renderFormation()},
  sinergias:{id:"formationScreen",nav:"synergy",before:()=>renderFormation()},
@@ -304,7 +307,7 @@ const SCREEN_ROUTES={
  torre:{id:"towerScreen",nav:"",before:()=>renderTower()},
  afk:{id:"afkScreen",nav:"",before:()=>{startAfkTicker();renderAfk()}},
  despertar:{id:"awakeningScreen",nav:"",before:()=>renderAwakening()}
-};
+}
 function routeFromScreenId(id){
  return Object.values(SCREEN_ROUTES).find(r=>r.id===id)||null;
 }
@@ -1326,6 +1329,7 @@ function retryStage(){
  if(lastBattleMode==="arena"){renderArena();show("arenaScreen");return}
  if(lastBattleMode==="boss"){renderWorldBoss();show("worldBossScreen");return}
  if(lastBattleMode==="tower"){startTowerBattle();return}
+ if(lastBattleMode==="guildWar"){renderGuild();showScreen("guilda");return}
  startBattle();
 }
 function goResultMenu(){
@@ -1333,6 +1337,7 @@ function goResultMenu(){
  if(lastBattleMode==="arena"){generateArenaOpponents();renderArena();show("arenaScreen");return}
  if(lastBattleMode==="boss"){renderWorldBoss();show("worldBossScreen");return}
  if(lastBattleMode==="tower"){renderTower();show("towerScreen");return}
+ if(lastBattleMode==="guildWar"){renderGuild();showScreen("guilda");return}
  renderCampaign();renderHeroes();show("homeScreen");
 }
 
@@ -1352,6 +1357,9 @@ function bindClick(id,handler){
 }
 function bindLobbyRoutes(){
  const routes={
+  goVip:"vip",
+  goBattlePass:"passe",
+  goPets:"mascotes",
   goCampaign:"campanha",
   goPortal:"portal",
   goArena:"arena",
@@ -1371,7 +1379,7 @@ function bindLobbyRoutes(){
  bindClick("quickBattle",()=>quick());
 }
 function bindBackToLobby(){
- ["campaignBack","heroesBack","portalBack","arenaBack","shopBack","missionsBack","guildBack","worldBossBack","towerBack","afkBack","awakeningBack","formationBack"]
+ ["vipBack","battlePassBack","petsBack","campaignBack","heroesBack","portalBack","arenaBack","shopBack","missionsBack","guildBack","worldBossBack","towerBack","afkBack","awakeningBack","formationBack"]
   .forEach(id=>bindClick(id,backToLobby));
  bindClick("battleBack",backToLobby);
 }
@@ -1382,11 +1390,15 @@ function bindStaticControls(){
  bindClick("startWorldBoss",()=>startWorldBossBattle());
  bindClick("startTower",()=>startTowerBattle());
  bindClick("claimAfkBtn",()=>claimAfk(false));
+ bindClick("unlockPremiumPass",()=>unlockPremiumPass());
+ bindClick("chatToggle",()=>toggleGlobalChat());
  bindClick("muteBtn",()=>AudioEngine.toggle());
  bindClick("storyNext",()=>nextStory());bindClick("storySkip",()=>skipStory());
  const storyBoxEl=$("#storyBox");if(storyBoxEl)storyBoxEl.addEventListener("click",e=>{if(!e.target.closest("button"))nextStory()});
  bindClick("dailyTab",()=>renderMissions("daily"));bindClick("achievementTab",()=>renderMissions("achievements"));
- bindClick("startBattle",()=>startBattle());bindClick("summonOne",()=>summon(1));bindClick("summonTen",()=>summon(10));
+ bindClick("startBattle",()=>startBattle());
+ bindClick("summonOne",()=>summonFromBanner(1,"standard"));bindClick("summonTen",()=>summonFromBanner(10,"standard"));
+ bindClick("eventSummonOne",()=>summonFromBanner(1,"event"));bindClick("eventSummonTen",()=>summonFromBanner(10,"event"));
  bindClick("speed1",()=>{if(battle){battle.speed=1;renderBattle()}});
  bindClick("speed2",()=>{if(battle){battle.speed=2;renderBattle()}});
  bindClick("pauseBtn",()=>{if(battle&&!battle.ended){battle.paused=!battle.paused;renderBattle()}});
