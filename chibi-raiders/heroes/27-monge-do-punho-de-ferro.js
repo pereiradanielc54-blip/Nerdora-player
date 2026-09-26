@@ -1,0 +1,3 @@
+/* Nerdora Chibi Raiders — Herói #27: Monge do Punho de Ferro */
+window.NERDORA_HERO_SOURCE=window.NERDORA_HERO_SOURCE||{};
+window.NERDORA_HERO_SOURCE["monge_punho_ferro"]={"number":27,"id":"monge_punho_ferro","name":"Monge do Punho de Ferro","rarity":"R","color":"#007BFF","colorName":"Azul","img":"","atlasPage":2,"atlasCol":1,"atlasRow":1,"emoji":"🥋","class":"Guerreiro","position":"front","style":"melee","type":"physical","finalBase":true,"ultimateFinal":true,"hp":1580,"pa":230,"ma":65,"pd":150,"md":140,"speed":105,"cr":0.12,"dg":0.12,"ult":{"name":"Palma Vibratória","kind":"single","ratio":0.76,"effect":"break"}};
