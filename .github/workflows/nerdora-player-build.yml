@@ -1516,6 +1516,27 @@ jobs:
           grep -q 'width(18.dp)' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
           echo "v0.9.18: primeiro pacote de polimento visual aplicado."
 
+      - name: Auditoria temporária de funções e telas
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== AUDIT_FILE_LIST_BEGIN ==="
+          find extracted_project/app/src/main/java -type f \( -name '*.kt' -o -name '*.java' \) | sort
+          echo "=== AUDIT_FILE_LIST_END ==="
+          echo "=== AUDIT_SOURCES_BEGIN ==="
+          while IFS= read -r file; do
+            echo "=== FILE_BEGIN:$file ==="
+            cat "$file"
+            echo
+            echo "=== FILE_END:$file ==="
+          done < <(find extracted_project/app/src/main/java -type f \( -name '*.kt' -o -name '*.java' \) | sort)
+          echo "=== AUDIT_SOURCES_END ==="
+          echo "=== MANIFEST_BEGIN ==="
+          cat extracted_project/app/src/main/AndroidManifest.xml
+          echo "=== MANIFEST_END ==="
+          echo "Auditoria concluída; encerrando build temporário."
+          exit 1
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
