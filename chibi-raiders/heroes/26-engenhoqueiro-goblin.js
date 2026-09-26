@@ -1,0 +1,3 @@
+/* Nerdora Chibi Raiders — Herói #26: Engenhoqueiro Goblin */
+window.NERDORA_HERO_SOURCE=window.NERDORA_HERO_SOURCE||{};
+window.NERDORA_HERO_SOURCE["engenhoqueiro_goblin"]={"number":26,"id":"engenhoqueiro_goblin","name":"Engenhoqueiro Goblin","rarity":"R","color":"#007BFF","colorName":"Azul","img":"","atlasPage":2,"atlasCol":0,"atlasRow":1,"emoji":"🔫","class":"Atirador","position":"back","style":"ranged","type":"physical","finalBase":true,"ultimateFinal":true,"hp":1200,"pa":250,"ma":65,"pd":108,"md":100,"speed":90,"cr":0.16,"dg":0.04,"ult":{"name":"Minigun Improvisada","kind":"multi","ratio":0.82,"hits":4,"effect":"pierce"}};
