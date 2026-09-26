@@ -2,6 +2,6 @@
   "version": "4.0.0",
   "entry": "./index-4.0.0.html",
   "serviceWorker": "./sw-4.0.0.js",
-  "build": "2026-09-26-v4.0.0-rarity-expansion",
-  "notes": "20 heróis com raridades C/R/EP/SR/SSR, atributos e Ultimates escalados por raridade, gacha ponderado 50/30/14/5/1, visual de raridade e flash especial SR/SSR."
+  "build": "2026-09-26-v4.0.0-official-roster-r2",
+  "notes": "Roster oficial definitivo com 20 heróis da arte de referência: C/R/EP/SR/SSR, status escalados, propriedades img/color/position/class, avatares por URL com fallback, migração de save e visual dinâmico por raridade."
 }
