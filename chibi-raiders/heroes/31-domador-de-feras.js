@@ -1,0 +1,3 @@
+/* Nerdora Chibi Raiders — Herói #31: Domador de Feras */
+window.NERDORA_HERO_SOURCE=window.NERDORA_HERO_SOURCE||{};
+window.NERDORA_HERO_SOURCE["domador_feras"]={"number":31,"id":"domador_feras","name":"Domador de Feras","rarity":"EP","color":"#8A2BE2","colorName":"Roxo","img":"","atlasPage":2,"atlasCol":0,"atlasRow":2,"emoji":"🐆","class":"Híbrida","position":"back","style":"ranged","type":"physical","finalBase":true,"ultimateFinal":true,"hp":1350,"pa":300,"ma":82,"pd":120,"md":115,"speed":130,"cr":0.17,"dg":0.15,"ult":{"name":"Investida da Jaguatirica","kind":"single","ratio":0.82,"effect":"haste"}};
