@@ -4363,7 +4363,13 @@ window.addEventListener("pageshow",()=>{
 function storyLineAvatar(id){const h=hero(id);return h?h.emoji:id==="vorak"?"🐉":"✨"}
 function playCutscene(lines,key,onDone){
  if(key&&save.storySeen[key]){onDone();return}
- storyState={lines,index:0,key,onDone,typing:false,timer:null,full:""};$("#storyModal").classList.add("show");showStoryLine();
+ const modal=$("#storyModal");
+ if(!modal){onDone();return}
+ document.body.classList.add("story-open");
+ storyState={lines,index:0,key,onDone,typing:false,timer:null,full:""};
+ modal.classList.add("show");
+ const hint=$("#storyHint");if(hint)hint.textContent="Toque em qualquer área para continuar";
+ showStoryLine();
 }
 function showStoryLine(){
  const st=storyState;if(!st)return;const line=st.lines[st.index];if(!line){finishStory();return}
@@ -4376,8 +4382,14 @@ function nextStory(){
  st.index++;if(st.index>=st.lines.length)finishStory();else showStoryLine();
 }
 function finishStory(){
- const st=storyState;if(!st)return;clearInterval(st.timer);if(st.key){save.storySeen[st.key]=true;persist()}
- $("#storyModal").classList.remove("show");storyState=null;const cb=st.onDone;setTimeout(()=>cb&&cb(),120);
+ const st=storyState;if(!st)return;
+ clearInterval(st.timer);
+ if(st.key){save.storySeen[st.key]=true;persist()}
+ $("#storyModal")?.classList.remove("show");
+ document.body.classList.remove("story-open");
+ storyState=null;
+ const cb=st.onDone;
+ setTimeout(()=>safeUiCall(()=>cb&&cb(),"story-onDone"),120);
 }
 function skipStory(){finishStory()}
 function campaignCutscene(stg,cb){if(stg.id===5)playCutscene(CUTSCENES.stage5,"campaign-stage-1-5",cb);else cb()}
@@ -4520,20 +4532,43 @@ function renderWorldBoss(){
  $("#startWorldBoss").textContent=remaining<=0?"✅ Chefe derrotado hoje":save.worldBossAttempts<1?"Sem tentativas hoje":"🐉 Iniciar Raid";
  $("#worldBossRanking").innerHTML=worldBossRanking().map((r,i)=>`<div class="raidRankRow"><div class="pos">#${i+1}</div><div><b>${r.you?"⭐ ":""}${r.name}</b><small>${r.you?"Sua melhor tentativa":"Guilda rival"}</small></div><div class="damage">${r.damage.toLocaleString("pt-BR")}</div></div>`).join("");
 }
+let worldBossStarting=false;
 function beginWorldBossBattle(){
- save.worldBossAttempts--;persist();
- const boss=new Unit(BOSS_HERO,"enemy",SLOTS[0],{level:50,scale:1});
- boss.maxHp=WORLD_BOSS_MAX_HP;boss.hp=save.worldBossRemainingHp;boss.id="enemy_vorak_F1";
- lastBattleMode="boss";landscape();battle=new Battle(playerTeam(),[boss],{mode:"boss",code:"Raid",name:BOSS_HERO.name,damage:0});
- show("battleScreen");$("#battleStageName").textContent="RAID • VORAK";$("#battleLog").innerHTML="";
- battle.log("🐉 Vorak desperta com "+boss.hp.toLocaleString("pt-BR")+" HP restante.");renderBattle();battle.loop();
+ if(worldBossStarting)return;
+ worldBossStarting=true;
+ try{
+  document.body.classList.remove("story-open");
+  $("#storyModal")?.classList.remove("show");
+  save.worldBossAttempts=Math.max(0,(save.worldBossAttempts||0)-1);persist();
+  const boss=new Unit(BOSS_HERO,"enemy",SLOTS[0],{level:50,scale:1});
+  boss.maxHp=WORLD_BOSS_MAX_HP;boss.hp=Math.max(1,save.worldBossRemainingHp||WORLD_BOSS_MAX_HP);boss.id="enemy_vorak_F1";
+  lastBattleMode="boss";landscape();battle=new Battle(playerTeam(),[boss],{mode:"boss",code:"Raid",name:BOSS_HERO.name,damage:0});
+  showScreen("battleScreen",{skipRender:true});
+  const title=$("#battleStageName"),log=$("#battleLog");
+  if(title)title.textContent="RAID • VORAK";
+  if(log)log.innerHTML="";
+  battle.log("🐉 Vorak desperta com "+boss.hp.toLocaleString("pt-BR")+" HP restante.");
+  renderBattle();
+  Promise.resolve(battle.loop()).catch(err=>{
+   console.error("[WorldBoss Battle]",err);
+   toast("⚠️ A Raid encontrou um erro. Tente novamente.");
+   battle=null;
+   showScreen("chefe");
+  }).finally(()=>{worldBossStarting=false});
+ }catch(err){
+  worldBossStarting=false;
+  console.error("[WorldBoss Start]",err);
+  toast("⚠️ Não foi possível iniciar a Raid.");
+  showScreen("chefe");
+ }
 }
 function startWorldBossBattle(){
+ if(worldBossStarting)return;
  dailyWorldBossReset();
  if(used().length!==5)return toast("Monte uma formação com 5 heróis");
  if(save.worldBossAttempts<1)return toast("Sem tentativas de Raid hoje");
  if(save.worldBossRemainingHp<=0)return toast("Vorak já foi derrotado hoje");
- worldBossCutscene(beginWorldBossBattle);
+ worldBossCutscene(()=>safeUiCall(beginWorldBossBattle,"worldboss-start"));
 }
 function bossRewardFor(damage){
  if(damage>=50000)return{gold:3200,diamonds:160,contribution:120,stones:3};
@@ -5222,7 +5257,11 @@ function bindStaticControls(){
  bindClick("audioMasterToggle",()=>toggleAudioFromSettings());
  bindClick("audioTestSfx",()=>testAudioSfx());
  bindClick("storyNext",()=>nextStory());bindClick("storySkip",()=>skipStory());
- const storyBoxEl=$("#storyBox");if(storyBoxEl)storyBoxEl.addEventListener("click",e=>{if(!e.target.closest("button"))nextStory()});
+ const storyModalEl=$("#storyModal");
+ if(storyModalEl&&!storyModalEl.dataset.storyAdvanceBound){
+  storyModalEl.dataset.storyAdvanceBound="1";
+  storyModalEl.addEventListener("click",e=>{if(!e.target.closest("button"))nextStory()});
+ }
  bindClick("dailyTab",()=>renderMissions("daily"));bindClick("achievementTab",()=>renderMissions("achievements"));
  bindClick("startBattle",()=>startBattle());
  bindClick("summonOne",()=>summonFromBanner(1,"standard"));bindClick("summonTen",()=>summonFromBanner(10,"standard"));
@@ -5239,7 +5278,7 @@ function bindStaticControls(){
 bindStaticControls();
 
 /* =========================================================
-   v5.1.0 — ROUTER CENTRAL DE BOTÕES
+   v5.1.1 — ROUTER CENTRAL DE BOTÕES
    Um único controlador em fase de captura impede que rerenders
    deixem botões novos sem event listener.
    ========================================================= */
