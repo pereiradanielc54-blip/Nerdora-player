@@ -1416,6 +1416,19 @@ jobs:
           grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           echo "v0.9.16: Excel Viewer migrado para FortuneSheet 1.0.4 + FortuneExcel 2.3.3; Word preservado."
 
+      - name: Diagnóstico temporário da Home
+        shell: bash
+        run: |
+          echo "=== NERDORA_PLAYER_APP_BEGIN ==="
+          cat extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          echo "=== NERDORA_PLAYER_APP_END ==="
+          echo "=== UI_FILES_BEGIN ==="
+          find extracted_project/app/src/main/java/com/nerdora/player/ui -maxdepth 1 -type f -printf '%f\n' | sort
+          echo "=== UI_FILES_END ==="
+          echo "=== DRAWABLES_BEGIN ==="
+          find extracted_project/app/src/main/res -maxdepth 2 -type f \\( -path '*/drawable*/*' -o -path '*/mipmap*/*' \\) -printf '%P\n' | sort | head -n 250
+          echo "=== DRAWABLES_END ==="
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
