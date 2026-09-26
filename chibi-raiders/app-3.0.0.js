@@ -1248,7 +1248,8 @@ function rollGearDrop(s){const pool=DROP_POOLS[s.id]||DROP_POOLS[1];return pool[
 function grantCampaignRewards(s){
  const r=s.rewards;save.gold+=r.gold;save.accountExp+=r.exp;save.essence+=r.essence;save.diamonds+=r.diamonds||0;save.scrolls+=r.scrolls||0;
  const team=used(),shardHero=team[(s.id-1)%team.length]||"seraphina";save.shards[shardHero]=(save.shards[shardHero]||0)+r.shards;
- const gearId=rollGearDrop(s);addGear(gearId,1);if(s.id<STAGES.length)save.unlockedStage=Math.max(save.unlockedStage,s.id+1);persist();return{...r,shardHero,gearId};
+ const gearId=rollGearDrop(s);addGear(gearId,1);if(s.id<STAGES.length)save.unlockedStage=Math.max(save.unlockedStage,s.id+1);
+ const passXp=addBattlePassXp(35+s.id*5,"Campanha");persist();return{...r,shardHero,gearId,passXp};
 }
 function finishBattle(win,ctx){
  trackEvent("battles",1);
@@ -1294,7 +1295,7 @@ function finishBattle(win,ctx){
   const rw=grantCampaignRewards(stg),sh=hero(rw.shardHero),g=GEAR[rw.gearId],cont=10+stg.id*3;
   save.guildContribution+=cont;save.dailyCounters.campaignWins=(save.dailyCounters.campaignWins||0)+1;save.lifetime.campaignWins=(save.lifetime.campaignWins||0)+1;persist();
   $("#resultText").textContent=stg.id<5?"Próxima fase desbloqueada. O equipamento recebido já está no inventário.":"Capítulo 1 concluído!";
-  $("#resultRewards").innerHTML=`<span class="reward">🪙 Ouro<strong>+${rw.gold}</strong></span><span class="reward">⭐ EXP<strong>+${rw.exp}</strong></span><span class="reward">💎 Diamantes<strong>+${rw.diamonds}</strong></span><span class="reward">${sh.emoji} Fragmentos<strong>+${rw.shards}</strong></span><span class="reward">🤝 Contribuição<strong>+${cont}</strong></span><span class="reward gearReward">🎁 Equipamento<strong class="dropName">${g.icon} ${g.name}</strong></span>${rw.scrolls?'<span class="reward">📜 Pergaminho<strong>+1</strong></span>':""}`;
+  $("#resultRewards").innerHTML=`<span class="reward">🪙 Ouro<strong>+${rw.gold}</strong></span><span class="reward">⭐ EXP<strong>+${rw.exp}</strong></span><span class="reward">💎 Diamantes<strong>+${rw.diamonds}</strong></span><span class="reward">🎫 Passe<strong>+${rw.passXp} XP</strong></span><span class="reward">${sh.emoji} Fragmentos<strong>+${rw.shards}</strong></span><span class="reward">🤝 Contribuição<strong>+${cont}</strong></span><span class="reward gearReward">🎁 Equipamento<strong class="dropName">${g.icon} ${g.name}</strong></span>${rw.scrolls?'<span class="reward">📜 Pergaminho<strong>+1</strong></span>':""}`;
   rewardBurst([{text:"🪙 +"+rw.gold,kind:"gold"},{text:"⭐ +"+rw.exp+" EXP",kind:"exp"},{text:"💎 +"+rw.diamonds,kind:"diamond"}]);
   next.style.display=stg.id<5?"":"none";retry.style.display="none";
  }else{$("#resultText").textContent="Melhore níveis/equipamentos ou ajuste a formação e tente novamente.";$("#resultRewards").innerHTML='<span class="reward">Sem recompensas<strong>—</strong></span>';next.style.display="none";retry.style.display=""}
