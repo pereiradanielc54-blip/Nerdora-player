@@ -1,1 +1,1 @@
-importScripts("./sw-4.5.0.js");
+importScripts("./sw-5.0.0.js");
