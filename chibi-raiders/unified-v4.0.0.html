@@ -2203,54 +2203,83 @@ const SAVE_KEY="nerdora_chibi_raiders_v100";
 const OLD_SAVE_KEY="nerdora_chibi_raiders_v090";
 
 const RARITY_CONFIG={
- C:{code:"C",name:"Comum",color:"#FFFFFF",rate:50,statMult:.78,ultMult:.80,speedMult:.98,rank:1},
- R:{code:"R",name:"Raro",color:"#007BFF",rate:30,statMult:.95,ultMult:.95,speedMult:1.00,rank:2},
- EP:{code:"EP",name:"Épico",color:"#8A2BE2",rate:14,statMult:1.05,ultMult:1.08,speedMult:1.02,rank:3},
- SR:{code:"SR",name:"Lendário",color:"#FFA500",rate:5,statMult:1.15,ultMult:1.22,speedMult:1.04,rank:4},
- SSR:{code:"SSR",name:"Mítico",color:"#FF0000",rate:1,statMult:1.45,ultMult:1.50,speedMult:1.06,rank:5}
+ C:{code:"C",name:"Comum",color:"#FFFFFF",colorName:"Branco",rate:50,statMult:.90,ultMult:.85,speedMult:.98,rank:1},
+ R:{code:"R",name:"Raro",color:"#007BFF",colorName:"Azul",rate:30,statMult:.97,ultMult:.95,speedMult:1.00,rank:2},
+ EP:{code:"EP",name:"Épico",color:"#8A2BE2",colorName:"Roxo",rate:14,statMult:1.04,ultMult:1.08,speedMult:1.02,rank:3},
+ SR:{code:"SR",name:"Lendário",color:"#FFA500",colorName:"Laranja",rate:5,statMult:1.12,ultMult:1.25,speedMult:1.04,rank:4},
+ SSR:{code:"SSR",name:"Mítico",color:"#FF0000",colorName:"Vermelho",rate:1,statMult:1.25,ultMult:1.55,speedMult:1.06,rank:5},
+ BOSS:{code:"BOSS",name:"Chefe",color:"#D75CFF",colorName:"Violeta",rate:0,statMult:1,ultMult:1,speedMult:1,rank:6}
 };
 const RARITY_ORDER=["C","R","EP","SR","SSR"];
+function buildHero(h){
+ const magic=h.type==="magic",secondary=Math.round(h.atk*.28);
+ return{
+  ...h,
+  role:h.class,
+  line:h.position,
+  pa:magic?secondary:h.atk,
+  ma:magic?h.atk:secondary,
+  pd:Math.round(h.def*(h.physDefMult||1)),
+  md:Math.round(h.def*(h.magicDefMult||.94)),
+  sp:h.speed,
+  cr:h.cr??.08,
+  dg:h.dg??.05
+ };
+}
 const HEROES=[
-{id:"seraphina",name:"Seraphina",rarity:"SR",emoji:"👼",role:"Suporte",line:"back",style:"ranged",type:"magic",hp:1280,pa:70,ma:282,pd:96,md:168,sp:104,cr:.07,dg:.09,ult:{name:"Aurora Celestial",kind:"heal",ratio:1.45,effect:"shield"}},
-{id:"espinho",name:"Espinho Rubro",rarity:"R",emoji:"🌹",role:"Guerreiro",line:"front",style:"melee",type:"physical",hp:1610,pa:252,ma:82,pd:146,md:112,sp:98,cr:.13,dg:.07,ult:{name:"Jardim Carmesim",kind:"aoe",ratio:.76,effect:"bleed"}},
-{id:"quebra",name:"Quebra-Muros",rarity:"R",emoji:"🔨",role:"Tanque",line:"front",style:"melee",type:"physical",hp:2240,pa:195,ma:45,pd:218,md:144,sp:72,cr:.07,dg:.03,ult:{name:"Demolição Total",kind:"aoe",ratio:.70,effect:"break"}},
-{id:"umbra",name:"Caçador Umbra",rarity:"SR",emoji:"🌑",role:"Assassino",line:"back",style:"ranged",type:"physical",hp:1110,pa:314,ma:86,pd:82,md:86,sp:134,cr:.22,dg:.16,ult:{name:"Execução do Eclipse",kind:"single",ratio:2.38,effect:"execute"}},
-{id:"crepusculo",name:"Senhor do Crepúsculo",rarity:"SR",emoji:"🌘",role:"Mago",line:"back",style:"ranged",type:"magic",hp:1180,pa:68,ma:328,pd:78,md:142,sp:101,cr:.15,dg:.08,ult:{name:"Noite Sem Fim",kind:"aoe",ratio:.84,effect:"slow"}},
-{id:"valquiria",name:"Valquíria de Gelo",rarity:"EP",emoji:"❄️",role:"Guerreira",line:"front",style:"melee",type:"physical",hp:1510,pa:244,ma:138,pd:136,md:124,sp:103,cr:.12,dg:.08,ult:{name:"Inverno Eterno",kind:"aoeMagic",ratio:.80,effect:"freeze"}},
-{id:"relampago",name:"Lâmina Relâmpago",rarity:"EP",emoji:"⚡",role:"Assassina",line:"front",style:"melee",type:"physical",hp:1190,pa:306,ma:102,pd:92,md:84,sp:138,cr:.21,dg:.15,ult:{name:"Mil Cortes",kind:"multi",ratio:.62,hits:5}},
-{id:"terra",name:"Guardião da Terra",rarity:"EP",emoji:"🛡️",role:"Tanque",line:"front",style:"melee",type:"physical",hp:2320,pa:184,ma:72,pd:226,md:160,sp:76,cr:.07,dg:.04,ult:{name:"Fortaleza Viva",kind:"aoe",ratio:.58,effect:"shield"}},
-{id:"anao",name:"Canhoneiro Anão",rarity:"R",emoji:"💣",role:"Atirador",line:"back",style:"ranged",type:"physical",hp:1240,pa:286,ma:70,pd:102,md:92,sp:91,cr:.17,dg:.07,ult:{name:"Bombardeio Real",kind:"aoe",ratio:.92,effect:"pierce"}},
-{id:"fada",name:"Fada das Lâminas",rarity:"EP",emoji:"🧚",role:"Híbrida",line:"back",style:"ranged",type:"physical",hp:1130,pa:268,ma:172,pd:88,md:112,sp:129,cr:.18,dg:.18,ult:{name:"Tempestade Feérica",kind:"aoe",ratio:.72,effect:"haste"}},
+ // C — COMUNS
+ {id:"guarda",name:"Guarda da Fronteira",rarity:"C",color:"#FFFFFF",colorName:"Branco",img:"url_placeholder.png",emoji:"🛡️",class:"Guerreiro",position:"front",style:"melee",type:"physical",hp:1320,atk:150,def:150,speed:78,cr:.06,dg:.03,ult:{name:"Postura da Fronteira",kind:"aoe",ratio:.58,effect:"shield"}},
+ {id:"acolito",name:"Acólito Aprendiz",rarity:"C",color:"#FFFFFF",colorName:"Branco",img:"url_placeholder.png",emoji:"📖",class:"Suporte",position:"back",style:"ranged",type:"magic",hp:900,atk:145,def:85,speed:96,cr:.04,dg:.06,ult:{name:"Prece Restauradora",kind:"heal",ratio:1.02,effect:"shield"}},
+ {id:"batedor",name:"Batedor da Floresta",rarity:"C",color:"#FFFFFF",colorName:"Branco",img:"url_placeholder.png",emoji:"🏹",class:"Atirador",position:"back",style:"ranged",type:"physical",hp:930,atk:170,def:82,speed:110,cr:.10,dg:.10,ult:{name:"Flecha do Bosque",kind:"single",ratio:1.42,effect:"execute"}},
 
-{id:"musgo",name:"Escudeiro de Musgo",rarity:"C",emoji:"🌱",role:"Tanque",line:"front",style:"melee",type:"physical",hp:1500,pa:132,ma:42,pd:152,md:92,sp:68,cr:.04,dg:.02,ult:{name:"Muralha Verde",kind:"aoe",ratio:.52,effect:"shield"}},
-{id:"brisa",name:"Aprendiz da Brisa",rarity:"C",emoji:"🍃",role:"Suporte",line:"back",style:"ranged",type:"magic",hp:910,pa:48,ma:172,pd:66,md:102,sp:96,cr:.04,dg:.08,ult:{name:"Sopro Restaurador",kind:"heal",ratio:.96,effect:"haste"}},
-{id:"rubi",name:"Batedora Rubi",rarity:"C",emoji:"🏹",role:"Atiradora",line:"back",style:"ranged",type:"physical",hp:940,pa:178,ma:55,pd:72,md:68,sp:108,cr:.10,dg:.09,ult:{name:"Flecha Rubra",kind:"single",ratio:1.48,effect:"execute"}},
-{id:"monge",name:"Monge da Pedra",rarity:"C",emoji:"🪨",role:"Guerreiro",line:"front",style:"melee",type:"physical",hp:1260,pa:168,ma:62,pd:122,md:98,sp:82,cr:.07,dg:.05,ult:{name:"Punho Sísmico",kind:"aoe",ratio:.58,effect:"break"}},
-{id:"corsaria",name:"Corsária da Maré",rarity:"R",emoji:"🌊",role:"Híbrida",line:"front",style:"melee",type:"physical",hp:1420,pa:232,ma:138,pd:124,md:118,sp:105,cr:.12,dg:.10,ult:{name:"Dança da Ressaca",kind:"multi",ratio:.56,hits:4,effect:"slow"}},
-{id:"bruxo",name:"Bruxo das Cinzas",rarity:"R",emoji:"🔥",role:"Mago",line:"back",style:"ranged",type:"magic",hp:1030,pa:62,ma:272,pd:76,md:126,sp:99,cr:.13,dg:.07,ult:{name:"Chuva de Cinzas",kind:"aoeMagic",ratio:.73,effect:"bleed"}},
-{id:"solaria",name:"Cavaleira Solária",rarity:"EP",emoji:"☀️",role:"Guardiã",line:"front",style:"melee",type:"physical",hp:1740,pa:252,ma:96,pd:174,md:142,sp:96,cr:.10,dg:.06,ult:{name:"Marcha do Meio-Dia",kind:"aoe",ratio:.74,effect:"shield"}},
-{id:"oraculo",name:"Oráculo Astral",rarity:"SR",emoji:"🌌",role:"Mago",line:"back",style:"ranged",type:"magic",hp:1210,pa:72,ma:342,pd:84,md:156,sp:112,cr:.17,dg:.10,ult:{name:"Colapso Estelar",kind:"aoeMagic",ratio:.92,effect:"slow"}},
-{id:"nyxara",name:"Nyxara, Imperatriz Carmesim",rarity:"SSR",emoji:"👑",role:"Maga Suprema",line:"back",style:"ranged",type:"magic",hp:1390,pa:92,ma:398,pd:105,md:186,sp:118,cr:.21,dg:.12,ult:{name:"Trono de Sangue",kind:"aoeMagic",ratio:1.08,effect:"bleed"}},
-{id:"aetherion",name:"Aetherion, Dragão Celestial",rarity:"SSR",emoji:"🐲",role:"Guerreiro Mítico",line:"front",style:"melee",type:"physical",hp:2140,pa:368,ma:188,pd:198,md:182,sp:110,cr:.19,dg:.10,ult:{name:"Ascensão Dracônica",kind:"multi",ratio:.74,hits:5,effect:"break"}}
-];
+ // R — RAROS
+ {id:"terra",name:"Guardião da Terra",rarity:"R",color:"#007BFF",colorName:"Azul",img:"url_placeholder.png",emoji:"🪨",class:"Tanque",position:"front",style:"melee",type:"physical",hp:2000,atk:200,def:220,speed:76,cr:.06,dg:.03,ult:{name:"Fortaleza Viva",kind:"aoe",ratio:.66,effect:"shield"}},
+ {id:"espinho",name:"Espinho Rubro",rarity:"R",color:"#007BFF",colorName:"Azul",img:"url_placeholder.png",emoji:"🌹",class:"Guerreiro",position:"front",style:"melee",type:"physical",hp:1600,atk:250,def:150,speed:98,cr:.13,dg:.07,ult:{name:"Jardim Carmesim",kind:"aoe",ratio:.82,effect:"bleed"}},
+ {id:"umbra",name:"Caçador Umbra",rarity:"R",color:"#007BFF",colorName:"Azul",img:"url_placeholder.png",emoji:"🌑",class:"Assassino",position:"back",style:"ranged",type:"physical",hp:1200,atk:280,def:110,speed:126,cr:.20,dg:.15,ult:{name:"Execução do Eclipse",kind:"single",ratio:2.05,effect:"execute"}},
+ {id:"anao",name:"Canhoneiro Anão",rarity:"R",color:"#007BFF",colorName:"Azul",img:"url_placeholder.png",emoji:"💣",class:"Atirador",position:"back",style:"ranged",type:"physical",hp:1280,atk:270,def:120,speed:92,cr:.16,dg:.06,ult:{name:"Bombardeio Real",kind:"aoe",ratio:.90,effect:"pierce"}},
+ {id:"aguas",name:"Irmã das Águas",rarity:"R",color:"#007BFF",colorName:"Azul",img:"url_placeholder.png",emoji:"💧",class:"Suporte",position:"back",style:"ranged",type:"magic",hp:1200,atk:245,def:120,speed:105,cr:.08,dg:.09,ult:{name:"Maré Serena",kind:"heal",ratio:1.28,effect:"shield"}},
+
+ // EP — ÉPICOS
+ {id:"quebra",name:"Quebra-Muros",rarity:"EP",color:"#8A2BE2",colorName:"Roxo",img:"url_placeholder.png",emoji:"🔨",class:"Tanque",position:"front",style:"melee",type:"physical",hp:2500,atk:275,def:285,speed:78,cr:.08,dg:.03,ult:{name:"Demolição Total",kind:"aoe",ratio:.78,effect:"break"}},
+ {id:"relampago",name:"Lâmina Relâmpago",rarity:"EP",color:"#8A2BE2",colorName:"Roxo",img:"url_placeholder.png",emoji:"⚡",class:"Assassina",position:"front",style:"melee",type:"physical",hp:1450,atk:340,def:135,speed:140,cr:.23,dg:.16,ult:{name:"Mil Cortes",kind:"multi",ratio:.67,hits:5}},
+ {id:"fada",name:"Fada das Lâminas",rarity:"EP",color:"#8A2BE2",colorName:"Roxo",img:"url_placeholder.png",emoji:"🧚",class:"Híbrida",position:"back",style:"ranged",type:"physical",hp:1350,atk:310,def:125,speed:132,cr:.19,dg:.18,ult:{name:"Tempestade Feérica",kind:"aoe",ratio:.80,effect:"haste"}},
+ {id:"valquiria",name:"Valquíria de Gelo",rarity:"EP",color:"#8A2BE2",colorName:"Roxo",img:"url_placeholder.png",emoji:"❄️",class:"Guerreira",position:"front",style:"melee",type:"physical",hp:1850,atk:320,def:180,speed:110,cr:.14,dg:.09,ult:{name:"Inverno Eterno",kind:"aoeMagic",ratio:.88,effect:"freeze"}},
+ {id:"barbanegra",name:"Barba-Negra, o Corsário",rarity:"EP",color:"#8A2BE2",colorName:"Roxo",img:"url_placeholder.png",emoji:"🏴‍☠️",class:"Atirador",position:"back",style:"ranged",type:"physical",hp:1650,atk:335,def:155,speed:102,cr:.18,dg:.08,ult:{name:"Salva do Abismo",kind:"aoe",ratio:.96,effect:"pierce"}},
+
+ // SR — LENDÁRIOS
+ {id:"crepusculo",name:"Senhor do Crepúsculo",rarity:"SR",color:"#FFA500",colorName:"Laranja",img:"url_placeholder.png",emoji:"🌘",class:"Mago",position:"back",style:"ranged",type:"magic",hp:1700,atk:420,def:180,speed:112,cr:.18,dg:.09,ult:{name:"Noite Sem Fim",kind:"aoeMagic",ratio:1.04,effect:"slow"}},
+ {id:"seraphina",name:"Seraphina, a Suporte Divina",rarity:"SR",color:"#FFA500",colorName:"Laranja",img:"url_placeholder.png",emoji:"👼",class:"Suporte",position:"back",style:"ranged",type:"magic",hp:1800,atk:390,def:200,speed:114,cr:.10,dg:.10,ult:{name:"Aurora Celestial",kind:"heal",ratio:1.72,effect:"shield"}},
+ {id:"ignis",name:"Ignis, o Piromante Louco",rarity:"SR",color:"#FFA500",colorName:"Laranja",img:"url_placeholder.png",emoji:"🔥",class:"Mago",position:"back",style:"ranged",type:"magic",hp:1650,atk:440,def:175,speed:118,cr:.20,dg:.08,ult:{name:"Supernova Insana",kind:"aoeMagic",ratio:1.12,effect:"bleed"}},
+ {id:"aegis",name:"Aegis, o Escudo de Aço",rarity:"SR",color:"#FFA500",colorName:"Laranja",img:"url_placeholder.png",emoji:"🛡️",class:"Tanque",position:"front",style:"melee",type:"physical",hp:3100,atk:325,def:360,speed:84,cr:.09,dg:.04,ult:{name:"Bastião Absoluto",kind:"aoe",ratio:.82,effect:"shield"}},
+ {id:"lyra",name:"Lyra, a Atiradora Espectral",rarity:"SR",color:"#FFA500",colorName:"Laranja",img:"url_placeholder.png",emoji:"🏹",class:"Atiradora",position:"back",style:"ranged",type:"physical",hp:1800,atk:430,def:190,speed:136,cr:.24,dg:.15,ult:{name:"Rajada Espectral",kind:"multi",ratio:.82,hits:5,effect:"haste"}},
+
+ // SSR — MÍTICOS
+ {id:"drako",name:"Drako, o Rei Dracônico",rarity:"SSR",color:"#FF0000",colorName:"Vermelho",img:"url_placeholder.png",emoji:"🐉",class:"Guerreiro Mítico",position:"front",style:"melee",type:"physical",hp:3800,atk:560,def:420,speed:128,cr:.24,dg:.10,ult:{name:"Imperador das Chamas Dracônicas",kind:"multi",ratio:1.02,hits:6,effect:"break"}},
+ {id:"morgana",name:"Morgana, a Imperatriz do Vazio",rarity:"SSR",color:"#FF0000",colorName:"Vermelho",img:"url_placeholder.png",emoji:"🕳️",class:"Maga Mítica",position:"back",style:"ranged",type:"magic",hp:2900,atk:610,def:350,speed:148,cr:.28,dg:.16,ult:{name:"Horizonte do Vazio",kind:"aoeMagic",ratio:1.58,effect:"slow"}}
+].map(buildHero);
 
 function rarityMeta(heroOrCode){
- const code=typeof heroOrCode==="string"?heroOrCode:(heroOrCode?.rarity||"C");
- return RARITY_CONFIG[code]||RARITY_CONFIG.C;
+ if(typeof heroOrCode==="string")return RARITY_CONFIG[heroOrCode]||RARITY_CONFIG.BOSS;
+ if(!heroOrCode?.rarity)return RARITY_CONFIG.BOSS;
+ return RARITY_CONFIG[heroOrCode.rarity]||RARITY_CONFIG.BOSS;
 }
-function heroRarityClass(h){return "rarity-"+rarityMeta(h).code}
+function heroRarityClass(h){return h?.rarity?"rarity-"+h.rarity:"rarity-BOSS"}
+function heroRarityStyle(h){return "--rarity:"+(h?.color||rarityMeta(h).color)+";--hero-rarity:"+(h?.color||rarityMeta(h).color)+";"}
+function heroPortrait(h,cls="heroPortrait",locked=false){
+ if(locked)return '<span class="'+cls+' heroPortraitFallback">❔</span>';
+ const fallback=h?.emoji||"✦",src=h?.img||"";
+ if(!src||src==="url_placeholder.png")return '<span class="'+cls+' heroPortraitFallback">'+fallback+'</span>';
+ return '<span class="'+cls+' heroPortraitImage"><img src="'+src+'" alt="'+h.name+'" loading="lazy" onerror="this.parentElement.classList.add(\'imgError\')"><i>'+fallback+'</i></span>';
+}
 function sortedHeroes(list=HEROES){
  return [...list].sort((a,b)=>{
-  const d=rarityMeta(b).rank-rarityMeta(a).rank;
-  if(d)return d;
-  const ownDiff=Number(!!save?.owned?.[b.id])-Number(!!save?.owned?.[a.id]);
-  if(ownDiff)return ownDiff;
+  const d=rarityMeta(b).rank-rarityMeta(a).rank;if(d)return d;
+  const ownDiff=Number(!!save?.owned?.[b.id])-Number(!!save?.owned?.[a.id]);if(ownDiff)return ownDiff;
   return a.name.localeCompare(b.name,"pt-BR");
  });
 }
 function rollRarity(){
- const n=Math.random()*100;
- let acc=0;
+ const n=Math.random()*100;let acc=0;
  for(const code of RARITY_ORDER){acc+=RARITY_CONFIG[code].rate;if(n<acc)return code}
  return "C";
 }
