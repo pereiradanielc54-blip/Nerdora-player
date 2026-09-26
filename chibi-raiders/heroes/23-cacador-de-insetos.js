@@ -1,0 +1,3 @@
+/* Nerdora Chibi Raiders — Herói #23: Caçador de Insetos */
+window.NERDORA_HERO_SOURCE=window.NERDORA_HERO_SOURCE||{};
+window.NERDORA_HERO_SOURCE["cacador_insetos"]={"number":23,"id":"cacador_insetos","name":"Caçador de Insetos","rarity":"C","color":"#FFFFFF","colorName":"Branco","img":"","atlasPage":2,"atlasCol":2,"atlasRow":0,"emoji":"🪲","class":"Atirador","position":"back","style":"ranged","type":"physical","finalBase":true,"ultimateFinal":true,"hp":810,"pa":140,"ma":38,"pd":68,"md":62,"speed":112,"cr":0.11,"dg":0.09,"ult":{"name":"Zarabatana Venenosa","kind":"single","ratio":1.1,"effect":"bleed"}};
