@@ -1,0 +1,2948 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d111c">
+<title>Nerdora Chibi Raiders v2.0.1</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/webp" href="./icon-192.webp">
+<link rel="apple-touch-icon" href="./icon-192.webp">
+<style>
+:root{
+  --bg:#080b12;
+  --panel:#121826;
+  --panel-2:#182033;
+  --line:#2b3652;
+  --text:#f4f7ff;
+  --muted:#95a0ba;
+  --gold:#ffd166;
+  --red:#ef4458;
+  --red-dark:#7f1d2d;
+  --blue:#3b82f6;
+  --blue-dark:#173c7c;
+  --green:#38d27b;
+  --violet:#9b6cff;
+  --cyan:#62d9ff;
+  --shadow:0 16px 46px rgba(0,0,0,.34);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:
+radial-gradient(circle at 50% -10%,#25284c 0,transparent 34%),
+linear-gradient(180deg,#0d111c,#070910 68%);color:var(--text)}
+button{font:inherit;color:inherit}
+body{display:flex;justify-content:center;padding:10px}
+#game{
+  width:min(460px,100%);
+  min-height:calc(100vh - 20px);
+  background:linear-gradient(180deg,#0d111c,#090c14);
+  border:1px solid #27314b;border-radius:26px;overflow:hidden;box-shadow:var(--shadow);
+  position:relative
+}
+.screen{display:none;min-height:calc(100vh - 22px)} .screen.active{display:block}
+.topbar{
+  height:58px;padding:8px 11px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid #222b41;background:rgba(10,14,23,.92);backdrop-filter:blur(12px);position:sticky;top:0;z-index:50
+}
+.brand{font-weight:1000;letter-spacing:.4px}.brand span{color:#b995ff}
+.badge{padding:6px 9px;border-radius:999px;background:#1a2133;border:1px solid #35405d;font-size:10px;font-weight:900;color:#cfd5e5}
+.btn{
+  border:1px solid #38445f;border-radius:12px;background:#202a41;padding:9px 12px;font-weight:900;cursor:pointer;
+  transition:.18s transform,.18s filter,.18s opacity
+}
+.btn:active{transform:scale(.98)} .btn.primary{background:linear-gradient(135deg,#6d50eb,#a56fff);border-color:#9675ef}
+.btn.gold{background:linear-gradient(135deg,#9b641d,#e0a53d);border-color:#d9a747}
+.btn.ghost{background:#111725}.btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.section{padding:12px}.card{background:linear-gradient(180deg,#171e2e,#101622);border:1px solid #303a55;border-radius:18px;box-shadow:0 10px 26px rgba(0,0,0,.18)}
+.heroTitle{padding:18px}.heroTitle h1{font-size:34px;line-height:.95;margin:8px 0 11px}.heroTitle p{margin:0;color:#aeb6ca;font-size:12px;line-height:1.5}
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:13px}.pill{font-size:9px;padding:6px 8px;border-radius:999px;background:#1c2436;border:1px solid #36415e;color:#cfd5e5}
+.homeActions{display:grid;gap:8px;padding:12px}
+.small{font-size:9px;color:var(--muted);line-height:1.45}
+
+/* Formação */
+.formationExplain{padding:10px;margin-bottom:10px}.formationExplain strong{display:block;font-size:12px;margin-bottom:3px}
+.formationBoard{
+  display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,88px);gap:7px;padding:8px;
+  background:linear-gradient(180deg,#131928,#0f1420);border:1px solid #29334d;border-radius:17px;position:relative
+}
+.slot{
+  border:1px dashed #42506e;background:#131a29;border-radius:13px;padding:7px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px;cursor:pointer;min-width:0
+}
+.slot.front{grid-column:2}.slot.back{grid-column:1}
+.slot[data-slot="F1"]{grid-row:1}.slot[data-slot="F2"]{grid-row:2}
+.slot[data-slot="B1"]{grid-row:1}.slot[data-slot="B2"]{grid-row:2}.slot[data-slot="B3"]{grid-row:3}
+.slot.selected{outline:2px solid var(--gold)}.slot.filled{border-style:solid}.slot .emoji{font-size:27px}.slot b{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.slot em{font-style:normal;font-size:7px;color:#8f9ab3}
+.lineHeader{font-size:8px;font-weight:1000;letter-spacing:.6px;margin:8px 2px 4px;color:#bdc6d9}
+.roster{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.rosterCard{border:1px solid #33405d;background:#161d2c;border-radius:14px;padding:8px;text-align:left;cursor:pointer}
+.rosterCard.used{outline:1px solid #8a6fe5}.rosterHead{display:flex;gap:7px;align-items:center}.rosterHead .avatar{font-size:26px}.rosterCard b{font-size:10px}.rosterCard .meta{font-size:8px;color:#99a4bd}
+.rosterStats{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-top:6px}.rosterStats span{font-size:7px;color:#b8c0d3;background:#111725;padding:4px;border-radius:7px;text-align:center}
+
+/* Batalha */
+.battleShell{padding:7px}
+.arena{
+  position:relative;min-height:760px;border-radius:19px;overflow:hidden;border:1px solid #30394f;
+  background:
+    radial-gradient(circle at 50% 10%,rgba(255,129,77,.20),transparent 18%),
+    linear-gradient(180deg,#2f2230 0 17%,#1d202b 17% 36%,#3a2b32 36% 43%,#722d34 43% 68%,#2b2429 68% 100%)
+}
+.arena:before{
+  content:"";position:absolute;left:0;right:0;top:34%;height:12%;opacity:.55;
+  background:linear-gradient(90deg,#11141c 0 6%,transparent 6% 13%,#11141c 13% 22%,transparent 22% 29%,#11141c 29% 40%,transparent 40% 49%,#11141c 49% 59%,transparent 59% 67%,#11141c 67% 79%,transparent 79% 89%,#11141c 89%)
+}
+.battleHeader{
+  position:absolute;left:7px;right:7px;top:7px;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:5px
+}
+.battleHeader .group{display:flex;gap:5px}
+.controlBtn{border:1px solid #414b66;background:rgba(15,19,30,.9);border-radius:9px;padding:6px 8px;font-size:8px;font-weight:1000;cursor:pointer}
+.controlBtn.active{border-color:var(--gold);color:#ffe69a}
+.stateLabel{padding:6px 8px;border-radius:9px;background:rgba(15,19,30,.9);border:1px solid #414b66;font-size:8px;font-weight:1000}
+.teamLabel{position:absolute;left:9px;right:9px;z-index:15;display:flex;justify-content:space-between;font-size:8px;font-weight:1000;letter-spacing:.4px}
+.teamLabel.enemy{top:45px;color:#ffbac3}.teamLabel.player{top:397px;color:#b9dcff}
+.formationArea{position:absolute;left:8px;right:8px;height:325px;z-index:10}
+.formationArea.enemy{top:63px}.formationArea.player{top:415px}
+.lineBox{position:absolute;top:0;bottom:0;width:50%;border:1px dashed rgba(255,255,255,.08);border-radius:14px}
+.lineBox.back{left:0;background:rgba(45,111,174,.04)}.lineBox.front{right:0;background:rgba(166,95,55,.05)}
+.combatCard{
+  position:absolute;width:145px;min-height:124px;padding:7px;border-radius:14px;
+  background:linear-gradient(180deg,rgba(27,34,51,.97),rgba(14,19,29,.97));border:1px solid #46516d;
+  box-shadow:0 8px 22px rgba(0,0,0,.28);transition:.2s transform,.2s filter,.2s opacity,.2s border-color
+}
+.combatCard.enemy{background:linear-gradient(180deg,rgba(62,31,40,.97),rgba(25,16,22,.97));border-color:#76505b}
+.combatCard.active{border-color:#ffdf64;filter:drop-shadow(0 0 11px rgba(255,220,94,.55));transform:translateY(-4px)}
+.combatCard.targeted{border-color:#ff6678;filter:drop-shadow(0 0 10px rgba(255,85,106,.5))}
+.combatCard.dead{opacity:.24;filter:grayscale(1)}
+.ccTop{display:flex;justify-content:space-between;align-items:center;gap:5px;margin-bottom:4px}
+.lineTag{font-size:6px;font-weight:1000;padding:2px 5px;border-radius:999px;border:1px solid #4a5878;color:#cde6ff}
+.lineTag.front{color:#ffe6a0;border-color:#7f6c3d}.statusIcons{font-size:9px;min-height:12px}
+.ccHero{display:flex;gap:6px;align-items:center}.ccAvatar{width:38px;height:38px;border-radius:12px;background:#222b3f;border:1px solid #4a5773;display:grid;place-items:center;font-size:23px}
+.ccIdentity{min-width:0;flex:1}.ccName{font-size:8px;font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ccRole{font-size:6px;color:#9ca8bf;margin-top:2px}
+.barMeta{display:flex;justify-content:space-between;font-size:6px;color:#aab5c9;margin-top:4px}.barMeta b{color:#e6eaf4}
+.bar{height:8px;border-radius:999px;background:#080b11;border:1px solid #2c3447;overflow:hidden}.bar i{display:block;height:100%;transition:width .28s ease}
+.bar.hp i{background:linear-gradient(90deg,#b52337,var(--red))}.bar.rage i{background:linear-gradient(90deg,#1e4f9f,var(--blue))}
+.ultBtn{
+  width:100%;margin-top:5px;border:1px solid #38435e;border-radius:8px;background:#20263a;padding:5px 4px;
+  font-size:6px;font-weight:1000;color:#7f899f;cursor:pointer
+}
+.ultBtn.ready{border-color:#4d9cff;color:#d7ebff;background:linear-gradient(135deg,#173c7c,#225bb5);box-shadow:0 0 13px rgba(59,130,246,.45);animation:pulse .8s infinite alternate}
+.ultBtn.queued{border-color:#b678ff;color:#f0ddff;background:linear-gradient(135deg,#4d2464,#713596);box-shadow:0 0 12px rgba(171,104,255,.42)}
+.ultBtn:disabled{opacity:.38;cursor:not-allowed;animation:none}
+.enemyAuto{margin-top:5px;text-align:center;padding:4px;border-radius:7px;background:#21161c;border:1px solid #493540;font-size:6px;color:#b99ca6}
+@keyframes pulse{to{transform:translateY(-1px);filter:brightness(1.2)}}
+.orderPanel{
+  position:absolute;left:7px;right:7px;top:355px;z-index:30;padding:7px;background:rgba(8,11,18,.90);
+  border:1px solid #39435d;border-radius:12px
+}
+.orderTitle{font-size:7px;color:#aab4c8;margin-bottom:4px}.turnOrder{display:flex;gap:4px;overflow:auto;scrollbar-width:none}.turnOrder::-webkit-scrollbar{display:none}
+.turnChip{flex:0 0 auto;padding:4px 6px;border-radius:8px;background:#1b2233;border:1px solid #36405a;font-size:7px}.turnChip b{color:#ffd666}.turnChip.current{border-color:#ffd666}.turnChip.done{opacity:.35}
+.logPanel{
+  position:absolute;left:7px;right:7px;bottom:7px;z-index:35;background:rgba(7,10,16,.93);border:1px solid #35405a;border-radius:13px;padding:7px
+}
+.logHeader{display:flex;justify-content:space-between;align-items:center;font-size:8px;font-weight:1000}.log{height:94px;overflow:auto;margin-top:5px;font-size:7px;line-height:1.45;color:#cbd2df}
+.log .ultimate{color:#b9d8ff;background:rgba(37,99,235,.10);border-left:2px solid #4d9cff;padding-left:5px;font-weight:900}
+.log .crit{color:#ffd17a}.log .dodge{color:#77e1ff}.log .death{color:#ff9aa7}.log .round{color:#cfb6ff}
+.ultBanner{
+  position:absolute;left:50%;top:337px;transform:translate(-50%,-50%) scale(.8);z-index:100;
+  padding:10px 16px;border-radius:14px;background:rgba(9,16,34,.96);border:2px solid #4d9cff;
+  box-shadow:0 0 24px rgba(59,130,246,.5);font-size:14px;font-weight:1000;opacity:0;pointer-events:none;white-space:nowrap
+}
+.ultBanner.show{animation:ultFlash .85s ease}
+@keyframes ultFlash{0%{opacity:0;transform:translate(-50%,-50%) scale(.75)}20%,72%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.12)}}
+.floatText{position:absolute;z-index:110;font-size:17px;font-weight:1000;text-shadow:0 2px 2px #000;animation:floatUp .8s ease-out forwards;pointer-events:none}
+.floatText.hit{color:#ffd05b}.floatText.crit{color:#ff945c}.floatText.heal{color:#69eca0}.floatText.dodge{color:#69d9ff}.floatText.ult{color:#8ec3ff}
+@keyframes floatUp{0%{opacity:0;transform:translate(-50%,0) scale(.75)}18%{opacity:1}100%{opacity:0;transform:translate(-50%,-52px) scale(1.05)}}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(2,4,8,.8);display:none;place-items:center;z-index:200;padding:15px}.modal.show{display:grid}
+.modalCard{width:min(420px,100%);padding:20px;text-align:center;background:#141b2a;border:1px solid #39445f;border-radius:19px;box-shadow:var(--shadow)}
+.modalCard h2{font-size:30px;margin:0 0 6px}.rewards{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:12px 0}.reward{padding:7px 9px;border-radius:9px;background:#0f1521;border:1px solid #33405a;font-size:9px}
+
+@media(max-width:400px){
+  .combatCard{width:132px;padding:6px}.ccAvatar{width:34px;height:34px;font-size:20px}.formationArea{left:4px;right:4px}.arena{min-height:760px}
+}
+
+/* =========================================================
+   v0.8 — BATALHA LATERAL / HORIZONTAL
+   ========================================================= */
+#game.battle-mode{
+  width:min(1120px,100%);
+}
+
+#game.battle-mode .topbar{
+  max-width:none;
+}
+
+.battleShell{
+  padding:7px;
+  overflow:hidden;
+}
+
+.arena{
+  position:relative;
+  min-height:620px;
+  height:min(700px,calc(100vh - 86px));
+  border-radius:19px;
+  overflow:hidden;
+  border:1px solid #30394f;
+  background:
+    radial-gradient(circle at 50% 34%,rgba(255,181,95,.11),transparent 24%),
+    linear-gradient(180deg,#2a2332 0 24%,#1c202b 24% 43%,#553136 43% 72%,#292329 72% 100%);
+}
+
+.arena:before{
+  content:"";
+  position:absolute;
+  left:0;right:0;
+  top:35%;
+  height:12%;
+  opacity:.5;
+  background:
+    linear-gradient(90deg,
+      #11141c 0 5%, transparent 5% 10%,
+      #11141c 10% 18%, transparent 18% 25%,
+      #11141c 25% 34%, transparent 34% 42%,
+      #11141c 42% 50%, transparent 50% 58%,
+      #11141c 58% 66%, transparent 66% 75%,
+      #11141c 75% 84%, transparent 84% 91%,
+      #11141c 91%);
+}
+
+.arena:after{
+  content:"";
+  position:absolute;
+  left:5%;right:5%;
+  top:49%;
+  height:1px;
+  background:linear-gradient(90deg,transparent,#9d6b60,transparent);
+  opacity:.35;
+  pointer-events:none;
+}
+
+.battleHeader{
+  position:absolute;
+  left:8px;right:8px;top:8px;
+  z-index:60;
+}
+
+.teamLabel{
+  top:48px !important;
+  width:47%;
+  right:auto;
+  font-size:9px;
+  z-index:40;
+}
+
+.teamLabel.player{
+  left:1.5%;
+  color:#b9dcff;
+}
+
+.teamLabel.enemy{
+  left:auto;
+  right:1.5%;
+  color:#ffbac3;
+}
+
+.formationArea{
+  position:absolute;
+  top:67px !important;
+  bottom:190px;
+  height:auto !important;
+  width:48%;
+  z-index:10;
+}
+
+.formationArea.player{
+  left:1%;
+  right:auto;
+}
+
+.formationArea.enemy{
+  left:auto;
+  right:1%;
+}
+
+.lineBox{
+  position:absolute;
+  top:0;bottom:0;
+  width:44%;
+  border:1px dashed rgba(255,255,255,.08);
+  border-radius:15px;
+}
+
+.formationArea.player .lineBox.back{
+  left:0;
+  background:rgba(45,111,174,.045);
+}
+.formationArea.player .lineBox.front{
+  right:0;
+  background:rgba(166,95,55,.055);
+}
+
+.formationArea.enemy .lineBox.front{
+  left:0;
+  right:auto;
+  background:rgba(166,95,55,.055);
+}
+.formationArea.enemy .lineBox.back{
+  right:0;
+  left:auto;
+  background:rgba(45,111,174,.045);
+}
+
+.combatCard{
+  width:clamp(106px,13.5vw,146px);
+  min-height:120px;
+  padding:7px;
+  transition:
+    .32s transform,
+    .32s filter,
+    .32s opacity,
+    .32s border-color;
+}
+
+.combatCard.active.player{
+  animation:attackPlayer .9s ease-in-out;
+}
+.combatCard.active.enemy{
+  animation:attackEnemy .9s ease-in-out;
+}
+
+@keyframes attackPlayer{
+  0%,100%{transform:translateX(0)}
+  45%{transform:translateX(18px) scale(1.035)}
+}
+@keyframes attackEnemy{
+  0%,100%{transform:translateX(0)}
+  45%{transform:translateX(-18px) scale(1.035)}
+}
+
+.orderPanel{
+  left:8px;
+  right:8px;
+  top:auto;
+  bottom:120px;
+  z-index:45;
+}
+
+.logPanel{
+  left:8px;
+  right:8px;
+  bottom:8px;
+  height:105px;
+  z-index:50;
+}
+
+.log{
+  height:73px;
+}
+
+.ultBanner{
+  top:43%;
+}
+
+.rotateHint{
+  display:none;
+  position:absolute;
+  inset:58px 8px 118px;
+  z-index:150;
+  place-items:center;
+  text-align:center;
+  background:rgba(5,8,14,.92);
+  border:1px solid #3d4863;
+  border-radius:15px;
+  padding:24px;
+}
+.rotateHint strong{
+  font-size:18px;
+}
+.rotateHint span{
+  display:block;
+  margin-top:8px;
+  color:#aeb8cc;
+  font-size:11px;
+}
+
+/* Tela de atualização/entrada */
+.updateSplash{
+  position:fixed;
+  inset:0;
+  z-index:999;
+  display:grid;
+  place-items:center;
+  background:
+    radial-gradient(circle at 50% 25%,#282348 0,transparent 35%),
+    #080b12;
+  transition:.3s opacity;
+}
+.updateSplash.hidden{
+  opacity:0;
+  pointer-events:none;
+}
+.updateCard{
+  width:min(390px,calc(100% - 28px));
+  padding:24px;
+  text-align:center;
+  border-radius:24px;
+  background:#141a29;
+  border:1px solid #3b4562;
+  box-shadow:0 20px 60px rgba(0,0,0,.45);
+}
+.updateLogo{
+  width:72px;height:72px;
+  margin:0 auto 12px;
+  display:grid;place-items:center;
+  border-radius:22px;
+  background:linear-gradient(145deg,#684cff,#ad79ff);
+  font-size:36px;
+  font-weight:1000;
+}
+.updateStatus{
+  color:#aeb7cb;
+  font-size:11px;
+  min-height:34px;
+  margin:8px 0 12px;
+}
+.installRow{
+  display:flex;
+  gap:7px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+.updateNotice{
+  display:none;
+  margin-top:10px;
+  padding:9px;
+  border-radius:12px;
+  border:1px solid #4a78bd;
+  background:#152440;
+  font-size:10px;
+}
+.updateNotice.show{
+  display:block;
+}
+
+@media(max-width:720px){
+  #game.battle-mode{
+    width:100%;
+  }
+  .arena{
+    min-height:610px;
+    height:calc(100vh - 78px);
+  }
+  .combatCard{
+    width:clamp(96px,22vw,118px);
+    min-height:112px;
+    padding:5px;
+  }
+  .ccAvatar{
+    width:32px;height:32px;
+    font-size:19px;
+  }
+  .ccName{font-size:7px}
+  .ccRole{font-size:5.5px}
+  .barMeta{font-size:5.5px}
+  .ultBtn{font-size:5.5px}
+}
+
+/* Em modo retrato, a arena continua horizontal, mas avisamos a rotação. */
+@media(max-width:720px) and (orientation:portrait){
+  .rotateHint{
+    display:grid;
+  }
+}
+
+
+/* =========================================================
+   v0.9 — CAMPANHA / PROGRESSÃO / HERÓIS
+   ========================================================= */
+.resourceBar{
+  display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap;
+  padding:7px 10px;background:#0e1421;border-bottom:1px solid #242f47
+}
+.resourceBar span{
+  padding:5px 8px;border-radius:999px;background:#171f31;border:1px solid #33405e;
+  font-size:9px;color:#cfd6e6
+}
+.resourceBar b{color:#fff}
+.campaignHeader{padding:14px;margin-bottom:10px}
+.campaignHeader h2{margin:3px 0 5px;font-size:19px}
+.campaignHeader p{margin:0;color:#aab4c9;font-size:10px;line-height:1.45}
+.stageGrid{display:grid;grid-template-columns:1fr;gap:8px}
+.stageCard{
+  width:100%;border:1px solid #34415f;background:linear-gradient(135deg,#171f31,#111725);
+  border-radius:16px;padding:12px;text-align:left;cursor:pointer;display:grid;grid-template-columns:58px 1fr auto;
+  gap:10px;align-items:center;transition:.18s transform,.18s border-color,.18s opacity
+}
+.stageCard:active{transform:scale(.99)}
+.stageCard.locked{opacity:.43;cursor:not-allowed;filter:grayscale(.65)}
+.stageCard.selected{border-color:#9c7cff;box-shadow:0 0 0 1px #7659d8 inset}
+.stageNode{
+  width:54px;height:54px;border-radius:18px;display:grid;place-items:center;
+  background:linear-gradient(145deg,#5d46c9,#9f73ff);font-size:13px;font-weight:1000
+}
+.stageCard.locked .stageNode{background:#2b3245}
+.stageInfo b{display:block;font-size:12px}.stageInfo small{display:block;color:#96a2ba;font-size:8px;margin-top:3px;line-height:1.35}
+.stagePower{text-align:right}.stagePower strong{display:block;font-size:11px;color:#ffd66a}.stagePower span{font-size:7px;color:#97a3bb}
+.formationStageInfo{padding:10px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.formationStageInfo b{font-size:12px}.formationStageInfo span{font-size:8px;color:#aeb7c9}
+
+/* Gestão de heróis */
+.heroesPage{display:grid;grid-template-columns:1fr;gap:10px}
+.heroManageGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.heroManageCard{
+  border:1px solid #34405b;background:#151c2b;border-radius:15px;padding:9px;text-align:left;cursor:pointer;
+  transition:.18s border-color,.18s transform
+}
+.heroManageCard.selected{border-color:#a17dff;box-shadow:0 0 0 1px rgba(161,125,255,.35) inset}
+.heroManageCard:active{transform:scale(.985)}
+.heroManageTop{display:flex;align-items:center;gap:7px}.heroManageEmoji{font-size:30px}
+.heroManageName{font-size:10px;font-weight:1000}.heroManageMeta{font-size:7px;color:#98a3bb;margin-top:2px}
+.heroManageBars{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:7px}
+.heroManageBars span{font-size:7px;padding:4px;border-radius:7px;background:#0f1521;color:#b9c2d6;text-align:center}
+.heroDetail{padding:14px}
+.heroDetailHeader{display:flex;align-items:center;gap:11px}
+.heroDetailAvatar{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;font-size:38px;background:#202942;border:1px solid #465778}
+.heroDetailTitle h2{margin:0;font-size:19px}.heroDetailTitle p{margin:3px 0 0;color:#a4aec3;font-size:9px}
+.heroStatGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:12px}
+.heroStat{
+  padding:8px;border-radius:10px;background:#0f1521;border:1px solid #2f3b57;
+  display:flex;justify-content:space-between;gap:8px;font-size:8px
+}
+.heroStat b{font-size:9px}
+.levelPanel{margin-top:10px;padding:10px;border-radius:12px;background:#171f30;border:1px solid #35435f}
+.levelProgress{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:7px}
+.levelProgress b{font-size:12px}.levelProgress span{font-size:8px;color:#a7b1c4}
+.levelUpBtn{width:100%}
+.levelGain{font-size:7px;color:#7fe5a4;margin-top:6px;text-align:center}
+.shardLine{font-size:8px;color:#b4bfd2;text-align:center;margin-top:7px}
+
+/* Resultados */
+.resultCard{max-width:390px}
+.resultBadge{
+  width:72px;height:72px;border-radius:50%;margin:-8px auto 8px;display:grid;place-items:center;
+  font-size:38px;background:linear-gradient(145deg,#3a2d16,#80601d);border:1px solid #d6ad4c
+}
+.resultStage{font-size:10px;color:#c8d0df;font-weight:900;margin-bottom:8px}
+.resultActions{display:grid;gap:7px;margin-top:12px}
+.rewards{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.reward{font-size:9px;text-align:center;padding:9px}
+.reward strong{display:block;font-size:11px;color:#fff;margin-top:2px}
+
+/* Pequenos indicadores de nível na batalha */
+.ccLevel{
+  font-size:6px;color:#ffe28a;font-weight:900;margin-left:auto
+}
+
+@media(min-width:760px){
+  .heroesPage{grid-template-columns:1.05fr .95fr;align-items:start}
+  .heroManageGrid{grid-template-columns:repeat(2,1fr)}
+  .heroDetail{position:sticky;top:68px}
+  .stageGrid{grid-template-columns:repeat(2,1fr)}
+}
+
+
+
+/* =========================================================
+   v1.0.0 — PORTAL / EQUIPAMENTOS / ARENA / LOJA
+   ========================================================= */
+.portalBtn{background:linear-gradient(135deg,#4c2a70,#8d4ed4);border-color:#9d6ee0}
+.arenaBtn{background:linear-gradient(135deg,#2a4b70,#3578ad);border-color:#5d97c8}
+.portalHero{padding:18px;text-align:center}
+.portalHero h2,.arenaHeader h2,.shopHeader h2{margin:6px 0}
+.portalHero p,.arenaHeader p,.shopHeader p{font-size:10px;color:#aeb7ca;line-height:1.45}
+.portalOrb{width:88px;height:88px;margin:0 auto 10px;display:grid;place-items:center;font-size:47px;border-radius:50%;
+ background:radial-gradient(circle,#a874ff 0,#55308f 46%,#181226 72%);border:2px solid #bc8aff;
+ box-shadow:0 0 35px rgba(163,105,255,.38);animation:orbPulse 1.8s infinite alternate}
+@keyframes orbPulse{to{transform:scale(1.035);box-shadow:0 0 48px rgba(163,105,255,.58)}}
+.summonRates{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:10px 0}
+.summonRates span{font-size:8px;padding:5px 8px;border:1px solid #493c66;border-radius:999px;background:#161326;color:#cdb9ee}
+.summonButtons{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.summonButtons small{font-size:8px}
+.summonResults{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:10px}
+.summonCard{padding:10px;border-radius:14px;background:#151d2d;border:1px solid #34405a;text-align:center}
+.summonCard.new{border-color:#b67cff;box-shadow:0 0 18px rgba(169,104,255,.2)}
+.summonCard .bigEmoji{font-size:32px}.summonCard b{display:block;font-size:9px}.summonCard span{font-size:7px;color:#aeb8cb}
+.summonCard .newTag{display:inline-block;margin-top:4px;padding:3px 6px;border-radius:999px;background:#59358b;color:#eadcff;font-weight:900}
+
+/* Equipamentos */
+.equipPanel{margin-top:10px}
+.equipPanel h3{margin:0 0 7px;font-size:12px}
+.equipGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.equipSlot{padding:8px;border-radius:11px;background:#101725;border:1px solid #2f3b55;min-height:66px}
+.equipSlot .equipSlotTitle{font-size:7px;color:#9ca8bf;font-weight:900}
+.equipSlot b{display:block;font-size:9px;margin-top:3px}
+.equipSlot small{display:block;font-size:7px;color:#8fe0ad;margin-top:2px}
+.equipSlot button{width:100%;margin-top:5px;padding:5px;font-size:7px}
+.inventoryTitle{margin:12px 0 6px;font-size:10px;font-weight:1000}
+.gearInventory{display:grid;gap:6px;max-height:210px;overflow:auto}
+.gearRow{display:grid;grid-template-columns:36px 1fr auto;gap:7px;align-items:center;padding:7px;border-radius:10px;background:#101725;border:1px solid #303b55}
+.gearIcon{width:34px;height:34px;display:grid;place-items:center;border-radius:9px;background:#1f2a42;font-size:19px}
+.gearRow b{display:block;font-size:8px}.gearRow small{font-size:7px;color:#96a3ba;display:block}.gearRow button{font-size:7px;padding:5px 7px}
+.gearRare{color:#89d0ff}.gearEpic{color:#ce92ff}.gearLegend{color:#ffd976}
+
+/* Arena */
+.arenaHeader{padding:13px;margin-bottom:9px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.arenaHeader>div{min-width:0}.arenaHeader h2{font-size:20px}
+.arenaOpponents{display:grid;gap:8px}
+.opponentCard{padding:10px;border-radius:15px;background:linear-gradient(135deg,#172031,#111725);border:1px solid #34415e}
+.opponentTop{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.opponentName b{display:block;font-size:11px}.opponentName span{font-size:8px;color:#a0abc0}
+.opponentRating{text-align:right}.opponentRating b{display:block;color:#ffd66d;font-size:11px}.opponentRating span{font-size:7px;color:#9ca7ba}
+.opponentTeam{display:flex;gap:4px;margin:8px 0;flex-wrap:wrap}
+.opponentUnit{padding:5px 6px;border-radius:8px;background:#0e1421;border:1px solid #2b3750;font-size:12px}
+.opponentCard .btn{width:100%;font-size:9px}
+.tierBronze{color:#e0a56b}.tierSilver{color:#d4dbe9}.tierGold{color:#ffd25f}.tierDiamond{color:#8de8ff}
+
+/* Loja */
+.shopHeader{padding:13px;margin-bottom:9px}
+.shopGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.shopItem{padding:10px;border-radius:14px;background:#151d2d;border:1px solid #33405b;display:flex;flex-direction:column;min-height:164px}
+.shopIcon{font-size:31px}.shopItem h3{font-size:10px;margin:6px 0 3px}.shopItem p{font-size:7px;color:#9ca7bb;line-height:1.4;margin:0 0 8px;flex:1}
+.shopPrice{font-size:9px;font-weight:900;margin-bottom:6px}.shopItem .btn{font-size:8px;padding:7px}
+
+/* Toast */
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);z-index:400;opacity:0;pointer-events:none;
+ padding:10px 14px;border-radius:12px;background:#121a29;border:1px solid #42516d;color:#fff;font-size:10px;font-weight:800;
+ transition:.25s opacity,.25s transform;box-shadow:0 12px 28px rgba(0,0,0,.35)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* Hero lock / stars */
+.heroManageCard.locked{opacity:.45;filter:grayscale(.7)}
+.heroOwnership{font-size:7px;margin-top:5px;color:#ffd778}
+.starLine{color:#ffd65f;font-size:12px;letter-spacing:1px;margin-top:4px}
+
+/* Recompensa de equipamento */
+.reward.gearReward{grid-column:1/-1}
+.dropName{color:#9ed6ff}
+
+/* Mobile */
+@media(max-width:430px){
+ .shopGrid,.summonResults{grid-template-columns:1fr 1fr}
+ .equipGrid{grid-template-columns:1fr 1fr}
+ .arenaHeader{align-items:flex-start;flex-direction:column}
+}
+
+/* v1.0.1 — ícone oficial na tela de carregamento */
+.updateSplash{
+  padding:18px;
+  background:
+    radial-gradient(circle at 50% 20%,rgba(132,73,255,.30),transparent 36%),
+    #05070d;
+}
+.updateCard{
+  width:min(520px,calc(100% - 18px));
+  padding:12px 14px 16px;
+  background:rgba(10,13,22,.80);
+  border:1px solid rgba(183,133,255,.45);
+  backdrop-filter:blur(14px);
+}
+.updateGameIcon{
+  display:block;
+  width:min(420px,82vw);
+  max-height:min(58vh,420px);
+  aspect-ratio:1/1;
+  object-fit:cover;
+  margin:0 auto 12px;
+  border-radius:24px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.12),
+    0 0 36px rgba(174,83,255,.34),
+    0 18px 46px rgba(0,0,0,.42);
+}
+@media (orientation:landscape) and (max-height:620px){
+  .updateCard{
+    width:min(760px,calc(100% - 24px));
+    display:grid;
+    grid-template-columns:minmax(210px,320px) 1fr;
+    column-gap:18px;
+    align-items:center;
+    text-align:left;
+  }
+  .updateGameIcon{
+    width:min(320px,42vw);
+    max-height:78vh;
+    margin:0;
+    grid-row:1/6;
+  }
+  .installRow{justify-content:flex-start}
+}
+
+
+/* =========================================================
+   v1.1.0 — VFX / MISSÕES / GUILDA / NAVEGAÇÃO MOBILE
+   ========================================================= */
+.screen{padding-bottom:78px}
+#battleScreen{padding-bottom:0}
+#game.battle-mode .bottomNav{display:none}
+
+/* Barra inferior fixa estilo mobile */
+.bottomNav{
+ position:fixed;left:50%;right:auto;bottom:8px;height:62px;z-index:120;width:min(448px,calc(100% - 12px));transform:translateX(-50%);
+ display:grid;grid-template-columns:repeat(6,1fr);gap:4px;
+ padding:5px;border-radius:18px;background:rgba(9,13,22,.96);
+ border:1px solid #34415f;box-shadow:0 10px 30px rgba(0,0,0,.36);
+ backdrop-filter:blur(14px)
+}
+.bottomNav button{
+ position:relative;border:0;background:transparent;color:#8f9ab1;border-radius:12px;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+ cursor:pointer;transition:.16s transform,.16s background,.16s color
+}
+.bottomNav button span{font-size:18px;line-height:1}
+.bottomNav button small{font-size:6px;font-weight:900;letter-spacing:.15px}
+.bottomNav button.active{background:#202841;color:#fff;box-shadow:0 0 0 1px #4b5a7a inset}
+.bottomNav button:active,.bottomNav button.tapFx{transform:scale(.91);background:#2d3858}
+.bottomNav i{
+ position:absolute;right:9px;top:6px;width:7px;height:7px;border-radius:50%;
+ background:#ff5268;box-shadow:0 0 10px rgba(255,82,104,.7);display:none
+}
+.bottomNav i.show{display:block}
+
+/* feedback visual de clique global */
+button.tapFx{animation:tapPulse .20s ease}
+@keyframes tapPulse{0%{filter:brightness(1)}45%{filter:brightness(1.45);transform:scale(.96)}100%{filter:brightness(1);transform:scale(1)}}
+
+/* VFX batalha */
+.combatCard.hitLight{animation:hitLight .28s ease !important}
+.combatCard.hitHard{animation:hitHard .42s ease !important}
+.combatCard.dodgeFx{animation:dodgeCard .34s ease !important}
+.combatCard.ultimateCast{animation:ultimateCast .68s ease !important}
+@keyframes hitLight{
+ 0%,100%{transform:translateX(0);filter:none}
+ 30%{transform:translateX(-4px);filter:brightness(1.5) saturate(1.3)}
+ 60%{transform:translateX(3px)}
+}
+@keyframes hitHard{
+ 0%,100%{transform:translateX(0);filter:none}
+ 15%{transform:translateX(-7px) rotate(-1deg);filter:brightness(2) saturate(1.5)}
+ 35%{transform:translateX(8px) rotate(1deg)}
+ 55%{transform:translateX(-5px)}
+ 75%{transform:translateX(3px)}
+}
+@keyframes dodgeCard{
+ 0%,100%{transform:translateX(0)}
+ 45%{transform:translateX(18px);filter:drop-shadow(0 0 12px #65d9ff)}
+}
+@keyframes ultimateCast{
+ 0%,100%{transform:scale(1);filter:none}
+ 25%{transform:scale(1.07);filter:brightness(1.8) drop-shadow(0 0 20px #9f6fff)}
+ 50%{transform:scale(.98)}
+ 75%{transform:scale(1.04);filter:brightness(1.45) drop-shadow(0 0 16px #ffd36a)}
+}
+.arena.ultScreenFlash:after{
+ content:"";position:absolute;inset:0;z-index:90;pointer-events:none;
+ background:radial-gradient(circle at 50% 45%,rgba(209,164,255,.46),rgba(83,37,145,.08) 45%,transparent 68%);
+ animation:ultArenaFlash .62s ease
+}
+@keyframes ultArenaFlash{0%{opacity:0}22%{opacity:1}100%{opacity:0}}
+.floatText.damage{color:#ff5167;font-size:19px;text-shadow:0 2px 2px #000,0 0 10px rgba(255,50,80,.45)}
+.floatText.critText{color:#ffd84e;font-size:14px;letter-spacing:.8px;text-shadow:0 0 12px #ff9d00,0 2px 2px #000}
+.floatText.dodge{color:#66dcff;font-size:14px;text-shadow:0 0 12px #2aa8ff,0 2px 2px #000}
+.floatText.heal{color:#69eca0}
+.floatText.ult{color:#d29aff;text-shadow:0 0 12px #9b6cff,0 2px 2px #000}
+.floatText.offset2{animation-duration:1s}
+
+/* Missões e conquistas */
+.missionHeader{
+ padding:13px;margin-bottom:10px;display:flex;gap:10px;justify-content:space-between;align-items:center
+}
+.missionHeader h2{font-size:19px;margin:3px 0 4px}.missionHeader p{font-size:9px;color:#9ca8bf;margin:0;line-height:1.4}
+.tabRow{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.tabBtn{
+ border:1px solid #34415d;background:#141b2a;border-radius:11px;padding:8px;font-size:8px;font-weight:1000;color:#9aa5bd
+}
+.tabBtn.active{border-color:#9d78ff;color:#fff;background:#26203a}
+.missionList{display:grid;gap:7px}
+.missionCard{
+ padding:10px;border-radius:14px;background:linear-gradient(135deg,#171f31,#111725);border:1px solid #33405d
+}
+.missionTop{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.missionTop b{font-size:10px}.missionTop span{font-size:7px;color:#a6b0c5}
+.missionReward{font-size:8px;color:#ffd76d;text-align:right;white-space:nowrap}
+.missionBar{height:8px;margin-top:7px;border-radius:999px;background:#0a0f19;border:1px solid #29344d;overflow:hidden}
+.missionBar i{display:block;height:100%;background:linear-gradient(90deg,#7251e8,#ae7cff);transition:width .25s}
+.missionBottom{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:7px}
+.missionBottom span{font-size:7px;color:#9ea9be}.missionBottom .btn{font-size:7px;padding:5px 8px}
+.missionCard.claimed{opacity:.56}.missionCard.complete{border-color:#7054c9;box-shadow:0 0 14px rgba(130,86,220,.14)}
+
+/* Guilda */
+.guildIntro,.guildMain{padding:14px}
+.guildIntro h2,.guildMain h2{margin:5px 0 6px;font-size:20px}
+.guildIntro p,.guildMain p{font-size:9px;color:#a8b2c5;line-height:1.45}
+.guildChoices{display:grid;gap:8px;margin-top:10px}
+.guildChoice{
+ display:grid;grid-template-columns:46px 1fr auto;gap:9px;align-items:center;
+ padding:10px;border:1px solid #34415e;border-radius:14px;background:#131b2a
+}
+.guildEmblem{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;font-size:24px;background:#222c45}
+.guildChoice b{display:block;font-size:10px}.guildChoice small{font-size:7px;color:#9ba7bc}
+.guildChoice .btn{font-size:7px;padding:6px}
+.guildSummary{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}
+.guildStat{padding:8px;border-radius:10px;background:#0f1521;border:1px solid #2e3a55;text-align:center}
+.guildStat b{display:block;font-size:12px}.guildStat span{font-size:6px;color:#99a6bd}
+.guildUpgradeGrid{display:grid;gap:7px}
+.guildUpgrade{
+ padding:9px;border-radius:12px;background:#111827;border:1px solid #303d59;
+ display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center
+}
+.guildUpgrade b{font-size:9px}.guildUpgrade small{display:block;font-size:7px;color:#97a3b9;margin-top:2px}
+.guildUpgrade .btn{font-size:7px;padding:6px}
+.guildMembers{margin-top:10px}
+.guildMembers h3{font-size:10px;margin:0 0 6px}
+.guildMember{display:flex;justify-content:space-between;gap:7px;padding:6px 8px;border-bottom:1px solid #202a3e;font-size:8px}
+.guildMember span:last-child{color:#9ca8bd}
+
+/* badge missão */
+#missionBadge.ready{color:#fff2a6;border-color:#8b7037}
+@media(max-width:720px){
+ body{padding:0}
+ #game{border-radius:0;min-height:100vh}
+ .bottomNav{left:50%;right:auto;width:calc(100% - 10px);bottom:max(5px,env(safe-area-inset-bottom));transform:translateX(-50%)}
+ .screen{padding-bottom:82px}
+}
+
+
+/* =========================================================
+   v1.2.0 — ENDGAME / STAR-UP / WORLD BOSS / ABYSS
+   ========================================================= */
+
+/* Transições suaves entre ecrãs */
+.screen.active{animation:screenIn .30s cubic-bezier(.2,.8,.2,1)}
+@keyframes screenIn{
+ from{opacity:0;transform:translateX(14px) scale(.992)}
+ to{opacity:1;transform:translateX(0) scale(1)}
+}
+.modal.show .modalCard{animation:modalIn .24s cubic-bezier(.2,.85,.25,1)}
+@keyframes modalIn{
+ from{opacity:0;transform:translateY(14px) scale(.96)}
+ to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+/* Botões de Endgame */
+.raidBtn{
+ background:linear-gradient(135deg,#691d2d,#bd3c55)!important;
+ border-color:#d35a72!important;
+ box-shadow:0 0 14px rgba(198,55,83,.18)
+}
+.abyssBtn{
+ background:linear-gradient(135deg,#153f68,#3073b4)!important;
+ border-color:#5aa1d9!important;
+ box-shadow:0 0 14px rgba(58,136,210,.18)
+}
+
+/* World Boss */
+.worldBossHero{padding:16px;text-align:center;overflow:hidden;position:relative}
+.worldBossHero:before{
+ content:"";position:absolute;inset:-30%;pointer-events:none;
+ background:radial-gradient(circle,rgba(232,57,87,.17),transparent 48%);
+ animation:bossAura 2.4s ease-in-out infinite alternate
+}
+@keyframes bossAura{to{transform:scale(1.12);opacity:.62}}
+.worldBossHero>*{position:relative;z-index:1}
+.bossArt{
+ width:104px;height:104px;margin:0 auto 8px;display:grid;place-items:center;font-size:62px;
+ border-radius:32px;background:radial-gradient(circle,#5e2632,#1a1118 70%);
+ border:1px solid #914052;box-shadow:0 0 34px rgba(202,54,84,.28)
+}
+.worldBossHero h2{margin:4px 0 6px;font-size:21px}
+.worldBossHero p{font-size:9px;color:#aab5c8;line-height:1.45;margin:0 0 10px}
+.bossPreviewBar,.bossRaidBar{
+ height:12px;border-radius:999px;overflow:hidden;background:#090c12;border:1px solid #46242d
+}
+.bossPreviewBar i,.bossRaidBar i{
+ display:block;height:100%;width:100%;
+ background:linear-gradient(90deg,#77192b,#e64860);
+ transition:width .28s ease
+}
+.bossPreviewMeta,.bossHudBottom,.bossHudTop{
+ display:flex;justify-content:space-between;gap:8px;align-items:center
+}
+.bossPreviewMeta{font-size:7px;color:#9da8bb;margin:5px 1px 10px}
+.bossPreviewMeta b{color:#f1c7ce}
+.raidRanking{padding:12px;margin-top:9px}
+.sectionTitle{font-size:9px;font-weight:1000;letter-spacing:.35px;margin-bottom:7px}
+.raidRankRow{
+ display:grid;grid-template-columns:28px 1fr auto;gap:7px;align-items:center;
+ padding:7px 4px;border-bottom:1px solid #242d40;font-size:8px
+}
+.raidRankRow:last-child{border-bottom:0}
+.raidRankRow .pos{font-weight:1000;color:#ffd76a}
+.raidRankRow b{font-size:9px}.raidRankRow small{font-size:7px;color:#96a2b8;display:block}
+.raidRankRow .damage{color:#ff8495;font-weight:1000}
+
+/* HUD durante Raid */
+.bossRaidHud{
+ display:none;position:absolute;left:17%;right:17%;top:43px;z-index:75;
+ padding:6px 8px;border-radius:11px;background:rgba(18,9,13,.92);
+ border:1px solid #7c3444;box-shadow:0 5px 22px rgba(0,0,0,.35)
+}
+.bossRaidHud.show{display:block;animation:bossHudIn .25s ease}
+@keyframes bossHudIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
+.bossHudTop{font-size:7px;font-weight:1000;color:#ffd5da;margin-bottom:4px}
+.bossHudTop b{color:#ff8394}
+.bossRaidBar{height:9px}
+.bossHudBottom{font-size:6px;color:#9fa9bb;margin-top:3px}
+
+/* Torre */
+.towerHero{padding:14px;display:flex;gap:12px;align-items:center}
+.towerIcon{
+ flex:0 0 74px;width:74px;height:74px;border-radius:22px;display:grid;place-items:center;font-size:42px;
+ background:linear-gradient(145deg,#172a40,#244e77);border:1px solid #467da9;
+ box-shadow:0 0 24px rgba(65,143,205,.20)
+}
+.towerHero h2{margin:3px 0 5px;font-size:20px}
+.towerHero p{font-size:8px;color:#9faabd;line-height:1.45;margin:0}
+.towerMilestones{display:grid;gap:7px;margin-top:9px}
+.towerFloorCard{
+ display:grid;grid-template-columns:50px 1fr auto;gap:8px;align-items:center;
+ padding:9px;border-radius:13px;background:#131b2a;border:1px solid #31415c
+}
+.towerFloorCard.current{border-color:#59a0d7;box-shadow:0 0 16px rgba(58,132,190,.14)}
+.towerFloorCard.cleared{opacity:.62}
+.towerFloorNo{
+ width:48px;height:48px;border-radius:14px;display:grid;place-items:center;
+ background:#17263a;color:#8ed3ff;font-size:12px;font-weight:1000
+}
+.towerFloorCard b{display:block;font-size:9px}.towerFloorCard small{display:block;font-size:7px;color:#98a5bb;margin-top:2px}
+.towerReward{text-align:right;font-size:7px;color:#72d8ff}
+.towerReward strong{display:block;font-size:10px;color:#a9e6ff}
+
+/* Star-up */
+.starLine{font-size:14px;letter-spacing:1px;color:#ffd75c;text-shadow:0 0 8px rgba(255,205,60,.2)}
+.starPanel{
+ margin-top:9px;padding:10px;border-radius:12px;background:#171c2c;border:1px solid #4b3d58
+}
+.starPanelTop{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.starPanelTop b{font-size:10px}.starPanelTop span{font-size:8px;color:#ffd970}
+.starProgress{height:8px;margin:7px 0;border-radius:999px;background:#0c1019;border:1px solid #2e3649;overflow:hidden}
+.starProgress i{display:block;height:100%;background:linear-gradient(90deg,#a263ff,#ffd362);transition:width .25s}
+.starPanel .btn{width:100%;font-size:8px;padding:7px}
+.starBonus{font-size:7px;color:#8fe1ad;text-align:center;margin-top:5px}
+
+/* Recompensas flutuantes */
+.rewardFloatLayer{
+ position:fixed;inset:0;z-index:500;pointer-events:none;overflow:hidden
+}
+.rewardFloatItem{
+ position:absolute;left:50%;top:54%;transform:translate(-50%,0);
+ padding:8px 12px;border-radius:999px;background:rgba(11,16,27,.92);
+ border:1px solid #435270;box-shadow:0 8px 26px rgba(0,0,0,.35);
+ font-size:10px;font-weight:1000;color:#fff;white-space:nowrap;
+ animation:rewardFloat 1.35s cubic-bezier(.22,.8,.25,1) forwards
+}
+.rewardFloatItem.gold{color:#ffd75c;border-color:#8f7030}
+.rewardFloatItem.exp{color:#91d8ff;border-color:#3974a6}
+.rewardFloatItem.diamond{color:#b7eaff;border-color:#4f97bd}
+.rewardFloatItem.crystal{color:#72ddff;border-color:#2f7795}
+@keyframes rewardFloat{
+ 0%{opacity:0;transform:translate(-50%,18px) scale(.88)}
+ 16%{opacity:1;transform:translate(-50%,0) scale(1)}
+ 76%{opacity:1}
+ 100%{opacity:0;transform:translate(-50%,-68px) scale(1.04)}
+}
+
+/* Boss gigante na arena */
+.combatCard.worldBossCard{
+ width:180px;min-height:160px;border-color:#8f394c;
+ background:linear-gradient(180deg,rgba(79,23,37,.97),rgba(29,12,18,.98));
+ box-shadow:0 0 28px rgba(207,54,82,.24),0 12px 30px rgba(0,0,0,.36)
+}
+.combatCard.worldBossCard .ccAvatar{width:54px;height:54px;font-size:36px}
+.combatCard.worldBossCard .ccName{font-size:10px}
+.combatCard.worldBossCard .bar.hp{height:11px}
+
+/* Endgame small-screen adjustments */
+@media(max-width:720px){
+ .bossRaidHud{left:14%;right:14%;top:42px}
+ .combatCard.worldBossCard{width:145px;min-height:136px}
+ .towerHero{align-items:flex-start}
+ .towerIcon{width:62px;height:62px;flex-basis:62px;font-size:36px}
+}
+
+
+/* =========================================================
+   v2.0.0 — MASSIVE UPDATE: SYNERGY / AFK / AWAKENING / STORY
+   ========================================================= */
+.topActions{display:flex;align-items:center;gap:6px}
+.iconBtn{
+ width:34px;height:34px;border-radius:10px;border:1px solid #394763;background:#151d2c;
+ display:grid;place-items:center;cursor:pointer;font-size:16px
+}
+.iconBtn.muted{opacity:.55;filter:grayscale(1)}
+.idleBtn{background:linear-gradient(135deg,#6d4e12,#b58224)!important;border-color:#d3a24a!important}
+.awakenBtn{background:linear-gradient(135deg,#4f276c,#8d4fc0)!important;border-color:#ad78d4!important}
+
+/* Sinergia */
+.synergyPanel{padding:10px;margin-bottom:8px}
+.synergyTitle{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.synergyTitle b{font-size:10px}.synergyTitle span{font-size:7px;color:#9ca8be}
+.synergyBadges{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.synergyBadge{
+ padding:5px 7px;border-radius:999px;background:#111826;border:1px solid #33415e;
+ font-size:7px;font-weight:900;color:#bbc6d8
+}
+.synergyBadge.active{border-color:#a67cff;color:#fff;background:#241c39;box-shadow:0 0 12px rgba(155,108,255,.18)}
+.auraLabel{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#d9c9ff}
+.factionTag{display:inline-flex;align-items:center;gap:3px;padding:2px 5px;border-radius:999px;background:#171d2c;border:1px solid #34405b;font-size:6px;font-weight:900}
+.factionTag.aurora{color:#ffe7a5;border-color:#76653a}
+.factionTag.eclipse{color:#e4baff;border-color:#64447c}
+
+/* AFK */
+.idleChestCard{padding:18px;text-align:center;position:relative;overflow:hidden}
+.idleChestCard:before{
+ content:"";position:absolute;inset:-25%;background:radial-gradient(circle,rgba(255,207,81,.16),transparent 50%);
+ animation:idleGlow 2s ease-in-out infinite alternate;pointer-events:none
+}
+@keyframes idleGlow{to{transform:scale(1.1);opacity:.62}}
+.idleChestCard>*{position:relative;z-index:1}
+.idleChest{width:120px;height:110px;margin:0 auto 5px;display:grid;place-items:center;font-size:72px;position:relative}
+.idleChest i{
+ position:absolute;width:84px;height:20px;border-radius:50%;bottom:5px;
+ background:radial-gradient(circle,rgba(255,206,73,.55),rgba(255,206,73,0) 68%);
+ filter:blur(8px);animation:lootPulse 1.6s ease-in-out infinite alternate
+}
+@keyframes lootPulse{to{transform:scale(1.18);opacity:.4}}
+.idleChestCard h2{font-size:22px;margin:3px 0 6px}
+.idleChestCard p{font-size:9px;color:#9faabd;line-height:1.5;margin:0 0 12px}
+.idleRewardGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.idleRewardGrid>div{padding:10px 6px;border-radius:12px;background:#101724;border:1px solid #2f3a54}
+.idleRewardGrid span{display:block;font-size:7px;color:#99a6bc}.idleRewardGrid b{display:block;font-size:13px;margin-top:3px}
+.idleRate{text-align:center;margin-top:7px}
+
+/* Despertar */
+.awakeningLayout{display:grid;gap:10px}
+.awakeningHeroGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.awakenHeroCard{
+ padding:9px;border-radius:14px;border:1px solid #34405c;background:#141c2a;text-align:left;cursor:pointer
+}
+.awakenHeroCard.selected{border-color:#b77dff;box-shadow:0 0 0 1px rgba(183,125,255,.3) inset}
+.awakenHeroCard.locked{opacity:.42;filter:grayscale(.7)}
+.awakenHeroTop{display:flex;gap:7px;align-items:center}.awakenHeroTop span:first-child{font-size:28px}
+.awakenHeroTop b{display:block;font-size:9px}.awakenHeroTop small{font-size:7px;color:#98a4ba}
+.awakenLevel{margin-top:6px;font-size:7px;color:#d6bdff}
+.awakeningDetail{padding:14px}
+.awakenHead{display:flex;gap:11px;align-items:center}
+.awakenAvatar{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;font-size:38px;background:#241b32;border:1px solid #61497a}
+.awakenHead h2{margin:0;font-size:19px}.awakenHead p{margin:3px 0 0;font-size:8px;color:#a3aec2}
+.awakenReq{padding:9px;margin-top:10px;border-radius:11px;background:#101724;border:1px solid #2e3951;font-size:8px;color:#aab5c8}
+.awakenReq.ready{border-color:#7e5bb4;color:#e5d7ff}
+.talentSteps{display:grid;gap:6px;margin-top:10px}
+.talentStep{padding:9px;border-radius:11px;background:#111827;border:1px solid #303c57}
+.talentStep.active{border-color:#9567d0;background:#211a31}
+.talentStep b{display:block;font-size:9px}.talentStep small{font-size:7px;color:#9ca8bc}
+.awakenCost{display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:8px}
+.awakenCost span{color:#ffd56f}
+
+/* Cutscene */
+.storyModal{
+ display:none;position:fixed;inset:0;z-index:650;background:#03050a;color:#fff
+}
+.storyModal.show{display:block;animation:storyFade .28s ease}
+@keyframes storyFade{from{opacity:0}to{opacity:1}}
+.storyScene{
+ position:absolute;inset:0;overflow:hidden;
+ background:
+ radial-gradient(circle at 70% 22%,rgba(151,84,255,.28),transparent 25%),
+ linear-gradient(180deg,#17152d 0,#0c0d18 54%,#03050a 100%)
+}
+.storyShade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 35%,rgba(2,4,8,.88) 78%)}
+.storyAvatar{
+ position:absolute;left:7%;bottom:150px;font-size:min(31vw,180px);filter:drop-shadow(0 16px 20px rgba(0,0,0,.45));
+ animation:storyAvatarIn .35s cubic-bezier(.2,.85,.25,1)
+}
+@keyframes storyAvatarIn{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
+.storyBox{
+ position:absolute;left:5%;right:5%;bottom:max(18px,env(safe-area-inset-bottom));
+ min-height:126px;padding:14px;border-radius:19px;background:rgba(10,14,24,.94);
+ border:1px solid #4a5572;box-shadow:0 15px 42px rgba(0,0,0,.5);backdrop-filter:blur(12px)
+}
+.storySpeaker{font-size:10px;font-weight:1000;color:#c9a7ff;margin-bottom:7px}
+.storyText{font-size:12px;line-height:1.5;min-height:48px;color:#eef2ff}
+.storyControls{display:flex;gap:6px;justify-content:flex-end;align-items:center;margin-top:8px}
+.storyControls span{margin-right:auto;font-size:7px;color:#8f9aae}
+.storyControls .btn{font-size:8px;padding:7px 9px}
+
+/* Audio status */
+.audioToast{color:#8fdcff}
+
+/* Hero detail additions */
+.heroAffinityLine{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
+.awakenMini{margin-top:6px;font-size:7px;color:#ceb5ff}
+
+/* Small screen landscape */
+@media(min-width:720px){
+ .awakeningLayout{grid-template-columns:1fr 1fr;align-items:start}
+ .awakeningDetail{position:sticky;top:68px}
+}
+@media(orientation:landscape) and (max-height:620px){
+ .storyAvatar{font-size:min(25vw,150px);bottom:118px}
+ .storyBox{min-height:104px}
+ .storyText{font-size:10px;min-height:34px}
+ .idleChest{width:90px;height:82px;font-size:58px}
+}
+
+
+/* =========================================================
+   v2.0.1 — LOBBY LANDSCAPE FULLSCREEN / UI OVERHAUL
+   ========================================================= */
+html,body{
+ width:100%;
+ height:100%;
+ margin:0;
+ padding:0!important;
+ overflow:hidden!important;
+ overscroll-behavior:none;
+ background:#050811;
+}
+body{
+ display:block!important;
+ min-height:100dvh;
+}
+#game{
+ width:100vw!important;
+ max-width:none!important;
+ height:100vh;
+ height:100dvh;
+ min-height:0!important;
+ margin:0!important;
+ border:0!important;
+ border-radius:0!important;
+ box-shadow:none!important;
+ overflow:hidden!important;
+ background:#080c15;
+}
+.screen{
+ width:100%;
+ height:100vh;
+ height:100dvh;
+ min-height:0!important;
+ overflow-y:auto;
+ overflow-x:hidden;
+ box-sizing:border-box;
+}
+.screen.active{display:block}
+#homeScreen,#battleScreen{overflow:hidden!important;padding-bottom:0!important}
+
+/* ---------- Lobby de cidade ---------- */
+.lobbyScreen{
+ position:relative;
+ color:#fff;
+ background:
+  radial-gradient(circle at 52% 22%,rgba(102,82,200,.30),transparent 27%),
+  linear-gradient(180deg,#111a35 0%,#18254b 37%,#172339 58%,#081018 100%);
+}
+.lobbyTopbar{
+ position:absolute;
+ z-index:160;
+ left:0;right:0;top:0;
+ height:clamp(52px,9.5vh,68px);
+ padding:6px clamp(8px,1.5vw,18px);
+ box-sizing:border-box;
+ display:flex;
+ align-items:center;
+ gap:clamp(8px,1.2vw,18px);
+ background:linear-gradient(180deg,rgba(8,12,23,.98),rgba(10,15,29,.91));
+ border-bottom:1px solid rgba(138,157,202,.28);
+ box-shadow:0 6px 24px rgba(0,0,0,.26);
+ backdrop-filter:blur(14px);
+}
+.lobbyIdentity{
+ flex:0 0 auto;
+ display:flex;
+ align-items:center;
+ gap:8px;
+ min-width:max-content;
+}
+.lobbyMiniLogo{
+ width:clamp(35px,6.2vh,48px);
+ height:clamp(35px,6.2vh,48px);
+ border-radius:12px;
+ object-fit:cover;
+ border:1px solid rgba(203,171,255,.42);
+ box-shadow:0 0 16px rgba(150,84,255,.28);
+}
+.lobbyIdentity div{display:flex;flex-direction:column;line-height:1}
+.lobbyIdentity b{font-size:clamp(11px,1.5vw,17px);letter-spacing:.8px}
+.lobbyIdentity span{font-size:clamp(6px,.8vw,9px);color:#bd9cff;font-weight:900;letter-spacing:.45px;margin-top:3px}
+.lobbyResources{
+ min-width:0;
+ flex:1;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ gap:clamp(3px,.65vw,8px);
+ overflow:hidden;
+}
+.lobbyResources span,.playerLevel{
+ min-width:0;
+ padding:clamp(4px,.8vh,7px) clamp(6px,.8vw,10px);
+ border-radius:999px;
+ background:rgba(20,29,48,.86);
+ border:1px solid rgba(79,96,134,.62);
+ box-shadow:inset 0 0 12px rgba(255,255,255,.015);
+ font-size:clamp(7px,.9vw,10px);
+ color:#dce4f4;
+ white-space:nowrap;
+}
+.lobbyResources b,.playerLevel b{color:#fff}
+.lobbyTopActions{
+ flex:0 0 auto;
+ display:flex;
+ align-items:center;
+ gap:5px;
+}
+.lobbyIconBtn{
+ width:clamp(31px,5.8vh,42px);
+ height:clamp(31px,5.8vh,42px);
+ border-radius:11px;
+ border:1px solid #384764;
+ background:linear-gradient(180deg,#1b263b,#111827);
+ display:grid;
+ place-items:center;
+ cursor:pointer;
+ font-size:clamp(13px,2vw,18px);
+ box-shadow:0 4px 12px rgba(0,0,0,.2);
+}
+.lobbyIconBtn.muted{opacity:.55;filter:grayscale(1)}
+
+.lobbyHub{
+ position:absolute;
+ left:0;right:0;
+ top:clamp(52px,9.5vh,68px);
+ bottom:clamp(58px,10.5vh,76px);
+ overflow:hidden;
+ isolation:isolate;
+}
+.hubSky,.hubMountains,.hubCitySilhouette,.hubGround{
+ position:absolute;pointer-events:none;inset:0
+}
+.hubSky{
+ background:
+  radial-gradient(circle at 78% 14%,rgba(168,142,255,.48) 0 2%,rgba(169,120,255,.16) 10%,transparent 24%),
+  radial-gradient(circle at 22% 27%,rgba(73,157,255,.18),transparent 20%),
+  linear-gradient(180deg,rgba(19,29,64,.2),rgba(13,24,41,.2));
+}
+.hubMountains{
+ top:26%;
+ clip-path:polygon(0 64%,8% 44%,16% 60%,27% 22%,37% 62%,49% 35%,58% 59%,72% 18%,82% 58%,92% 30%,100% 61%,100% 100%,0 100%);
+ background:linear-gradient(180deg,rgba(26,35,62,.35),rgba(9,15,27,.82));
+ opacity:.9;
+}
+.hubCitySilhouette{
+ top:47%;
+ clip-path:polygon(0 64%,4% 64%,4% 38%,7% 38%,7% 57%,11% 57%,11% 28%,14% 28%,14% 62%,19% 62%,19% 47%,22% 47%,22% 67%,27% 67%,27% 35%,30% 35%,30% 55%,35% 55%,35% 18%,38% 18%,38% 59%,43% 59%,43% 42%,47% 42%,47% 61%,52% 61%,52% 31%,56% 31%,56% 57%,61% 57%,61% 22%,64% 22%,64% 61%,69% 61%,69% 43%,73% 43%,73% 64%,78% 64%,78% 29%,82% 29%,82% 55%,87% 55%,87% 20%,90% 20%,90% 62%,95% 62%,95% 40%,100% 40%,100% 100%,0 100%);
+ background:linear-gradient(180deg,#18233a,#0a101a 72%);
+ opacity:.76;
+}
+.hubGround{
+ top:72%;
+ background:
+  radial-gradient(ellipse at 50% 0%,rgba(145,101,255,.16),transparent 35%),
+  linear-gradient(180deg,#111a24,#080d13);
+ border-top:1px solid rgba(111,91,167,.23);
+}
+.lobbyHub:after{
+ content:"";
+ position:absolute;
+ z-index:2;
+ left:9%;right:9%;bottom:4%;
+ height:28%;
+ border-radius:50%;
+ border-top:1px solid rgba(173,144,255,.24);
+ background:radial-gradient(ellipse at 50% 0%,rgba(108,75,177,.09),transparent 57%);
+ pointer-events:none;
+}
+.hubCrest{
+ position:absolute;
+ z-index:3;
+ left:50%;
+ top:55%;
+ transform:translate(-50%,-50%);
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ gap:5px;
+ opacity:.24;
+ pointer-events:none;
+}
+.hubCrest img{
+ width:clamp(72px,13vw,150px);
+ aspect-ratio:1;
+ border-radius:30%;
+ filter:drop-shadow(0 0 20px rgba(159,89,255,.48));
+}
+.hubCrest span{font-size:clamp(7px,1vw,11px);font-weight:1000;letter-spacing:2px;color:#cbb2ff}
+
+.hubStructure{
+ --accent:#8b67ff;
+ position:absolute;
+ z-index:20;
+ width:clamp(94px,13.5vw,176px);
+ min-height:clamp(69px,14.5vh,108px);
+ transform:translate(-50%,-50%);
+ border:1px solid color-mix(in srgb,var(--accent) 65%,#6d7891);
+ border-radius:18px 18px 12px 12px;
+ padding:clamp(7px,1.2vh,12px) 8px;
+ color:#fff;
+ background:
+  linear-gradient(180deg,color-mix(in srgb,var(--accent) 22%,#1b2436),rgba(12,18,29,.96));
+ box-shadow:
+  0 12px 26px rgba(0,0,0,.34),
+  0 0 20px color-mix(in srgb,var(--accent) 22%,transparent),
+  inset 0 1px rgba(255,255,255,.08);
+ cursor:pointer;
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ gap:2px;
+ overflow:visible;
+ transition:.18s transform,.18s filter,.18s box-shadow;
+}
+.hubStructure:before{
+ content:"";
+ position:absolute;
+ left:13%;right:13%;bottom:-10px;
+ height:13px;
+ border-radius:50%;
+ background:radial-gradient(ellipse,var(--accent),transparent 68%);
+ opacity:.22;
+ filter:blur(4px);
+}
+.hubStructure:after{
+ content:"";
+ position:absolute;
+ left:18%;right:18%;top:-7px;
+ height:8px;
+ border:1px solid color-mix(in srgb,var(--accent) 60%,#fff);
+ border-bottom:0;
+ border-radius:10px 10px 0 0;
+ opacity:.72;
+}
+.hubStructure:active{transform:translate(-50%,-50%) scale(.95)}
+.hubStructure:hover{filter:brightness(1.12);box-shadow:0 12px 28px rgba(0,0,0,.34),0 0 28px color-mix(in srgb,var(--accent) 35%,transparent)}
+.hubStructureIcon{
+ font-size:clamp(29px,5vw,48px);
+ line-height:1;
+ filter:drop-shadow(0 5px 8px rgba(0,0,0,.38));
+}
+.hubStructure b{font-size:clamp(9px,1.25vw,13px);letter-spacing:.2px}
+.hubStructure small{font-size:clamp(5px,.75vw,8px);color:#b5c0d4}
+.hubCampaign{--accent:#6fa9ff;left:12%;top:34%}
+.hubPortal{--accent:#b268ff;left:31%;top:65%}
+.hubArena{--accent:#e1a640;left:50%;top:29%}
+.hubBoss{--accent:#e55369;left:70%;top:65%}
+.hubTower{--accent:#58b8ef;left:88%;top:34%}
+
+.lobbySideDock{
+ position:absolute;
+ z-index:45;
+ top:50%;
+ transform:translateY(-50%);
+ display:flex;
+ flex-direction:column;
+ gap:6px;
+}
+.lobbySideLeft{left:7px}
+.lobbySideRight{right:7px}
+.dockAction{
+ width:clamp(48px,6.2vw,72px);
+ min-height:clamp(43px,8.8vh,60px);
+ padding:5px 3px;
+ border-radius:13px;
+ border:1px solid rgba(84,101,140,.74);
+ background:rgba(12,18,31,.88);
+ color:#dce5f7;
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ gap:2px;
+ backdrop-filter:blur(8px);
+ box-shadow:0 5px 18px rgba(0,0,0,.25);
+ cursor:pointer;
+}
+.dockAction span{font-size:clamp(17px,2.7vw,25px)}
+.dockAction small{font-size:clamp(5px,.7vw,7px);font-weight:900}
+.quickRaidBtn{
+ position:absolute;
+ z-index:42;
+ left:50%;
+ bottom:3%;
+ transform:translateX(-50%);
+ display:flex;
+ align-items:center;
+ gap:6px;
+ padding:7px 14px;
+ border-radius:999px;
+ border:1px solid #a985ff;
+ background:linear-gradient(135deg,rgba(83,49,152,.94),rgba(118,74,199,.94));
+ box-shadow:0 0 18px rgba(133,84,224,.28);
+ cursor:pointer;
+}
+.quickRaidBtn span{font-size:16px}.quickRaidBtn b{font-size:8px}
+.lobbyUpdateNotice{
+ position:absolute;
+ z-index:80;
+ top:8px;
+ left:50%;
+ transform:translateX(-50%);
+ width:min(420px,56vw);
+ margin:0!important;
+}
+
+/* ---------- Barra inferior nativa ---------- */
+.bottomNav{
+ position:fixed!important;
+ z-index:190!important;
+ left:0!important;
+ right:0!important;
+ bottom:0!important;
+ width:100vw!important;
+ height:clamp(58px,10.5vh,76px)!important;
+ transform:none!important;
+ margin:0!important;
+ padding:5px max(8px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))!important;
+ box-sizing:border-box;
+ display:grid!important;
+ grid-template-columns:repeat(5,minmax(0,1fr))!important;
+ gap:4px!important;
+ border:0!important;
+ border-top:1px solid rgba(100,119,158,.42)!important;
+ border-radius:0!important;
+ background:linear-gradient(180deg,rgba(12,18,31,.96),rgba(6,10,18,.99))!important;
+ box-shadow:0 -8px 30px rgba(0,0,0,.34)!important;
+ backdrop-filter:blur(14px);
+}
+.bottomNav button{
+ min-width:0;
+ border-radius:13px!important;
+ background:transparent!important;
+}
+.bottomNav button span{font-size:clamp(19px,3.2vw,28px)!important}
+.bottomNav button small{font-size:clamp(6px,.8vw,9px)!important}
+.bottomNav button.active{
+ background:linear-gradient(180deg,rgba(91,69,150,.58),rgba(37,31,61,.74))!important;
+ box-shadow:0 0 0 1px rgba(172,137,255,.28) inset!important;
+ color:#fff!important;
+}
+#game.battle-mode .bottomNav{display:none!important}
+
+/* Telas de gestão continuam roláveis dentro do viewport */
+.screen:not(#homeScreen):not(#battleScreen){
+ padding-bottom:calc(clamp(58px,10.5vh,76px) + 10px)!important;
+}
+.screen:not(#homeScreen):not(#battleScreen)>.topbar{
+ position:sticky;
+ top:0;
+ left:0;right:0;
+ width:100%;
+ box-sizing:border-box;
+}
+
+/* ---------- Batalha em tela cheia panorâmica ---------- */
+#game.battle-mode{
+ width:100vw!important;
+ max-width:none!important;
+ height:100vh!important;
+ height:100dvh!important;
+}
+#battleScreen{
+ position:relative;
+ width:100%;
+ height:100%;
+ background:#090d15;
+}
+#battleScreen>.topbar{
+ position:absolute!important;
+ z-index:180;
+ left:0;right:0;top:0;
+ width:100%;
+ height:clamp(38px,7.5vh,50px);
+ padding:4px 8px;
+ box-sizing:border-box;
+ background:rgba(7,11,19,.94);
+}
+#battleScreen>.topbar .btn{padding:5px 8px}
+#battleScreen>.topbar .brand{font-size:clamp(9px,1.5vw,14px)}
+#battleScreen>.topbar .badge{font-size:clamp(6px,.8vw,9px);padding:4px 7px}
+.battleShell{
+ position:absolute!important;
+ left:0;right:0;bottom:0;
+ top:clamp(38px,7.5vh,50px);
+ padding:0!important;
+ overflow:hidden!important;
+}
+.arena{
+ width:100%!important;
+ height:100%!important;
+ min-height:0!important;
+ border:0!important;
+ border-radius:0!important;
+ background:
+  radial-gradient(circle at 50% 42%,rgba(255,145,89,.15),transparent 23%),
+  radial-gradient(circle at 16% 48%,rgba(75,137,255,.10),transparent 18%),
+  radial-gradient(circle at 84% 48%,rgba(255,73,99,.10),transparent 18%),
+  linear-gradient(180deg,#242034 0 30%,#181e2b 30% 51%,#55303a 51% 74%,#211d24 74% 100%)!important;
+}
+.arena:before{top:38%!important;height:15%!important}
+.arena:after{top:55%!important}
+.battleHeader{
+ left:8px!important;
+ right:8px!important;
+ top:6px!important;
+ align-items:flex-start!important;
+}
+.controlBtn,.stateLabel{
+ padding:clamp(4px,.9vh,7px) clamp(5px,.8vw,9px)!important;
+ font-size:clamp(5px,.72vw,8px)!important;
+}
+.teamLabel{
+ top:clamp(42px,8.8vh,58px)!important;
+ width:46%!important;
+ font-size:clamp(6px,.8vw,9px)!important;
+}
+.teamLabel.player{left:1%!important}
+.teamLabel.enemy{right:1%!important}
+.formationArea{
+ top:clamp(55px,11vh,72px)!important;
+ bottom:clamp(8px,2vh,14px)!important;
+ width:48.5%!important;
+ height:auto!important;
+}
+.formationArea.player{left:.5%!important;right:auto!important}
+.formationArea.enemy{left:auto!important;right:.5%!important}
+.lineBox{opacity:.55}
+.combatCard{
+ width:clamp(82px,11.5vw,132px)!important;
+ min-height:clamp(78px,17vh,116px)!important;
+ padding:clamp(4px,.8vh,7px)!important;
+ border-radius:clamp(9px,1.4vw,14px)!important;
+}
+.ccAvatar{
+ width:clamp(26px,4.2vw,38px)!important;
+ height:clamp(26px,4.2vw,38px)!important;
+ font-size:clamp(16px,3vw,23px)!important;
+}
+.ccName{font-size:clamp(6px,.85vw,8px)!important}
+.ccRole,.lineTag,.barMeta,.ultBtn,.enemyAuto{font-size:clamp(4.5px,.65vw,6.5px)!important}
+.bar{height:clamp(5px,1.1vh,8px)!important}
+.ultBtn{margin-top:3px!important;padding:clamp(3px,.7vh,5px)!important}
+.orderPanel{
+ left:27%!important;
+ right:27%!important;
+ top:auto!important;
+ bottom:clamp(78px,15vh,104px)!important;
+ padding:4px 6px!important;
+ border-radius:10px!important;
+}
+.orderTitle{display:none!important}
+.turnChip{font-size:clamp(5px,.65vw,7px)!important;padding:3px 5px!important}
+.logPanel{
+ left:31%!important;
+ right:31%!important;
+ bottom:5px!important;
+ height:clamp(60px,13vh,86px)!important;
+ padding:5px 7px!important;
+}
+.logHeader{font-size:clamp(5px,.7vw,8px)!important}
+.log{height:calc(100% - 18px)!important;font-size:clamp(5px,.65vw,7px)!important}
+.ultBanner{top:44%!important}
+.bossRaidHud{top:clamp(42px,9vh,58px)!important;left:30%!important;right:30%!important}
+
+/* Telefones landscape mais baixos */
+@media (orientation:landscape) and (max-height:430px){
+ .lobbyTopbar{height:50px;padding-top:4px;padding-bottom:4px}
+ .lobbyHub{top:50px;bottom:58px}
+ .bottomNav{height:58px!important}
+ .lobbyResources span,.playerLevel{padding:3px 6px;font-size:7px}
+ .hubStructure{width:clamp(86px,13vw,120px);min-height:62px;border-radius:14px}
+ .hubStructureIcon{font-size:27px}
+ .hubStructure b{font-size:8px}.hubStructure small{font-size:5.5px}
+ .hubCampaign{left:14%;top:31%}.hubPortal{left:31%;top:68%}.hubArena{left:50%;top:28%}.hubBoss{left:69%;top:68%}.hubTower{left:86%;top:31%}
+ .dockAction{width:46px;min-height:42px}.dockAction span{font-size:17px}.quickRaidBtn{bottom:2%;padding:5px 11px}
+ #battleScreen>.topbar{height:38px}
+ .battleShell{top:38px}
+ .teamLabel{top:38px!important}
+ .formationArea{top:49px!important;bottom:4px!important}
+ .combatCard{width:clamp(72px,11vw,96px)!important;min-height:72px!important;padding:4px!important}
+ .ccAvatar{width:24px!important;height:24px!important;font-size:15px!important}
+ .ccRole{display:none!important}
+ .barMeta{margin-top:2px!important}
+ .ultBtn,.enemyAuto{margin-top:2px!important}
+ .orderPanel{bottom:67px!important;left:29%!important;right:29%!important}
+ .logPanel{height:55px!important;left:33%!important;right:33%!important}
+ .bossRaidHud{top:38px!important}
+}
+
+/* Larguras muito estreitas em paisagem */
+@media (orientation:landscape) and (max-width:700px){
+ .lobbyIdentity span{display:none}
+ .lobbyResources{justify-content:flex-start;overflow:auto;scrollbar-width:none}
+ .lobbyResources::-webkit-scrollbar{display:none}
+ .lobbyResources span{flex:0 0 auto}
+ .playerLevel{display:none}
+ .hubStructure{width:clamp(82px,14vw,104px)}
+ .lobbySideDock{gap:4px}
+ .dockAction{width:43px}
+ .bottomNav button small{font-size:6px!important}
+}
+
+/* Se aberto fora do modo landscape, ainda ocupa todo o viewport sem scroll externo */
+@media (orientation:portrait){
+ .lobbyHub{top:56px;bottom:64px}
+ .hubStructure{width:28vw;min-height:86px}
+ .hubCampaign{left:20%;top:24%}.hubPortal{left:50%;top:24%}.hubArena{left:80%;top:24%}
+ .hubBoss{left:34%;top:57%}.hubTower{left:66%;top:57%}
+ .lobbySideDock{top:76%}
+ .quickRaidBtn{bottom:4%}
+}
+
+</style>
+</head>
+<body>
+<div id="updateSplash" class="updateSplash">
+ <div class="updateCard">
+  <img class="updateGameIcon" src="./icon-512.webp" alt="Nerdora Chibi Raiders">
+  <div class="brand">NERDORA <span>CHIBI RAIDERS</span></div>
+  <div id="updateStatus" class="updateStatus">Verificando versão e atualizações…</div>
+  <div class="installRow">
+   <button id="splashInstallBtn" class="btn primary" style="display:none">📲 Instalar</button>
+   <button id="splashUpdateBtn" class="btn gold" style="display:none">⬆ Atualizar agora</button>
+  </div>
+  <div class="small" style="margin-top:10px">Versão local: 1.1.0</div>
+ </div>
+</div>
+
+<div id="game">
+ <section id="homeScreen" class="screen active lobbyScreen">
+  <header class="lobbyTopbar">
+   <div class="lobbyIdentity">
+    <img src="./icon-192.webp" alt="" class="lobbyMiniLogo">
+    <div><b>NERDORA</b><span>CHIBI RAIDERS</span></div>
+   </div>
+   <div class="lobbyResources">
+    <span>🪙 <b data-res="gold">0</b></span>
+    <span>💎 <b data-res="diamonds">0</b></span>
+    <span>📜 <b data-res="scrolls">0</b></span>
+    <span>🏟️ <b data-res="arenaCoins">0</b></span>
+    <span>🔷 <b data-res="abyssCrystals">0</b></span>
+    <span>🌟 <b data-res="awakeningStones">0</b></span>
+   </div>
+   <div class="lobbyTopActions">
+    <div class="playerLevel">⭐ Nv.<b data-res="accountLevel">1</b></div>
+    <button id="checkUpdateBtn" class="lobbyIconBtn" aria-label="Verificar atualização">🔄</button>
+    <button id="installAppBtn" class="lobbyIconBtn" style="display:none" aria-label="Instalar aplicativo">📲</button>
+    <button id="muteBtn" class="lobbyIconBtn" aria-label="Som">🔊</button>
+   </div>
+  </header>
+
+  <main class="lobbyHub">
+   <div class="hubSky"></div>
+   <div class="hubMountains"></div>
+   <div class="hubCitySilhouette"></div>
+   <div class="hubGround"></div>
+   <div class="hubCrest"><img src="./icon-192.webp" alt=""><span>NERDORA CITY</span></div>
+
+   <button id="goCampaign" class="hubStructure hubCampaign">
+    <span class="hubStructureIcon">🏰</span><b>Campanha</b><small>Explorar o mundo</small>
+   </button>
+   <button id="goPortal" class="hubStructure hubPortal">
+    <span class="hubStructureIcon">🔮</span><b>Portal</b><small>Invocar heróis</small>
+   </button>
+   <button id="goArena" class="hubStructure hubArena">
+    <span class="hubStructureIcon">🏟️</span><b>Arena</b><small>Duelos e ranking</small>
+   </button>
+   <button id="goWorldBoss" class="hubStructure hubBoss">
+    <span class="hubStructureIcon">🐉</span><b>Chefe Épico</b><small>Raid diária</small>
+   </button>
+   <button id="goTower" class="hubStructure hubTower">
+    <span class="hubStructureIcon">🗼</span><b>Torre</b><small>Abismo infinito</small>
+   </button>
+
+   <div class="lobbySideDock lobbySideLeft">
+    <button id="goFormation" class="dockAction"><span>⚔️</span><small>Formação</small></button>
+    <button id="goGuild" class="dockAction"><span>🛡️</span><small>Guilda</small></button>
+   </div>
+   <div class="lobbySideDock lobbySideRight">
+    <button id="goAfk" class="dockAction"><span>📦</span><small>AFK</small></button>
+    <button id="goAwakening" class="dockAction"><span>🌟</span><small>Despertar</small></button>
+   </div>
+
+   <button id="quickBattle" class="quickRaidBtn"><span>⚡</span><b>Jogar fase</b></button>
+   <div id="homeUpdateNotice" class="updateNotice lobbyUpdateNotice"></div>
+  </main>
+ </section>
+
+ <section id="campaignScreen" class="screen">
+  <div class="topbar"><button id="campaignBack" class="btn ghost">←</button><div class="brand">CAMPANHA</div><div class="badge">Capítulo 1</div></div>
+  <div class="resourceBar"><span>🪙 <b data-res="gold">0</b></span><span>⭐ EXP <b data-res="accountExp">0</b></span><span>✨ <b data-res="essence">0</b></span></div>
+  <div class="section">
+   <div class="campaignHeader card"><div class="small">MAPA</div><h2>Vale das Primeiras Chamas</h2><p>Fase 1-1 é introdutória. Fases avançadas aumentam força e melhoram a qualidade dos equipamentos que podem cair.</p></div>
+   <div id="stageGrid" class="stageGrid"></div>
+  </div>
+ </section>
+
+ <section id="heroesScreen" class="screen">
+  <div class="topbar"><button id="heroesBack" class="btn ghost">←</button><div class="brand">HERÓIS</div><div class="badge">🪙 <span data-res="gold">0</span></div></div>
+  <div class="section heroesPage">
+   <div id="heroManageGrid" class="heroManageGrid"></div>
+   <div id="heroDetail" class="heroDetail card"></div>
+  </div>
+ </section>
+
+ <section id="portalScreen" class="screen">
+  <div class="topbar"><button id="portalBack" class="btn ghost">←</button><div class="brand">PORTAL DE INVOCAÇÃO</div><div class="badge">🔮</div></div>
+  <div class="resourceBar"><span>💎 <b data-res="diamonds">0</b></span><span>📜 <b data-res="scrolls">0</b></span></div>
+  <div class="section">
+   <div class="portalHero card">
+    <div class="portalOrb">🔮</div>
+    <div class="small">PORTAL NERDORA</div><h2>Invoque novos aliados</h2>
+    <p>Herói novo entra para sua coleção. Repetidos viram automaticamente <b>20 Fragmentos</b> do herói.</p>
+    <div class="summonRates"><span>SSR • 10 heróis</span><span>Duplicata • +20 🧩</span></div>
+    <div class="summonButtons">
+     <button id="summonOne" class="btn primary">Invocar ×1<br><small>📜1 ou 💎200</small></button>
+     <button id="summonTen" class="btn gold">Invocar ×10<br><small>💎1.800</small></button>
+    </div>
+   </div>
+   <div id="summonResults" class="summonResults"></div>
+  </div>
+ </section>
+
+ <section id="arenaScreen" class="screen">
+  <div class="topbar"><button id="arenaBack" class="btn ghost">←</button><div class="brand">ARENA</div><div class="badge" id="arenaTierBadge">Bronze</div></div>
+  <div class="resourceBar"><span>🏆 <b data-res="arenaRating">0</b></span><span>🏟️ <b data-res="arenaCoins">0</b></span><span>⚔️ <b id="arenaAttempts">0</b>/5</span></div>
+  <div class="section">
+   <div class="arenaHeader card">
+    <div><div class="small">PVP ASSÍNCRONO • PROTÓTIPO LOCAL</div><h2 id="arenaRankTitle">Bronze III</h2><p>Escolha uma formação rival. O adversário será controlado pela IA usando uma formação salva/simulada.</p></div>
+    <button id="refreshArena" class="btn ghost">↻ Renovar rivais</button>
+   </div>
+   <div id="arenaOpponents" class="arenaOpponents"></div>
+  </div>
+ </section>
+
+ <section id="shopScreen" class="screen">
+  <div class="topbar"><button id="shopBack" class="btn ghost">←</button><div class="brand">LOJA</div><div class="badge">Ofertas</div></div>
+  <div class="resourceBar"><span>🪙 <b data-res="gold">0</b></span><span>💎 <b data-res="diamonds">0</b></span><span>🏟️ <b data-res="arenaCoins">0</b></span></div>
+  <div class="section">
+   <div class="shopHeader card"><div class="small">MERCADO NERDORA</div><h2>Recursos e equipamentos</h2><p>Use moedas conquistadas no jogo. As ofertas podem ser compradas repetidamente neste protótipo.</p></div>
+   <div id="shopGrid" class="shopGrid"></div>
+  </div>
+ </section>
+
+ 
+ <section id="missionsScreen" class="screen">
+  <div class="topbar"><button id="missionsBack" class="btn ghost">←</button><div class="brand">MISSÕES</div><div class="badge" id="missionBadge">Diárias</div></div>
+  <div class="resourceBar"><span>🪙 <b data-res="gold">0</b></span><span>💎 <b data-res="diamonds">0</b></span><span>🤝 <b data-res="guildContribution">0</b></span></div>
+  <div class="section">
+   <div class="missionHeader card">
+    <div><div class="small">RETENÇÃO DIÁRIA</div><h2>Missões e Conquistas</h2><p>As missões diárias reiniciam a cada novo dia. Conquistas são permanentes e premiam marcos importantes.</p></div>
+    <button id="missionsGuildBtn" class="btn ghost">🛡️ Guilda</button>
+   </div>
+   <div class="tabRow"><button id="dailyTab" class="tabBtn active">🎯 Diárias</button><button id="achievementTab" class="tabBtn">🏆 Conquistas</button></div>
+   <div id="dailyMissions" class="missionList"></div>
+   <div id="achievementList" class="missionList" style="display:none"></div>
+  </div>
+ </section>
+
+ <section id="guildScreen" class="screen">
+  <div class="topbar"><button id="guildBack" class="btn ghost">←</button><div class="brand">GUILDA</div><div class="badge">🤝 <span data-res="guildContribution">0</span></div></div>
+  <div class="section">
+   <div id="guildPanel"></div>
+  </div>
+ </section>
+
+
+ <section id="worldBossScreen" class="screen">
+  <div class="topbar"><button id="worldBossBack" class="btn ghost">←</button><div class="brand">CHEFE ÉPICO</div><div class="badge" id="bossAttemptsBadge">3/3</div></div>
+  <div class="resourceBar"><span>🤝 <b data-res="guildContribution">0</b></span><span>💎 <b data-res="diamonds">0</b></span><span>🐉 Melhor <b data-res="worldBossBest">0</b></span></div>
+  <div class="section">
+   <div class="worldBossHero card">
+    <div class="bossArt">🐉</div>
+    <div class="small">RAID DIÁRIA • RENOVA À MEIA-NOITE LOCAL</div>
+    <h2>Vorak, Devorador do Vazio</h2>
+    <p>Sobreviva o máximo possível e cause dano antes da sua equipa cair. O HP do Chefe é massivo e cada tentativa alimenta o ranking diário.</p>
+    <div class="bossPreviewBar"><i id="bossPreviewFill"></i></div>
+    <div class="bossPreviewMeta"><span>HP Global diário</span><b id="bossPreviewHp">250.000 / 250.000</b></div>
+    <button id="startWorldBoss" class="btn raidBtn" style="width:100%">🐉 Iniciar Raid</button>
+   </div>
+   <div class="raidRanking card">
+    <div class="sectionTitle">🏆 Ranking Diário de Dano</div>
+    <div id="worldBossRanking"></div>
+   </div>
+  </div>
+ </section>
+
+ <section id="towerScreen" class="screen">
+  <div class="topbar"><button id="towerBack" class="btn ghost">←</button><div class="brand">TORRE DO ABISMO</div><div class="badge">Andar <span data-res="towerFloor">1</span></div></div>
+  <div class="resourceBar"><span>🔷 <b data-res="abyssCrystals">0</b></span><span>🪙 <b data-res="gold">0</b></span><span>💎 <b data-res="diamonds">0</b></span></div>
+  <div class="section">
+   <div class="towerHero card">
+    <div class="towerIcon">🗼</div>
+    <div><div class="small">DESAFIO PROGRESSIVO • 50 ANDARES</div><h2 id="towerTitle">Andar 1</h2><p id="towerDesc">Cada piso aumenta HP, ataque e defesa dos inimigos. Recompensas especiais são concedidas apenas na primeira conclusão de cada andar.</p></div>
+   </div>
+   <div id="towerMilestones" class="towerMilestones"></div>
+   <button id="startTower" class="btn abyssBtn" style="width:100%;margin-top:9px">⚔️ Desafiar andar atual</button>
+  </div>
+ </section>
+
+
+ <section id="afkScreen" class="screen">
+  <div class="topbar"><button id="afkBack" class="btn ghost">←</button><div class="brand">ESPÓLIOS AFK</div><div class="badge" id="afkTimerBadge">00:00:00</div></div>
+  <div class="resourceBar"><span>🪙 <b data-res="gold">0</b></span><span>⭐ EXP <b data-res="accountExp">0</b></span><span>✨ <b data-res="essence">0</b></span></div>
+  <div class="section">
+   <div class="idleChestCard card">
+    <div id="idleChest" class="idleChest">📦<i></i></div>
+    <div class="small">PROGRESSÃO IDLE • LIMITE DE 12 HORAS</div>
+    <h2>Baú de Espólios</h2>
+    <p>Enquanto estiver fora, a expedição Nerdora continua recolhendo recursos. O cálculo usa o horário real do dispositivo e fica salvo localmente.</p>
+    <div class="idleRewardGrid">
+     <div><span>🪙 Ouro</span><b id="afkGold">0</b></div>
+     <div><span>⭐ EXP da Conta</span><b id="afkExp">0</b></div>
+     <div><span>✨ Essência</span><b id="afkEssence">0</b></div>
+    </div>
+    <button id="claimAfkBtn" class="btn gold" style="width:100%">📦 Recolher espólios</button>
+    <div id="afkRateText" class="small idleRate"></div>
+   </div>
+  </div>
+ </section>
+
+ <section id="awakeningScreen" class="screen">
+  <div class="topbar"><button id="awakeningBack" class="btn ghost">←</button><div class="brand">DESPERTAR</div><div class="badge">🌟 <span data-res="awakeningStones">0</span></div></div>
+  <div class="resourceBar"><span>🪙 <b data-res="gold">0</b></span><span>🌟 Pedras <b data-res="awakeningStones">0</b></span></div>
+  <div class="section awakeningLayout">
+   <div id="awakeningHeroGrid" class="awakeningHeroGrid"></div>
+   <div id="awakeningDetail" class="awakeningDetail card"></div>
+  </div>
+ </section>
+
+ <section id="formationScreen" class="screen">
+  <div class="topbar"><button id="formationBack" class="btn ghost">←</button><div class="brand">FORMAÇÃO</div><div class="badge"><span id="selectedCount">0</span>/5</div></div>
+  <div class="section">
+   <div id="formationStageInfo" class="formationStageInfo card"></div>
+   <div id="synergyPanel" class="synergyPanel card"></div>
+   <div class="formationExplain card"><strong>🛡️ Front-line x Back-line</strong><div class="small">Somente heróis obtidos podem entrar na formação. Equipamentos e níveis são aplicados diretamente aos atributos de batalha.</div></div>
+   <div id="formationBoard" class="formationBoard"></div>
+   <div class="lineHeader">HERÓIS DISPONÍVEIS — toque num slot e depois num herói</div>
+   <div id="roster" class="roster"></div>
+   <button id="startBattle" class="btn primary" style="width:100%;margin-top:10px" disabled>Iniciar batalha</button>
+  </div>
+ </section>
+
+ <section id="battleScreen" class="screen">
+  <div class="topbar"><button id="battleBack" class="btn ghost">←</button><div class="brand" id="battleStageName">BATALHA</div><div id="battleState" class="badge">EM BATALHA</div></div>
+  <div class="battleShell"><div id="arena" class="arena">
+   <div class="battleHeader"><div class="group"><button id="speed1" class="controlBtn active">1×</button><button id="speed2" class="controlBtn">2×</button><button id="pauseBtn" class="controlBtn">Ⅱ PAUSA</button></div><div class="group"><div id="teamAuraLabel" class="stateLabel auraLabel">SEM AURA</div><button id="modeBtn" class="controlBtn">ULT: MANUAL</button><div id="roundLabel" class="stateLabel">Rodada 1</div></div></div>
+   <div class="teamLabel enemy"><span>INIMIGOS</span><span>FRONT ← → BACK</span></div>
+   <div id="enemyArea" class="formationArea enemy"><div class="lineBox back"></div><div class="lineBox front"></div></div>
+   <div id="turnPanel" class="orderPanel"><div class="orderTitle">INICIATIVA DESTA RODADA — SPEED</div><div id="turnOrder" class="turnOrder"></div></div>
+   <div class="teamLabel player"><span>SUA EQUIPA</span><span>BACK ← → FRONT</span></div>
+   <div id="playerArea" class="formationArea player"><div class="lineBox back"></div><div class="lineBox front"></div></div>
+   <div class="rotateHint"><div><strong>📱 Gire o celular</strong><span>A batalha foi desenhada para modo horizontal.</span></div></div>
+   <div id="ultBanner" class="ultBanner"></div>
+   <div id="bossRaidHud" class="bossRaidHud">
+    <div class="bossHudTop"><span>🐉 VORAK</span><b id="bossRaidDamage">DANO 0</b></div>
+    <div class="bossRaidBar"><i id="bossRaidBarFill"></i></div>
+    <div class="bossHudBottom"><span id="bossRaidHp">250.000 / 250.000</span><span id="bossRaidRound">Rodada 1</span></div>
+   </div>
+   <div class="logPanel"><div class="logHeader"><span>REGISTRO</span><span id="actionLabel" class="small">Preparando...</span></div><div id="battleLog" class="log"></div></div>
+  </div></div>
+ </section>
+ <nav id="bottomNav" class="bottomNav">
+  <button id="goHeroes" data-nav="heroes" aria-label="Heróis"><span>🧙</span><small>Heróis</small></button>
+  <button id="goEquipment" data-nav="equipment" aria-label="Equipamentos"><span>🛡️</span><small>Equipamentos</small></button>
+  <button id="goShop" data-nav="shop" aria-label="Loja"><span>🛒</span><small>Loja</small></button>
+  <button id="goMissions" data-nav="missions" aria-label="Missões"><span>🎯</span><small>Missões</small><i id="missionNavDot"></i></button>
+  <button id="goSynergy" data-nav="synergy" aria-label="Sinergias"><span>✨</span><small>Sinergias</small></button>
+ </nav>
+</div>
+
+
+<div id="storyModal" class="storyModal">
+ <div class="storyScene">
+  <div class="storyShade"></div>
+  <div id="storyAvatar" class="storyAvatar">👼</div>
+  <div id="storyBox" class="storyBox">
+   <div id="storySpeaker" class="storySpeaker">Seraphina</div>
+   <div id="storyText" class="storyText"></div>
+   <div class="storyControls"><span id="storyHint">Toque para continuar</span><button id="storySkip" class="btn ghost">Pular</button><button id="storyNext" class="btn primary">Continuar ›</button></div>
+  </div>
+ </div>
+</div>
+
+<div id="resultModal" class="modal"><div class="modalCard resultCard">
+ <div id="resultBadge" class="resultBadge">🏆</div><h2 id="resultTitle">Vitória!</h2><div id="resultStage" class="resultStage"></div><div id="resultText" class="small"></div>
+ <div id="resultRewards" class="rewards"></div>
+ <div class="resultActions"><button id="nextStageBtn" class="btn primary">Próxima fase →</button><button id="retryBtn" class="btn gold">↻ Tentar novamente</button><button id="resultMenuBtn" class="btn ghost">Voltar ao menu</button></div>
+</div></div>
+
+<div id="rewardFloatLayer" class="rewardFloatLayer"></div>
+<div id="toast" class="toast"></div>
+<script>
+(()=>{"use strict";
+
+const $=s=>document.querySelector(s);
+const $=s=>[...document.querySelectorAll(s)];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const APP_VERSION="2.0.1";
+const SAVE_KEY="nerdora_chibi_raiders_v100";
+const OLD_SAVE_KEY="nerdora_chibi_raiders_v090";
+
+const HEROES=[
+{id:"seraphina",name:"Seraphina",emoji:"👼",role:"Suporte",line:"back",style:"ranged",type:"magic",hp:1280,pa:70,ma:282,pd:96,md:168,sp:104,cr:.07,dg:.09,ult:{name:"Aurora Celestial",kind:"heal",ratio:1.45,effect:"shield"}},
+{id:"espinho",name:"Espinho Rubro",emoji:"🌹",role:"Guerreiro",line:"front",style:"melee",type:"physical",hp:1610,pa:252,ma:82,pd:146,md:112,sp:98,cr:.13,dg:.07,ult:{name:"Jardim Carmesim",kind:"aoe",ratio:.76,effect:"bleed"}},
+{id:"quebra",name:"Quebra-Muros",emoji:"🔨",role:"Tanque",line:"front",style:"melee",type:"physical",hp:2240,pa:195,ma:45,pd:218,md:144,sp:72,cr:.07,dg:.03,ult:{name:"Demolição Total",kind:"aoe",ratio:.70,effect:"break"}},
+{id:"umbra",name:"Caçador Umbra",emoji:"🌑",role:"Assassino",line:"back",style:"ranged",type:"physical",hp:1110,pa:314,ma:86,pd:82,md:86,sp:134,cr:.22,dg:.16,ult:{name:"Execução do Eclipse",kind:"single",ratio:2.38,effect:"execute"}},
+{id:"crepusculo",name:"Senhor do Crepúsculo",emoji:"🌘",role:"Mago",line:"back",style:"ranged",type:"magic",hp:1180,pa:68,ma:328,pd:78,md:142,sp:101,cr:.15,dg:.08,ult:{name:"Noite Sem Fim",kind:"aoe",ratio:.84,effect:"slow"}},
+{id:"valquiria",name:"Valquíria de Gelo",emoji:"❄️",role:"Guerreira",line:"front",style:"melee",type:"physical",hp:1510,pa:244,ma:138,pd:136,md:124,sp:103,cr:.12,dg:.08,ult:{name:"Inverno Eterno",kind:"aoeMagic",ratio:.80,effect:"freeze"}},
+{id:"relampago",name:"Lâmina Relâmpago",emoji:"⚡",role:"Assassina",line:"front",style:"melee",type:"physical",hp:1190,pa:306,ma:102,pd:92,md:84,sp:138,cr:.21,dg:.15,ult:{name:"Mil Cortes",kind:"multi",ratio:.62,hits:5}},
+{id:"terra",name:"Guardião da Terra",emoji:"🛡️",role:"Tanque",line:"front",style:"melee",type:"physical",hp:2320,pa:184,ma:72,pd:226,md:160,sp:76,cr:.07,dg:.04,ult:{name:"Fortaleza Viva",kind:"aoe",ratio:.58,effect:"shield"}},
+{id:"anao",name:"Canhoneiro Anão",emoji:"💣",role:"Atirador",line:"back",style:"ranged",type:"physical",hp:1240,pa:286,ma:70,pd:102,md:92,sp:91,cr:.17,dg:.07,ult:{name:"Bombardeio Real",kind:"aoe",ratio:.92,effect:"pierce"}},
+{id:"fada",name:"Fada das Lâminas",emoji:"🧚",role:"Híbrida",line:"back",style:"ranged",type:"physical",hp:1130,pa:268,ma:172,pd:88,md:112,sp:129,cr:.18,dg:.18,ult:{name:"Tempestade Feérica",kind:"aoe",ratio:.72,effect:"haste"}}
+];
+
+const STAGES=[
+{id:1,code:"1-1",name:"Portões do Vale",enemyLevel:1,scale:.58,power:"Muito fácil",rewards:{gold:600,exp:250,essence:2,diamonds:35,shards:1}},
+{id:2,code:"1-2",name:"Trilha dos Goblins",enemyLevel:2,scale:.68,power:"Fácil",rewards:{gold:760,exp:320,essence:3,diamonds:45,shards:1}},
+{id:3,code:"1-3",name:"Ruínas Rubras",enemyLevel:3,scale:.79,power:"Normal",rewards:{gold:940,exp:400,essence:4,diamonds:55,shards:2}},
+{id:4,code:"1-4",name:"Ponte do Crepúsculo",enemyLevel:4,scale:.91,power:"Desafio",rewards:{gold:1160,exp:500,essence:5,diamonds:70,shards:2}},
+{id:5,code:"1-5",name:"Guardião das Chamas",enemyLevel:5,scale:1.04,power:"Chefe",rewards:{gold:1500,exp:650,essence:8,diamonds:100,scrolls:1,shards:3}}
+];
+
+const GEAR={
+steel_sword:{id:"steel_sword",name:"Espada de Aço",icon:"⚔️",slot:"weapon",rarity:"Comum",bonus:{pa:45}},
+arcane_staff:{id:"arcane_staff",name:"Cajado Arcano",icon:"🪄",slot:"weapon",rarity:"Raro",bonus:{ma:58}},
+storm_blade:{id:"storm_blade",name:"Lâmina da Tempestade",icon:"🗡️",slot:"weapon",rarity:"Épico",bonus:{pa:78,sp:3}},
+iron_armor:{id:"iron_armor",name:"Armadura de Ferro",icon:"🥋",slot:"armor",rarity:"Comum",bonus:{pd:42,md:18}},
+twilight_robe:{id:"twilight_robe",name:"Manto do Crepúsculo",icon:"🥻",slot:"armor",rarity:"Raro",bonus:{md:62,ma:24}},
+guardian_plate:{id:"guardian_plate",name:"Placa do Guardião",icon:"🛡️",slot:"armor",rarity:"Épico",bonus:{pd:76,hp:180}},
+guard_helm:{id:"guard_helm",name:"Elmo do Vale",icon:"🪖",slot:"helmet",rarity:"Comum",bonus:{hp:190,pd:18}},
+ice_crown:{id:"ice_crown",name:"Coroa Glacial",icon:"👑",slot:"helmet",rarity:"Raro",bonus:{hp:270,md:32}},
+moon_helm:{id:"moon_helm",name:"Elmo Lunar",icon:"🌙",slot:"helmet",rarity:"Épico",bonus:{hp:330,sp:4}},
+lucky_charm:{id:"lucky_charm",name:"Amuleto da Sorte",icon:"🍀",slot:"accessory",rarity:"Comum",bonus:{pa:22,ma:22}},
+nerdora_ring:{id:"nerdora_ring",name:"Anel Nerdora",icon:"💍",slot:"accessory",rarity:"Raro",bonus:{pa:36,ma:36}},
+eclipse_orb:{id:"eclipse_orb",name:"Orbe do Eclipse",icon:"🔮",slot:"accessory",rarity:"Épico",bonus:{ma:54,sp:4}}
+};
+const SLOT_NAMES={weapon:"Arma",armor:"Armadura",helmet:"Elmo",accessory:"Acessório"};
+const DROP_POOLS={
+1:["steel_sword","iron_armor","guard_helm","lucky_charm"],
+2:["steel_sword","arcane_staff","iron_armor","guard_helm","lucky_charm"],
+3:["arcane_staff","twilight_robe","ice_crown","nerdora_ring","steel_sword"],
+4:["storm_blade","twilight_robe","guardian_plate","ice_crown","nerdora_ring"],
+5:["storm_blade","guardian_plate","moon_helm","eclipse_orb","ice_crown"]
+};
+
+const SHOP=[
+{id:"potion_gold",icon:"🧪",name:"Poção de Treino",desc:"Use em um herói para subir 1 nível instantaneamente.",currency:"gold",price:450,type:"potion",qty:1},
+{id:"sword_gold",icon:"⚔️",name:"Espada de Aço",desc:"+45 Ataque Físico.",currency:"gold",price:900,type:"gear",gear:"steel_sword"},
+{id:"robe_arena",icon:"🥻",name:"Manto do Crepúsculo",desc:"+62 DEF Mágica e +24 ATQ Mágico.",currency:"arenaCoins",price:90,type:"gear",gear:"twilight_robe"},
+{id:"ring_gold",icon:"💍",name:"Anel Nerdora",desc:"+36 ATQ Físico e +36 ATQ Mágico.",currency:"gold",price:1250,type:"gear",gear:"nerdora_ring"},
+{id:"sera_shard",icon:"👼",name:"Fragmentos Seraphina ×10",desc:"Fragmentos para evolução futura.",currency:"arenaCoins",price:120,type:"shard",hero:"seraphina",qty:10},
+{id:"light_shard",icon:"⚡",name:"Fragmentos Lâmina ×10",desc:"Fragmentos da Lâmina Relâmpago.",currency:"diamonds",price:160,type:"shard",hero:"relampago",qty:10},
+{id:"scroll_arena",icon:"📜",name:"Pergaminho de Invocação",desc:"Uma invocação no Portal.",currency:"arenaCoins",price:150,type:"scroll",qty:1},
+{id:"crown_diamond",icon:"👑",name:"Coroa Glacial",desc:"+270 HP e +32 DEF Mágica.",currency:"diamonds",price:220,type:"gear",gear:"ice_crown"}
+];
+
+
+const DAILY_MISSIONS=[
+ {id:"arena3",icon:"🏟️",title:"Glória na Arena",desc:"Vença 3 batalhas na Arena hoje.",key:"arenaWins",target:3,reward:{gold:800,diamonds:100,contribution:40}},
+ {id:"summon1",icon:"🔮",title:"Chamado do Portal",desc:"Faça pelo menos 1 invocação no Portal.",key:"summons",target:1,reward:{gold:400,diamonds:60,contribution:20}},
+ {id:"level1",icon:"⬆️",title:"Treino Diário",desc:"Suba o nível de 1 herói.",key:"levelUps",target:1,reward:{gold:500,diamonds:40,contribution:20}},
+ {id:"campaign2",icon:"🗺️",title:"Avanço do Capítulo",desc:"Vença 2 batalhas da Campanha.",key:"campaignWins",target:2,reward:{gold:600,diamonds:50,contribution:30}}
+];
+
+const ACHIEVEMENTS=[
+ {id:"first_blood",icon:"⚔️",title:"Primeiros Passos",desc:"Conclua sua primeira batalha.",key:"battles",target:1,reward:{gold:500,diamonds:50}},
+ {id:"veteran10",icon:"🛡️",title:"Veterano",desc:"Conclua 10 batalhas.",key:"battles",target:10,reward:{gold:1200,diamonds:100}},
+ {id:"summoner10",icon:"🔮",title:"Invocador",desc:"Realize 10 invocações.",key:"summons",target:10,reward:{gold:900,diamonds:150}},
+ {id:"trainer5",icon:"📈",title:"Treinador",desc:"Faça 5 melhorias de nível.",key:"levelUps",target:5,reward:{gold:1000,diamonds:100}},
+ {id:"hero10",icon:"🌟",title:"Herói Experiente",desc:"Tenha um herói no nível 10.",key:"maxHeroLevel",target:10,reward:{gold:1500,diamonds:180}},
+ {id:"arena1200",icon:"🏆",title:"Desafiante da Arena",desc:"Alcance 1200 de Rating.",key:"arenaRating",target:1200,reward:{gold:1500,diamonds:200}}
+];
+
+
+
+const HERO_AFFINITY={
+ seraphina:{faction:"aurora",factionName:"Aurora",element:"Luz",icon:"☀️"},
+ valquiria:{faction:"aurora",factionName:"Aurora",element:"Água",icon:"❄️"},
+ terra:{faction:"aurora",factionName:"Aurora",element:"Terra",icon:"🌿"},
+ anao:{faction:"aurora",factionName:"Aurora",element:"Fogo",icon:"🔥"},
+ fada:{faction:"aurora",factionName:"Aurora",element:"Luz",icon:"✨"},
+ espinho:{faction:"eclipse",factionName:"Eclipse",element:"Fogo",icon:"🔥"},
+ quebra:{faction:"eclipse",factionName:"Eclipse",element:"Terra",icon:"🪨"},
+ umbra:{faction:"eclipse",factionName:"Eclipse",element:"Trevas",icon:"🌑"},
+ crepusculo:{faction:"eclipse",factionName:"Eclipse",element:"Trevas",icon:"🌘"},
+ relampago:{faction:"eclipse",factionName:"Eclipse",element:"Fogo",icon:"⚡"}
+};
+
+const SYNERGY_RULES={
+ 3:{atk:.10,def:0,hp:0,crit:0,rage:0,label:"+10% ATQ"},
+ 4:{atk:.10,def:.10,hp:0,crit:0,rage:0,label:"+10% ATQ • +10% DEF"},
+ 5:{atk:.10,def:.10,hp:.20,crit:0,rage:0,label:"+10% ATQ • +10% DEF • +20% HP"}
+};
+
+const AWAKEN_MAX=5;
+const AWAKEN_COSTS={
+ 0:{gold:2500,stones:3},1:{gold:4200,stones:5},2:{gold:6500,stones:8},3:{gold:9000,stones:12},4:{gold:13000,stones:18}
+};
+const AWAKEN_EFFECTS={
+ seraphina:["Ultimate +8% potência","Aurora Celestial concede +10% ATQ à equipa","Bónus de ATQ sobe para +13%","Cura + escudo ganham potência adicional","Bónus de ATQ sobe para +18%"],
+ quebra:["Ultimate +8% potência","Demolição Total atordoa 1 alvo","Atordoa até 2 inimigos","Quebra de DEF é ampliada","Atordoamento dura 2 ações no alvo principal"],
+ espinho:["Ultimate +8% potência","Sangramento dura +1 rodada","Sangramento causa mais pressão","Ultimate ganha +12% crítico","Sangramento dura +2 rodadas"],
+ umbra:["Ultimate +8% potência","Execução melhora contra alvos feridos","Limite de execução sobe para 45% HP","Recupera 25 Rage após Ultimate","Limite de execução sobe para 55% HP"],
+ crepusculo:["Ultimate +8% potência","Noite Sem Fim drena 10 Rage","Lentidão é ampliada","Drena 20 Rage","Aplica lentidão reforçada em todos"],
+ valquiria:["Ultimate +8% potência","Congela até 3 inimigos","Chance de congelamento reforçada","Ganha escudo próprio após Ultimate","Congela todos os inimigos vivos"],
+ relampago:["Ultimate +8% potência","Mil Cortes ganha +1 golpe","Ganha +2 golpes no total","Recupera 20 Rage após Ultimate","Ganha +3 golpes no total"],
+ terra:["Ultimate +8% potência","Fortaleza Viva cura 5% HP da equipa","Escudo da equipa é reforçado","Cura 8% HP","Escudo e cura atingem potência máxima"],
+ anao:["Ultimate +8% potência","Bombardeio aplica Quebra de DEF","Quebra aumenta para 25%","Ganha +10% crítico na Ultimate","Quebra de DEF atinge 35%"],
+ fada:["Ultimate +8% potência","Concede +15 Rage à equipa","Haste é reforçada","Concede +25 Rage","Haste + Rage atingem potência máxima"]
+};
+
+const AFK_CAP_MS=12*60*60*1000;
+const AFK_RATES={goldPerMin:18,expPerMin:4,essencePerMin:.04};
+
+const AUDIO_ASSETS={
+ menu:"./audio/menu-theme.wav",
+ battle:"./audio/battle-theme.wav",
+ click:"./audio/ui-click.wav",
+ impact:"./audio/impact.wav",
+ ultimateReady:"./audio/ultimate-ready.wav",
+ ultimate:"./audio/ultimate-cast.wav",
+ reward:"./audio/reward.wav"
+};
+
+const CUTSCENES={
+ stage5:[
+  {hero:"seraphina",speaker:"Seraphina",text:"A presença adiante não pertence às criaturas comuns do vale. Todos, mantenham a formação."},
+  {hero:"quebra",speaker:"Quebra-Muros",text:"Finalmente algo grande o bastante para testar o meu martelo. Eu abro caminho."},
+  {hero:"crepusculo",speaker:"Senhor do Crepúsculo",text:"Não subestimem o fogo deste lugar. Há magia antiga misturada às chamas."},
+  {hero:"seraphina",speaker:"Seraphina",text:"Então avançamos juntos. A vitória aqui abrirá o caminho para desafios muito maiores."}
+ ],
+ worldBoss:[
+  {hero:"umbra",speaker:"Caçador Umbra",text:"O céu escureceu. Vorak voltou a despertar."},
+  {hero:"seraphina",speaker:"Seraphina",text:"Não precisamos derrubá-lo de uma só vez. Cada golpe conta para toda a Guilda."},
+  {hero:"quebra",speaker:"Quebra-Muros",text:"Ótimo. Quanto maior o monstro, mais fácil acertar."},
+  {hero:"umbra",speaker:"Caçador Umbra",text:"Ataquem com tudo. Antes que o Vazio nos engula."}
+ ]
+};
+
+const STAR_COST={1:40,2:80,3:140,4:220};
+const STAR_MULT={1:1,2:1.15,3:1.35,4:1.62,5:2.00};
+const TOWER_MAX=50;
+const WORLD_BOSS_MAX_HP=250000;
+const BOSS_HERO={
+ id:"vorak",name:"Vorak, Devorador do Vazio",emoji:"🐉",role:"Chefe Épico",line:"front",style:"melee",type:"physical",
+ hp:WORLD_BOSS_MAX_HP,pa:1150,ma:920,pd:420,md:420,sp:82,cr:.12,dg:.02,
+ ult:{name:"Cataclismo do Vazio",kind:"aoeMagic",ratio:.72,effect:"slow"}
+};
+
+const GUILDS=[
+ {id:"violet",emblem:"🔮",name:"Ordem Violeta",motto:"Conhecimento antes da lâmina.",members:["NekoBlade","MagoPixel","LunaRaid","YumiX","RinArc"]},
+ {id:"blades",emblem:"⚔️",name:"Lâminas do Vale",motto:"A vitória pertence aos que avançam.",members:["DrakeZero","KaitoBR","AkiraGO","RexNova","ShiroX"]},
+ {id:"aurora",emblem:"✨",name:"Aurora Celeste",motto:"Nenhum aliado luta sozinho.",members:["KitsuneBR","MikaStar","SoraLux","AoiMoon","HanaGO"]}
+];
+
+const SLOTS=[
+{id:"F1",line:"front",label:"Frente 1"},{id:"F2",line:"front",label:"Frente 2"},
+{id:"B1",line:"back",label:"Trás 1"},{id:"B2",line:"back",label:"Trás 2"},{id:"B3",line:"back",label:"Trás 3"}
+];
+const POS={F1:{x:57,y:18},F2:{x:57,y:59},B1:{x:4,y:4},B2:{x:4,y:37},B3:{x:4,y:70}};
+
+function todayKey(){const d=new Date(),p=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())}
+function blankEquipment(){return{weapon:null,armor:null,helmet:null,accessory:null}}
+function defaultSave(){
+ const heroLevels={},shards={},owned={},equipment={},stars={},awakening={};
+ HEROES.forEach(h=>{heroLevels[h.id]=1;shards[h.id]=0;owned[h.id]=false;equipment[h.id]=blankEquipment();stars[h.id]=1;awakening[h.id]=0});
+ ["quebra","valquiria","seraphina","umbra","crepusculo"].forEach(id=>owned[id]=true);
+ return{
+  gold:1500,diamonds:1200,scrolls:3,accountExp:0,essence:0,arenaCoins:0,arenaRating:1000,
+  arenaDate:todayKey(),arenaAttempts:5,arenaDailyPoints:0,
+  missionDate:todayKey(),dailyCounters:{arenaWins:0,summons:0,levelUps:0,campaignWins:0},dailyClaimed:{},
+  lifetime:{battles:0,arenaWins:0,campaignWins:0,summons:0,levelUps:0},achievementClaimed:{},
+  guildId:null,guildContribution:0,guildAttack:0,guildDefense:0,guildHp:0,
+  worldBossDate:todayKey(),worldBossAttempts:3,worldBossBest:0,worldBossLast:0,worldBossTotal:0,worldBossRemainingHp:WORLD_BOSS_MAX_HP,
+  towerFloor:1,towerBest:0,abyssCrystals:0,awakeningStones:8,
+  lastAfkClaim:Date.now(),audioMuted:false,storySeen:{},
+  unlockedStage:1,selectedStage:1,heroLevels,shards,owned,equipment,stars,awakening,gearInventory:{},potions:0,
+  formation:{F1:"quebra",F2:"valquiria",B1:"seraphina",B2:"umbra",B3:"crepusculo"}
+ };
+}
+function normalizeSave(s){
+ const d=defaultSave(),out={...d,...s};
+ out.heroLevels={...d.heroLevels,...(s.heroLevels||{})};
+ out.shards={...d.shards,...(s.shards||{})};
+ out.owned={...d.owned,...(s.owned||{})};
+ out.stars={...d.stars,...(s.stars||{})};
+ out.awakening={...d.awakening,...(s.awakening||{})};
+ out.storySeen={...(s.storySeen||{})};
+ out.gearInventory={...(s.gearInventory||{})};
+ out.equipment={};
+ HEROES.forEach(h=>out.equipment[h.id]={...blankEquipment(),...((s.equipment||{})[h.id]||{})});
+ out.formation={...d.formation,...(s.formation||{})};
+ out.dailyCounters={...d.dailyCounters,...(s.dailyCounters||{})};
+ out.dailyClaimed={...(s.dailyClaimed||{})};
+ out.lifetime={...d.lifetime,...(s.lifetime||{})};
+ out.achievementClaimed={...(s.achievementClaimed||{})};
+ out.worldBossRemainingHp=clamp(Number(out.worldBossRemainingHp)||WORLD_BOSS_MAX_HP,0,WORLD_BOSS_MAX_HP);
+ out.towerFloor=clamp(Number(out.towerFloor)||1,1,TOWER_MAX);
+ out.towerBest=clamp(Number(out.towerBest)||0,0,TOWER_MAX);
+ out.lastAfkClaim=Number(out.lastAfkClaim)||Date.now();
+ out.awakeningStones=Number(out.awakeningStones)||0;
+ return out;
+}
+function loadSave(){
+ try{
+  const raw=localStorage.getItem(SAVE_KEY);
+  if(raw)return normalizeSave(JSON.parse(raw));
+  const oldRaw=localStorage.getItem(OLD_SAVE_KEY);
+  if(oldRaw){
+   const old=JSON.parse(oldRaw),m=defaultSave();
+   ["gold","accountExp","essence","unlockedStage","selectedStage"].forEach(k=>{if(old[k]!=null)m[k]=old[k]});
+   m.heroLevels={...m.heroLevels,...(old.heroLevels||{})};m.shards={...m.shards,...(old.shards||{})};m.formation={...m.formation,...(old.formation||{})};
+   HEROES.forEach(h=>m.owned[h.id]=true);
+   localStorage.setItem(SAVE_KEY,JSON.stringify(m));
+   return m;
+  }
+ }catch(e){}
+ return defaultSave();
+}
+let save=loadSave(),formation={...save.formation},activeSlot="F1",selectedHero="seraphina",selectedAwakeningHero="seraphina",battle=null,deferred=null,reg=null,arenaOpponents=[],lastBattleMode="campaign",afkTicker=null,storyState=null;
+
+function persist(){save.formation={...formation};localStorage.setItem(SAVE_KEY,JSON.stringify(save));renderResources();updateMissionIndicators()}
+function hero(id){return HEROES.find(h=>h.id===id)}
+function stage(id=save.selectedStage){return STAGES.find(s=>s.id===id)||STAGES[0]}
+function used(){return Object.values(formation).filter(Boolean)}
+function accountLevel(){return 1+Math.floor(save.accountExp/1000)}
+function levelCost(id){const lv=save.heroLevels[id]||1;return 250+lv*180}
+function gearBonus(id){
+ const b={hp:0,pa:0,ma:0,pd:0,md:0,sp:0},eq=save.equipment[id]||{};
+ Object.values(eq).filter(Boolean).forEach(gid=>{const g=GEAR[gid];if(g)Object.entries(g.bonus).forEach(([k,v])=>b[k]=(b[k]||0)+v)});
+ return b;
+}
+function guildBonuses(){
+ if(!save.guildId)return{atk:0,def:0,hp:0};
+ return{atk:(save.guildAttack||0)*.01,def:(save.guildDefense||0)*.01,hp:(save.guildHp||0)*.015};
+}
+function guildBonuses(){
+ if(!save.guildId)return{atk:0,def:0,hp:0};
+ return{atk:(save.guildAttack||0)*.01,def:(save.guildDefense||0)*.01,hp:(save.guildHp||0)*.015};
+}
+function heroStats(h){
+ const lv=save.heroLevels[h.id]||1,b=gearBonus(h.id),g=guildBonuses(),stars=clamp(save.stars[h.id]||1,1,5),sm=STAR_MULT[stars]||1;
+ const hp=Math.round((Math.round(h.hp*(1+.08*(lv-1))*sm)+b.hp)*(1+g.hp));
+ const pa=Math.round((Math.round(h.pa*(1+.07*(lv-1))*sm)+b.pa)*(1+g.atk));
+ const ma=Math.round((Math.round(h.ma*(1+.07*(lv-1))*sm)+b.ma)*(1+g.atk));
+ const pd=Math.round((Math.round(h.pd*(1+.045*(lv-1))*sm)+b.pd)*(1+g.def));
+ const md=Math.round((Math.round(h.md*(1+.045*(lv-1))*sm)+b.md)*(1+g.def));
+ return{level:lv,stars,hp,pa,ma,pd,md,sp:Math.round(h.sp*(1+.004*(lv-1)))+b.sp,cr:h.cr,dg:h.dg};
+}
+function addGear(id,qty=1){save.gearInventory[id]=(save.gearInventory[id]||0)+qty}
+function show(id){
+ $(".screen").forEach(e=>e.classList.remove("active"));
+ const screen=$("#"+id);if(screen)screen.classList.add("active");
+ const game=$("#game");
+ game.classList.toggle("battle-mode",id==="battleScreen");
+ game.classList.toggle("lobby-mode",id==="homeScreen");
+ const navMap={formationScreen:"synergy",heroesScreen:"heroes",shopScreen:"shop",missionsScreen:"missions"};
+ const active=navMap[id]||"";
+ $(".bottomNav button[data-nav]").forEach(b=>b.classList.toggle("active",b.dataset.nav===active));
+ renderResources();updateMissionIndicators();AudioEngine.scene(id);
+}
+function renderResources(){
+ $("[data-res]").forEach(e=>{const k=e.dataset.res;if(k==="accountLevel")e.textContent=accountLevel();else e.textContent=save[k]??0});
+}
+
+function haptic(pattern=10){try{navigator.vibrate&&navigator.vibrate(pattern)}catch(e){}}
+function rewardFloat(text,kind="gold",delay=0){
+ const layer=$("#rewardFloatLayer");if(!layer)return;
+ setTimeout(()=>{
+  const e=document.createElement("div");e.className="rewardFloatItem "+kind;e.textContent=text;
+  e.style.marginTop=(Math.random()*26-13)+"px";layer.appendChild(e);setTimeout(()=>e.remove(),1450);
+ },delay);
+}
+function rewardBurst(items){
+ items.forEach((it,i)=>rewardFloat(it.text,it.kind||"gold",i*150));
+}
+
+
+function affinityOf(id){return HERO_AFFINITY[id]||{faction:"neutral",factionName:"Neutro",element:"Arcano",icon:"✦"}}
+function computeSynergy(ids){
+ const counts={};ids.filter(Boolean).forEach(id=>{const a=affinityOf(id);counts[a.faction]=(counts[a.faction]||0)+1});
+ const best=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+ if(!best||best[1]<3)return{active:false,count:best?best[1]:0,faction:best?best[0]:null,label:"Sem aura ativa",atk:0,def:0,hp:0,crit:0,rage:0,critImmunity:0};
+ const [faction,count]=best,base={...SYNERGY_RULES[Math.min(count,5)]},name=faction==="aurora"?"Aurora":"Eclipse";
+ const out={active:true,count,faction,name,...base,critImmunity:0};
+ if(count>=5&&faction==="aurora"){out.critImmunity=1;out.label+=""+" • 1º crítico anulado";}
+ if(count>=5&&faction==="eclipse"){out.crit=.15;out.rage=15;out.label+=""+" • +15% CRIT • +15 Rage";}
+ return out;
+}
+function applySynergy(units,syn){
+ if(!syn||!syn.active)return units;
+ units.forEach(u=>{
+  u.maxHp=Math.round(u.maxHp*(1+syn.hp));u.hp=u.maxHp;
+  u.pa=Math.round(u.pa*(1+syn.atk));u.ma=Math.round(u.ma*(1+syn.atk));
+  u.basePd=Math.round(u.basePd*(1+syn.def));u.baseMd=Math.round(u.baseMd*(1+syn.def));
+  u.cr=clamp(u.cr+(syn.crit||0),0,.85);u.rage=clamp((u.rage||0)+(syn.rage||0),0,100);
+  u.critImmunity=syn.critImmunity||0;
+ });
+ units.synergy=syn;return units;
+}
+function renderSynergyPanel(){
+ const el=$("#synergyPanel");if(!el)return;
+ const syn=computeSynergy(used()),counts={aurora:0,eclipse:0};
+ used().forEach(id=>counts[affinityOf(id).faction]=(counts[affinityOf(id).faction]||0)+1);
+ el.innerHTML=`<div class="synergyTitle"><b>✨ Aura de Fação</b><span>${syn.active?syn.name+" • "+syn.count+"/5":"Ative com 3+ heróis da mesma fação"}</span></div>
+ <div class="synergyBadges"><span class="synergyBadge ${counts.aurora>=3?"active":""}">☀️ Aurora ${counts.aurora}/5</span><span class="synergyBadge ${counts.eclipse>=3?"active":""}">🌘 Eclipse ${counts.eclipse}/5</span><span class="synergyBadge ${syn.active?"active":""}">${syn.active?syn.label:"3 = ATQ • 4 = DEF • 5 = efeito máximo"}</span></div>`;
+}
+
+function formatDuration(ms){
+ const sec=Math.max(0,Math.floor(ms/1000)),h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s2=sec%60;
+ return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s2).padStart(2,"0");
+}
+function afkSnapshot(now=Date.now()){
+ const elapsed=clamp(now-(save.lastAfkClaim||now),0,AFK_CAP_MS),minutes=elapsed/60000;
+ return{elapsed,gold:Math.floor(minutes*AFK_RATES.goldPerMin),exp:Math.floor(minutes*AFK_RATES.expPerMin),essence:Math.floor(minutes*AFK_RATES.essencePerMin)};
+}
+function renderAfk(){
+ const r=afkSnapshot(),badge=$("#afkTimerBadge");
+ if(badge)badge.textContent=formatDuration(r.elapsed);
+ if($("#afkGold"))$("#afkGold").textContent=r.gold.toLocaleString("pt-BR");
+ if($("#afkExp"))$("#afkExp").textContent=r.exp.toLocaleString("pt-BR");
+ if($("#afkEssence"))$("#afkEssence").textContent=r.essence.toLocaleString("pt-BR");
+ if($("#afkRateText"))$("#afkRateText").textContent="Taxa: 🪙 "+AFK_RATES.goldPerMin+"/min • ⭐ "+AFK_RATES.expPerMin+"/min • ✨ ~"+Math.round(AFK_RATES.essencePerMin*60)+"/h";
+ if($("#claimAfkBtn"))$("#claimAfkBtn").disabled=r.gold<1&&r.exp<1&&r.essence<1;
+}
+function claimAfk(auto=false){
+ const r=afkSnapshot();if(r.gold<1&&r.exp<1&&r.essence<1){if(!auto)toast("O baú ainda está vazio");return false}
+ save.gold+=r.gold;save.accountExp+=r.exp;save.essence+=r.essence;save.lastAfkClaim=Date.now();persist();renderAfk();
+ rewardBurst([{text:"🪙 +"+r.gold,kind:"gold"},{text:"⭐ +"+r.exp+" EXP",kind:"exp"},{text:"✨ +"+r.essence,kind:"diamond"}]);
+ if(!auto)toast("📦 Espólios AFK recolhidos");else toast("📦 Recompensas offline recebidas");
+ AudioEngine.sfx("reward");haptic([10,20,25]);return true;
+}
+function processOfflineRewards(){const r=afkSnapshot();if(r.elapsed>=60000)setTimeout(()=>claimAfk(true),900)}
+function startAfkTicker(){clearInterval(afkTicker);renderAfk();afkTicker=setInterval(()=>{if($("#afkScreen")?.classList.contains("active"))renderAfk()},1000)}
+
+function awakeningEligible(id){return (save.heroLevels[id]||1)>=20||(save.stars[id]||1)>=5}
+function awakeningCost(id){return AWAKEN_COSTS[clamp(save.awakening[id]||0,0,AWAKEN_MAX-1)]||{gold:0,stones:0}}
+function renderAwakening(){
+ if(!save.owned[selectedAwakeningHero])selectedAwakeningHero=HEROES.find(h=>save.owned[h.id])?.id||HEROES[0].id;
+ const grid=$("#awakeningHeroGrid");if(!grid)return;grid.innerHTML="";
+ HEROES.forEach(h=>{
+  const own=save.owned[h.id],lv=save.awakening[h.id]||0,a=affinityOf(h.id),e=document.createElement("button");
+  e.className="awakenHeroCard"+(selectedAwakeningHero===h.id?" selected":"")+(!own?" locked":"");
+  e.innerHTML=`<div class="awakenHeroTop"><span>${own?h.emoji:"❔"}</span><div><b>${h.name}</b><small>${a.icon} ${a.element} • ${a.factionName}</small></div></div><div class="awakenLevel">🌟 Despertar ${lv}/${AWAKEN_MAX}</div>`;
+  e.onclick=()=>{selectedAwakeningHero=h.id;renderAwakening()};grid.appendChild(e);
+ });
+ const h=hero(selectedAwakeningHero),own=save.owned[h.id],aw=save.awakening[h.id]||0,eligible=awakeningEligible(h.id),cost=awakeningCost(h.id),a=affinityOf(h.id);
+ if(!own){$("#awakeningDetail").innerHTML='<div class="small">Invoque este herói primeiro para liberar o Despertar.</div>';return}
+ const effects=AWAKEN_EFFECTS[h.id]||[];
+ $("#awakeningDetail").innerHTML=`<div class="awakenHead"><div class="awakenAvatar">${h.emoji}</div><div><h2>${h.name}</h2><p>${a.icon} ${a.element} • Fação ${a.factionName}<br>${starString(save.stars[h.id]||1)} • Nv.${save.heroLevels[h.id]||1}</p></div></div>
+ <div class="awakenReq ${eligible?"ready":""}">${eligible?"✓ Requisito cumprido":"🔒 Requer Nível 20 OU 5★"} • Ultimate: <b>${h.ult.name}</b></div>
+ <div class="talentSteps">${effects.map((txt,i)=>`<div class="talentStep ${aw>i?"active":""}"><b>${aw>i?"✓":"○"} Despertar ${i+1}</b><small>${txt}</small></div>`).join("")}</div>
+ <div class="awakenCost"><span>🪙 ${aw<AWAKEN_MAX?cost.gold.toLocaleString("pt-BR"):"—"}</span><span>🌟 ${aw<AWAKEN_MAX?cost.stones:"—"} Pedras</span></div>
+ <button id="awakenHeroBtn" class="btn awakenBtn" style="width:100%;margin-top:8px" ${!eligible||aw>=AWAKEN_MAX||save.gold<cost.gold||save.awakeningStones<cost.stones?"disabled":""}>${aw>=AWAKEN_MAX?"DESPERTAR MÁXIMO":"Despertar para Nv."+(aw+1)}</button>`;
+ const btn=$("#awakenHeroBtn");if(btn)btn.onclick=()=>awakenHero(h.id);
+}
+function awakenHero(id){
+ const aw=save.awakening[id]||0;if(!awakeningEligible(id)||aw>=AWAKEN_MAX)return;
+ const c=awakeningCost(id);if(save.gold<c.gold||save.awakeningStones<c.stones)return toast("Recursos de Despertar insuficientes");
+ save.gold-=c.gold;save.awakeningStones-=c.stones;save.awakening[id]=aw+1;persist();renderAwakening();renderHeroes();
+ rewardFloat("🌟 "+hero(id).name+" • Despertar "+(aw+1),"diamond");AudioEngine.sfx("reward");haptic([25,30,45]);
+}
+
+const AudioEngine={
+ muted:!!save.audioMuted,unlocked:false,bgm:null,bgmKey:null,cache:{},
+ get(key,loop=false){
+  if(!AUDIO_ASSETS[key])return null;
+  if(!this.cache[key]){const a=new Audio(AUDIO_ASSETS[key]);a.preload="none";a.loop=loop;a.volume=loop ? .28 : .45;this.cache[key]=a}
+  return this.cache[key];
+ },
+ unlock(){this.unlocked=true;this.updateButton()},
+ stopBgm(){if(this.bgm){try{this.bgm.pause();this.bgm.currentTime=0}catch(e){}}this.bgm=null;this.bgmKey=null},
+ scene(screenId){
+  const key=screenId==="battleScreen"?"battle":"menu";if(this.bgmKey===key)return;
+  this.stopBgm();this.bgmKey=key;if(this.muted||!this.unlocked)return;
+  const a=this.get(key,true);if(a){this.bgm=a;a.play().catch(()=>{})}
+ },
+ fallbackTone(freq=440,dur=.045,vol=.018){
+  if(this.muted||!this.unlocked)return;
+  try{uiAudio=uiAudio||new (window.AudioContext||window.webkitAudioContext)();const o=uiAudio.createOscillator(),g=uiAudio.createGain();o.frequency.value=freq;g.gain.value=vol;o.connect(g);g.connect(uiAudio.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,uiAudio.currentTime+dur);o.stop(uiAudio.currentTime+dur)}catch(e){}
+ },
+ sfx(key){
+  if(this.muted||!this.unlocked)return;
+  const a=this.get(key,false);if(a){try{a.currentTime=0;a.play().catch(()=>this.fallbackTone(key==="impact"?180:key==="ultimateReady"?720:key==="ultimate"?260:520,key==="ultimate"?.14:.045))}catch(e){this.fallbackTone(520)}}else this.fallbackTone(520);
+ },
+ toggle(){this.muted=!this.muted;save.audioMuted=this.muted;persist();if(this.muted)this.stopBgm();else this.scene($("#battleScreen")?.classList.contains("active")?"battleScreen":"homeScreen");this.updateButton();toast(this.muted?"🔇 Áudio desativado":"🔊 Áudio ativado")},
+ updateButton(){const b=$("#muteBtn");if(b){b.textContent=this.muted?"🔇":"🔊";b.classList.toggle("muted",this.muted)}}
+};
+
+function storyLineAvatar(id){const h=hero(id);return h?h.emoji:id==="vorak"?"🐉":"✨"}
+function playCutscene(lines,key,onDone){
+ if(key&&save.storySeen[key]){onDone();return}
+ storyState={lines,index:0,key,onDone,typing:false,timer:null,full:""};$("#storyModal").classList.add("show");showStoryLine();
+}
+function showStoryLine(){
+ const st=storyState;if(!st)return;const line=st.lines[st.index];if(!line){finishStory();return}
+ clearInterval(st.timer);st.full=line.text;st.typing=true;$("#storyAvatar").textContent=storyLineAvatar(line.hero);$("#storySpeaker").textContent=line.speaker;$("#storyText").textContent="";
+ let i=0;st.timer=setInterval(()=>{i++;$("#storyText").textContent=st.full.slice(0,i);if(i>=st.full.length){clearInterval(st.timer);st.typing=false}},22);
+}
+function nextStory(){
+ const st=storyState;if(!st)return;
+ if(st.typing){clearInterval(st.timer);$("#storyText").textContent=st.full;st.typing=false;return}
+ st.index++;if(st.index>=st.lines.length)finishStory();else showStoryLine();
+}
+function finishStory(){
+ const st=storyState;if(!st)return;clearInterval(st.timer);if(st.key){save.storySeen[st.key]=true;persist()}
+ $("#storyModal").classList.remove("show");storyState=null;const cb=st.onDone;setTimeout(()=>cb&&cb(),120);
+}
+function skipStory(){finishStory()}
+function campaignCutscene(stg,cb){if(stg.id===5)playCutscene(CUTSCENES.stage5,"campaign-stage-1-5",cb);else cb()}
+function worldBossCutscene(cb){playCutscene(CUTSCENES.worldBoss,"worldboss-"+todayKey(),cb)}
+
+let toastTimer=null;
+function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2200)}
+function currencyIcon(c){return c==="gold"?"🪙":c==="diamonds"?"💎":"🏟️"}
+
+
+function resetDailyMissions(){
+ if(save.missionDate!==todayKey()){
+  save.missionDate=todayKey();
+  save.dailyCounters={arenaWins:0,summons:0,levelUps:0,campaignWins:0};
+  save.dailyClaimed={};
+  localStorage.setItem(SAVE_KEY,JSON.stringify(save));
+ }
+}
+function trackEvent(key,amount=1){
+ resetDailyMissions();
+ save.lifetime[key]=(save.lifetime[key]||0)+amount;
+ if(Object.prototype.hasOwnProperty.call(save.dailyCounters,key))save.dailyCounters[key]=(save.dailyCounters[key]||0)+amount;
+ persist();
+}
+function achievementProgress(a){
+ if(a.key==="maxHeroLevel")return Math.max(...Object.values(save.heroLevels||{a:1}));
+ if(a.key==="arenaRating")return save.arenaRating||0;
+ return (save.lifetime&&save.lifetime[a.key])||0;
+}
+function claimableDailyCount(){
+ resetDailyMissions();
+ return DAILY_MISSIONS.filter(m=>(save.dailyCounters[m.key]||0)>=m.target&&!save.dailyClaimed[m.id]).length;
+}
+function updateMissionIndicators(){
+ const n=claimableDailyCount(),dot=$("#missionNavDot"),badge=$("#missionBadge");
+ if(dot)dot.classList.toggle("show",n>0);
+ if(badge){badge.textContent=n?String(n)+" prontas":"Diárias";badge.classList.toggle("ready",n>0)}
+}
+function rewardText(r){return "🪙"+(r.gold||0)+" • 💎"+(r.diamonds||0)+(r.contribution?" • 🤝"+r.contribution:"")}
+function renderMissions(tab="daily"){
+ resetDailyMissions();
+ const daily=$("#dailyMissions"),ach=$("#achievementList"),dTab=$("#dailyTab"),aTab=$("#achievementTab");
+ if(!daily||!ach)return;
+ dTab.classList.toggle("active",tab==="daily");aTab.classList.toggle("active",tab==="achievements");
+ daily.style.display=tab==="daily"?"grid":"none";ach.style.display=tab==="achievements"?"grid":"none";
+ daily.innerHTML=DAILY_MISSIONS.map(m=>{
+  const p=save.dailyCounters[m.key]||0,done=p>=m.target,claimed=!!save.dailyClaimed[m.id],pct=Math.min(100,p/m.target*100);
+  return `<div class="missionCard ${done?"complete":""} ${claimed?"claimed":""}"><div class="missionTop"><div><b>${m.icon} ${m.title}</b><span>${m.desc}</span></div><div class="missionReward">${rewardText(m.reward)}</div></div><div class="missionBar"><i style="width:${pct}%"></i></div><div class="missionBottom"><span>${Math.min(p,m.target)}/${m.target}</span><button class="btn claimMissionBtn" data-id="${m.id}" ${!done||claimed?"disabled":""}>${claimed?"Resgatada":"Resgatar"}</button></div></div>`;
+ }).join("");
+ ach.innerHTML=ACHIEVEMENTS.map(a=>{
+  const p=achievementProgress(a),done=p>=a.target,claimed=!!save.achievementClaimed[a.id],pct=Math.min(100,p/a.target*100);
+  return `<div class="missionCard ${done?"complete":""} ${claimed?"claimed":""}"><div class="missionTop"><div><b>${a.icon} ${a.title}</b><span>${a.desc}</span></div><div class="missionReward">${rewardText(a.reward)}</div></div><div class="missionBar"><i style="width:${pct}%"></i></div><div class="missionBottom"><span>${Math.min(p,a.target)}/${a.target}</span><button class="btn claimAchievementBtn" data-id="${a.id}" ${!done||claimed?"disabled":""}>${claimed?"Obtida":"Resgatar"}</button></div></div>`;
+ }).join("");
+ $(".claimMissionBtn").forEach(b=>b.onclick=()=>claimDaily(b.dataset.id));
+ $(".claimAchievementBtn").forEach(b=>b.onclick=()=>claimAchievement(b.dataset.id));
+ updateMissionIndicators();renderResources();
+}
+function claimDaily(id){
+ const m=DAILY_MISSIONS.find(x=>x.id===id);if(!m||save.dailyClaimed[id]||(save.dailyCounters[m.key]||0)<m.target)return;
+ save.dailyClaimed[id]=true;save.gold+=m.reward.gold||0;save.diamonds+=m.reward.diamonds||0;save.guildContribution+=m.reward.contribution||0;
+ persist();rewardBurst([{text:"🪙 +"+(m.reward.gold||0),kind:"gold"},{text:"💎 +"+(m.reward.diamonds||0),kind:"diamond"}]);renderMissions("daily");toast("🎯 Missão resgatada!");
+}
+function claimAchievement(id){
+ const a=ACHIEVEMENTS.find(x=>x.id===id);if(!a||save.achievementClaimed[id]||achievementProgress(a)<a.target)return;
+ save.achievementClaimed[id]=true;save.gold+=a.reward.gold||0;save.diamonds+=a.reward.diamonds||0;
+ persist();rewardBurst([{text:"🪙 +"+(a.reward.gold||0),kind:"gold"},{text:"💎 +"+(a.reward.diamonds||0),kind:"diamond"}]);renderMissions("achievements");toast("🏆 Conquista resgatada!");
+}
+function guildUpgradeCost(type){const lv=save[type]||0;return 80+lv*60}
+function renderGuild(){
+ const panel=$("#guildPanel");if(!panel)return;
+ if(!save.guildId){
+  panel.innerHTML=`<div class="guildIntro card"><div class="small">FACÇÕES DE NERDORA</div><h2>Escolha sua Guilda</h2><p>Entre em uma facção para liberar melhorias permanentes para todos os heróis. Ao entrar, você recebe 100 Moedas de Contribuição para começar.</p><div class="guildChoices">${GUILDS.map(g=>`<div class="guildChoice"><div class="guildEmblem">${g.emblem}</div><div><b>${g.name}</b><small>${g.motto}</small></div><button class="btn joinGuildBtn" data-id="${g.id}">Entrar</button></div>`).join("")}</div></div>`;
+  $(".joinGuildBtn").forEach(b=>b.onclick=()=>joinGuild(b.dataset.id));return;
+ }
+ const g=GUILDS.find(x=>x.id===save.guildId)||GUILDS[0];
+ const upgrades=[
+  {key:"guildAttack",icon:"⚔️",name:"Ofensiva da Guilda",desc:"+1% ATQ Físico e Mágico por nível",lv:save.guildAttack||0},
+  {key:"guildDefense",icon:"🛡️",name:"Muralha da Guilda",desc:"+1% DEF Física e Mágica por nível",lv:save.guildDefense||0},
+  {key:"guildHp",icon:"❤️",name:"Vitalidade da Guilda",desc:"+1,5% HP por nível",lv:save.guildHp||0}
+ ];
+ panel.innerHTML=`<div class="guildMain card"><div class="small">SUA FACÇÃO</div><h2>${g.emblem} ${g.name}</h2><p>${g.motto}</p><div class="guildSummary"><div class="guildStat"><b>${save.guildContribution}</b><span>CONTRIBUIÇÃO</span></div><div class="guildStat"><b>+${save.guildAttack||0}%</b><span>ATAQUE</span></div><div class="guildStat"><b>+${save.guildDefense||0}%</b><span>DEFESA</span></div></div><div class="guildUpgradeGrid">${upgrades.map(u=>{const cost=guildUpgradeCost(u.key),max=u.lv>=10;return `<div class="guildUpgrade"><div><b>${u.icon} ${u.name} • Nv.${u.lv}</b><small>${u.desc}</small></div><button class="btn guildUpgradeBtn" data-key="${u.key}" ${max||save.guildContribution<cost?"disabled":""}>${max?"Máx.":"🤝 "+cost}</button></div>`}).join("")}</div><div class="guildMembers"><h3>Membros ativos</h3>${g.members.map((m,i)=>`<div class="guildMember"><span>${i===0?"👑":"•"} ${m}</span><span>Poder ${(9200-i*530).toLocaleString("pt-BR")}</span></div>`).join("")}</div></div>`;
+ $(".guildUpgradeBtn").forEach(b=>b.onclick=()=>upgradeGuild(b.dataset.key));
+}
+function joinGuild(id){
+ const g=GUILDS.find(x=>x.id===id);if(!g||save.guildId)return;
+ save.guildId=id;save.guildContribution+=100;persist();renderGuild();renderHeroes();toast(g.emblem+" Você entrou na "+g.name);
+}
+function upgradeGuild(key){
+ const lv=save[key]||0,cost=guildUpgradeCost(key);if(lv>=10||save.guildContribution<cost)return;
+ save.guildContribution-=cost;save[key]=lv+1;persist();renderGuild();renderHeroes();renderFormation();toast("🛡️ Bônus da Guilda aumentado!");
+}
+
+/* feedback sonoro e visual */
+let uiAudio=null;
+function uiClickSound(){AudioEngine.sfx("click")}
+document.addEventListener("pointerdown",e=>{
+ if(!AudioEngine.unlocked){
+  AudioEngine.unlock();
+  const current=$(".screen.active")?.id||"homeScreen";AudioEngine.scene(current);
+ }
+ const b=e.target.closest("button");if(!b||b.disabled)return;
+ b.classList.remove("tapFx");void b.offsetWidth;b.classList.add("tapFx");setTimeout(()=>b.classList.remove("tapFx"),220);
+ uiClickSound();haptic(7);
+});
+
+function starString(n){n=clamp(n||1,1,5);return "★".repeat(n)+"☆".repeat(5-n)}
+function starUp(heroId){
+ const cur=clamp(save.stars[heroId]||1,1,5);if(cur>=5)return;
+ const cost=STAR_COST[cur]||9999,have=save.shards[heroId]||0;if(have<cost)return toast("Fragmentos insuficientes");
+ save.shards[heroId]-=cost;save.stars[heroId]=cur+1;persist();renderHeroes();renderFormation();
+ rewardFloat("⭐ "+hero(heroId).name+" agora tem "+(cur+1)+" estrelas!","gold");haptic([20,35,40]);
+}
+function dailyWorldBossReset(){
+ if(save.worldBossDate!==todayKey()){
+  save.worldBossDate=todayKey();save.worldBossAttempts=3;save.worldBossBest=0;save.worldBossLast=0;
+  save.worldBossTotal=0;save.worldBossRemainingHp=WORLD_BOSS_MAX_HP;persist();
+ }
+}
+function seededDailyNumbers(){
+ const seedBase=Number(todayKey().replaceAll("-",""))||1;let x=(seedBase*1103515245+12345)>>>0;
+ const rnd=()=>{x=(Math.imul(x,1664525)+1013904223)>>>0;return x/4294967296};
+ return Array.from({length:7},(_,i)=>({name:["AstraBR","KuroRaid","NekoKing","YumeGO","DrakeZero","MikaStar","AkiraGO"][i],damage:Math.round(5500+rnd()*29000)}));
+}
+function worldBossRanking(){
+ const rows=seededDailyNumbers();
+ if(save.worldBossBest>0)rows.push({name:"Você",damage:save.worldBossBest,you:true});
+ return rows.sort((a,b)=>b.damage-a.damage).slice(0,8);
+}
+function renderWorldBoss(){
+ dailyWorldBossReset();renderResources();
+ const remaining=clamp(save.worldBossRemainingHp,0,WORLD_BOSS_MAX_HP),pct=remaining/WORLD_BOSS_MAX_HP*100;
+ $("#bossAttemptsBadge").textContent=save.worldBossAttempts+"/3";
+ $("#bossPreviewHp").textContent=remaining.toLocaleString("pt-BR")+" / "+WORLD_BOSS_MAX_HP.toLocaleString("pt-BR");
+ $("#bossPreviewFill").style.width=pct+"%";
+ $("#startWorldBoss").disabled=save.worldBossAttempts<1||remaining<=0||used().length!==5;
+ $("#startWorldBoss").textContent=remaining<=0?"✅ Chefe derrotado hoje":save.worldBossAttempts<1?"Sem tentativas hoje":"🐉 Iniciar Raid";
+ $("#worldBossRanking").innerHTML=worldBossRanking().map((r,i)=>`<div class="raidRankRow"><div class="pos">#${i+1}</div><div><b>${r.you?"⭐ ":""}${r.name}</b><small>${r.you?"Sua melhor tentativa":"Guilda rival"}</small></div><div class="damage">${r.damage.toLocaleString("pt-BR")}</div></div>`).join("");
+}
+function beginWorldBossBattle(){
+ save.worldBossAttempts--;persist();
+ const boss=new Unit(BOSS_HERO,"enemy",SLOTS[0],{level:50,scale:1});
+ boss.maxHp=WORLD_BOSS_MAX_HP;boss.hp=save.worldBossRemainingHp;boss.id="enemy_vorak_F1";
+ lastBattleMode="boss";landscape();battle=new Battle(playerTeam(),[boss],{mode:"boss",code:"Raid",name:BOSS_HERO.name,damage:0});
+ show("battleScreen");$("#battleStageName").textContent="RAID • VORAK";$("#battleLog").innerHTML="";
+ battle.log("🐉 Vorak desperta com "+boss.hp.toLocaleString("pt-BR")+" HP restante.");renderBattle();battle.loop();
+}
+function startWorldBossBattle(){
+ dailyWorldBossReset();
+ if(used().length!==5)return toast("Monte uma formação com 5 heróis");
+ if(save.worldBossAttempts<1)return toast("Sem tentativas de Raid hoje");
+ if(save.worldBossRemainingHp<=0)return toast("Vorak já foi derrotado hoje");
+ worldBossCutscene(beginWorldBossBattle);
+}
+function bossRewardFor(damage){
+ if(damage>=50000)return{gold:3200,diamonds:160,contribution:120,stones:3};
+ if(damage>=25000)return{gold:2200,diamonds:110,contribution:90,stones:2};
+ if(damage>=12000)return{gold:1500,diamonds:75,contribution:65,stones:1};
+ if(damage>=5000)return{gold:950,diamonds:45,contribution:45,stones:1};
+ return{gold:550,diamonds:25,contribution:25,stones:0};
+}
+function towerScale(floor){return .65+floor*.032}
+function towerReward(floor){
+ return{
+  gold:350+floor*90,
+  diamonds:15+Math.floor(floor/5)*20,
+  crystals:3+Math.ceil(floor*.7)+(floor%5===0?10:0),
+  contribution:8+Math.ceil(floor/3),
+  stones:floor%5===0?1+Math.floor(floor/20):0
+ };
+}
+function towerEnemyTeam(floor){
+ const ids=Array.from({length:5},(_,i)=>HEROES[(floor*3+i*2)%HEROES.length].id);
+ const sc=towerScale(floor),lv=Math.max(1,Math.ceil(floor/2));
+ return SLOTS.map((slot,i)=>new Unit(hero(ids[i]),"enemy",slot,{level:lv,scale:sc}));
+}
+function renderTower(){
+ const floor=clamp(save.towerFloor||1,1,TOWER_MAX),completed=save.towerBest>=TOWER_MAX;
+ $("#towerTitle").textContent=completed?"Torre concluída • Andar 50":"Andar "+floor;
+ $("#towerDesc").textContent=completed?"Você alcançou o topo. O Andar 50 pode ser repetido sem recompensa de primeira conclusão.":"Poder inimigo ×"+towerScale(floor).toFixed(2)+" • primeira conclusão concede recursos raros.";
+ const start=Math.max(1,Math.min(floor-1,TOWER_MAX-4));
+ $("#towerMilestones").innerHTML=Array.from({length:5},(_,i)=>start+i).filter(x=>x<=TOWER_MAX).map(fl=>{
+  const rw=towerReward(fl),cleared=fl<=save.towerBest,current=fl===floor;
+  return `<div class="towerFloorCard ${cleared?"cleared":""} ${current?"current":""}"><div class="towerFloorNo">${cleared?"✓":fl}</div><div><b>Andar ${fl}${fl%5===0?" • Elite":""}</b><small>Inimigos Nv.${Math.ceil(fl/2)} • força ×${towerScale(fl).toFixed(2)}</small></div><div class="towerReward">🔷 <strong>+${rw.crystals}</strong>🪙 ${rw.gold}${rw.stones?"<br>🌟 +"+rw.stones:""}</div></div>`;
+ }).join("");
+ $("#startTower").textContent=completed?"⚔️ Repetir Andar 50":"⚔️ Desafiar Andar "+floor;
+ $("#startTower").disabled=used().length!==5;renderResources();
+}
+function startTowerBattle(){
+ if(used().length!==5)return toast("Monte uma formação com 5 heróis");
+ const floor=clamp(save.towerFloor||1,1,TOWER_MAX);
+ lastBattleMode="tower";landscape();battle=new Battle(playerTeam(),towerEnemyTeam(floor),{mode:"tower",floor,name:"Torre do Abismo"});
+ show("battleScreen");$("#battleStageName").textContent="ABISMO • ANDAR "+floor;$("#battleLog").innerHTML="";
+ battle.log("🗼 Andar "+floor+" iniciado • força inimiga ×"+towerScale(floor).toFixed(2)+".");renderBattle();battle.loop();
+}
+
+function dailyArenaReset(){
+ if(save.arenaDate!==todayKey()){save.arenaDate=todayKey();save.arenaAttempts=5;save.arenaDailyPoints=0;persist()}
+}
+function arenaTier(){
+ const r=save.arenaRating;
+ if(r>=1600)return["Diamante","tierDiamond"];if(r>=1350)return["Ouro","tierGold"];if(r>=1150)return["Prata","tierSilver"];return["Bronze","tierBronze"];
+}
+
+/* CAMPANHA */
+function renderCampaign(){
+ const grid=$("#stageGrid");grid.innerHTML="";
+ STAGES.forEach(s=>{
+  const unlocked=s.id<=save.unlockedStage,sel=s.id===save.selectedStage,b=document.createElement("button");
+  b.className="stageCard"+(!unlocked?" locked":"")+(sel?" selected":"");b.disabled=!unlocked;
+  b.innerHTML=`<div class="stageNode">${unlocked?s.code:"🔒"}</div><div class="stageInfo"><b>Fase ${s.code} • ${s.name}</b><small>Inimigos Nv.${s.enemyLevel} • ${s.power}<br>🪙${s.rewards.gold} • ⭐${s.rewards.exp} • 💎${s.rewards.diamonds} • 🎁 Equipamento</small></div><div class="stagePower"><strong>${unlocked?"JOGAR":"BLOQUEADA"}</strong><span>Força ×${s.scale.toFixed(2)}</span></div>`;
+  b.onclick=()=>{save.selectedStage=s.id;persist();renderCampaign();renderFormation();show("formationScreen")};grid.appendChild(b);
+ });
+}
+
+/* FORMAÇÃO */
+function renderFormation(){
+ const stg=stage(),info=$("#formationStageInfo");
+ info.innerHTML=`<div><b>🗺️ Fase ${stg.code} • ${stg.name}</b><br><span>Inimigos Nv.${stg.enemyLevel} • ${stg.power}</span></div><div class="badge">×${stg.scale.toFixed(2)}</div>`;
+ const board=$("#formationBoard");board.innerHTML="";
+ SLOTS.forEach(slot=>{
+  const h=formation[slot.id]?hero(formation[slot.id]):null,e=document.createElement("button");
+  e.className="slot "+slot.line+(activeSlot===slot.id?" selected":"")+(h?" filled":"");e.dataset.slot=slot.id;
+  e.innerHTML=h?`<span class="emoji">${h.emoji}</span><b>${h.name}</b><em>Nv.${save.heroLevels[h.id]} • ${affinityOf(h.id).factionName}</em>`:`<span class="emoji">＋</span><b>${slot.label}</b><em>${slot.line==="front"?"Front-line":"Back-line"}</em>`;
+  e.onclick=()=>{activeSlot=slot.id;renderFormation()};board.appendChild(e);
+ });
+ const roster=$("#roster");roster.innerHTML="";
+ HEROES.filter(h=>save.owned[h.id]).forEach(h=>{
+  const st=heroStats(h),a=affinityOf(h.id),e=document.createElement("button");e.className="rosterCard"+(used().includes(h.id)?" used":"");
+  e.innerHTML=`<div class="rosterHead"><span class="avatar">${h.emoji}</span><div><b>${h.name}</b><div class="meta">Nv.${st.level} • ${h.role} • SPD ${st.sp}</div><span class="factionTag ${a.faction}">${a.icon} ${a.factionName} • ${a.element}</span></div></div><div class="rosterStats"><span>HP ${st.hp}</span><span>ATQ ${Math.max(st.pa,st.ma)}</span><span>DEF ${Math.max(st.pd,st.md)}</span></div>`;
+  e.onclick=()=>{Object.keys(formation).forEach(k=>{if(formation[k]===h.id)formation[k]=null});formation[activeSlot]=h.id;const i=SLOTS.findIndex(x=>x.id===activeSlot);activeSlot=SLOTS[Math.min(i+1,4)].id;persist();renderFormation()};roster.appendChild(e);
+ });
+ $("#selectedCount").textContent=used().length;$("#startBattle").disabled=used().length!==5;renderSynergyPanel();
+}
+
+/* HERÓIS / EQUIPAMENTOS */
+function bonusText(g){return Object.entries(g.bonus).map(([k,v])=>({hp:"HP",pa:"ATQ F",ma:"ATQ M",pd:"DEF F",md:"DEF M",sp:"SPD"}[k]+" +"+v)).join(" • ")}
+function rarityClass(r){return r==="Épico"?"gearEpic":r==="Raro"?"gearRare":""}
+function renderHeroes(){
+ const grid=$("#heroManageGrid");grid.innerHTML="";
+ HEROES.forEach(h=>{
+  const own=save.owned[h.id],st=heroStats(h),e=document.createElement("button");
+  e.className="heroManageCard"+(selectedHero===h.id?" selected":"")+(!own?" locked":"");
+  e.innerHTML=`<div class="heroManageTop"><span class="heroManageEmoji">${own?h.emoji:"❔"}</span><div><div class="heroManageName">${h.name}</div><div class="heroManageMeta">${h.role} • ${own?"Nv."+st.level:"Não obtido"} • ${affinityOf(h.id).element}</div></div></div><div class="heroManageBars"><span>HP ${own?st.hp:"—"}</span><span>ATQ ${own?Math.max(st.pa,st.ma):"—"}</span></div><div class="heroOwnership">${own?starString(st.stars)+" • 🧩 "+(save.shards[h.id]||0):"🔒 Invoque no Portal"}</div>`;
+  e.onclick=()=>{selectedHero=h.id;renderHeroes()};grid.appendChild(e);
+ });
+ const h=hero(selectedHero),own=save.owned[h.id],st=heroStats(h),cost=levelCost(h.id),max=st.level>=20;
+ if(!own){
+  $("#heroDetail").innerHTML=`<div class="heroDetailHeader"><div class="heroDetailAvatar">❔</div><div class="heroDetailTitle"><h2>${h.name}</h2><p>${h.role} • ainda não obtido</p></div></div><div class="levelPanel"><p class="small">Este herói pode ser obtido no Portal de Invocação. Duplicatas futuras serão convertidas em Fragmentos.</p><button class="btn portalBtn" id="heroToPortal" style="width:100%">🔮 Ir ao Portal</button></div>`;
+  $("#heroToPortal").onclick=()=>{renderPortal();show("portalScreen")};return;
+ }
+ const eq=save.equipment[h.id];
+ const equipHtml=Object.keys(SLOT_NAMES).map(slot=>{
+  const gid=eq[slot],g=gid?GEAR[gid]:null;
+  return `<div class="equipSlot"><div class="equipSlotTitle">${SLOT_NAMES[slot]}</div><b class="${g?rarityClass(g.rarity):""}">${g?g.icon+" "+g.name:"Vazio"}</b><small>${g?bonusText(g):"Sem bônus"}</small>${g?`<button class="btn ghost unequipBtn" data-slot="${slot}">Remover</button>`:""}</div>`;
+ }).join("");
+ const inv=Object.entries(save.gearInventory).filter(([,q])=>q>0).map(([gid,q])=>({g:GEAR[gid],q})).filter(x=>x.g);
+ const invHtml=inv.length?inv.map(({g,q})=>`<div class="gearRow"><div class="gearIcon">${g.icon}</div><div><b class="${rarityClass(g.rarity)}">${g.name} ×${q}</b><small>${SLOT_NAMES[g.slot]} • ${bonusText(g)}</small></div><button class="btn equipBtn" data-gear="${g.id}">Equipar</button></div>`).join(""):'<div class="small">Nenhum equipamento no inventário. Vença fases ou visite a Loja.</div>';
+ const stars=st.stars,starCost=stars<5?STAR_COST[stars]:0,have=save.shards[h.id]||0,starPct=stars>=5?100:Math.min(100,have/starCost*100);
+ $("#heroDetail").innerHTML=`<div class="heroDetailHeader"><div class="heroDetailAvatar">${h.emoji}</div><div class="heroDetailTitle"><h2>${h.name}</h2><p>${h.role} • ${h.line==="front"?"Front-line":"Back-line"} • ${h.type==="magic"?"Mágico":"Físico"}</p><div class="heroAffinityLine"><span class="factionTag ${affinityOf(h.id).faction}">${affinityOf(h.id).icon} ${affinityOf(h.id).factionName}</span><span class="factionTag">${affinityOf(h.id).element}</span></div><div class="starLine">${starString(stars)}</div><div class="awakenMini">🌟 Despertar ${save.awakening[h.id]||0}/${AWAKEN_MAX}</div></div></div>
+ <div class="heroStatGrid"><div class="heroStat"><span>HP Máximo</span><b>${st.hp}</b></div><div class="heroStat"><span>Velocidade</span><b>${st.sp}</b></div><div class="heroStat"><span>ATQ Físico</span><b>${st.pa}</b></div><div class="heroStat"><span>ATQ Mágico</span><b>${st.ma}</b></div><div class="heroStat"><span>DEF Física</span><b>${st.pd}</b></div><div class="heroStat"><span>DEF Mágica</span><b>${st.md}</b></div></div>
+ <div class="starPanel"><div class="starPanelTop"><b>⭐ Evolução de Estrelas</b><span>${stars}/5</span></div><div class="starProgress"><i style="width:${starPct}%"></i></div><button id="starUpBtn" class="btn gold" ${stars>=5||have<starCost?"disabled":""}>${stars>=5?"5★ MÁXIMO":"Evoluir para "+(stars+1)+"★ • 🧩 "+starCost}</button><div class="starBonus">${stars>=5?"Atributos base no multiplicador máximo ×2,00":"Próximo multiplicador: ×"+STAR_MULT[stars+1].toFixed(2)} • Fragmentos: ${have}</div></div>
+ <button id="heroAwakenShortcut" class="btn awakenBtn" style="width:100%;margin-top:9px">🌟 Talentos e Despertar</button><div class="levelPanel"><div class="levelProgress"><b>Nível ${st.level}${max?" • MÁXIMO":""}</b><span>🪙 ${save.gold}</span></div><button id="levelUpBtn" class="btn primary levelUpBtn" ${max||save.gold<cost?"disabled":""}>${max?"Nível máximo":"⬆ Subir de Nível • 🪙 "+cost}</button><button id="usePotionBtn" class="btn ghost levelUpBtn" style="margin-top:6px" ${max||save.potions<1?"disabled":""}>🧪 Usar Poção de Treino (${save.potions})</button><div class="shardLine">Ultimate: <b>${h.ult.name}</b></div></div>
+ <div class="equipPanel"><h3>Equipamentos</h3><div class="equipGrid">${equipHtml}</div><div class="inventoryTitle">Inventário de equipamentos</div><div class="gearInventory">${invHtml}</div></div>`;
+ $("#starUpBtn").onclick=()=>starUp(h.id);$("#heroAwakenShortcut").onclick=()=>{selectedAwakeningHero=h.id;renderAwakening();show("awakeningScreen")};$("#levelUpBtn").onclick=()=>levelUp(h.id);$("#usePotionBtn").onclick=()=>usePotion(h.id);
+ $(".unequipBtn").forEach(b=>b.onclick=()=>unequip(h.id,b.dataset.slot));
+ $(".equipBtn").forEach(b=>b.onclick=()=>equip(h.id,b.dataset.gear));
+}
+function levelUp(id){
+ const lv=save.heroLevels[id]||1,cost=levelCost(id);if(lv>=20||save.gold<cost)return;
+ save.gold-=cost;save.heroLevels[id]=lv+1;trackEvent("levelUps",1);renderHeroes();renderFormation();toast("⬆ "+hero(id).name+" subiu para Nv."+(lv+1));
+}
+function usePotion(id){
+ if(save.potions<1||(save.heroLevels[id]||1)>=20)return;
+ save.potions--;save.heroLevels[id]++;trackEvent("levelUps",1);renderHeroes();renderFormation();toast("🧪 Nível aumentado com Poção");
+}
+function equip(heroId,gearId){
+ const g=GEAR[gearId];if(!g||(save.gearInventory[gearId]||0)<1)return;
+ const slot=g.slot,old=save.equipment[heroId][slot];if(old)addGear(old,1);
+ save.gearInventory[gearId]--;save.equipment[heroId][slot]=gearId;persist();renderHeroes();renderFormation();toast(g.icon+" "+g.name+" equipado");
+}
+function unequip(heroId,slot){const gid=save.equipment[heroId][slot];if(!gid)return;addGear(gid,1);save.equipment[heroId][slot]=null;persist();renderHeroes();renderFormation();toast("Equipamento removido")}
+
+/* PORTAL */
+function renderPortal(){renderResources()}
+function summon(count){
+ let results=[];
+ if(count===1){
+  if(save.scrolls>0)save.scrolls--;else if(save.diamonds>=200)save.diamonds-=200;else{return toast("Faltam Pergaminhos ou Diamantes")}
+ }else{
+  if(save.diamonds<1800)return toast("Diamantes insuficientes");save.diamonds-=1800;
+ }
+ for(let i=0;i<count;i++){
+  const h=HEROES[Math.floor(Math.random()*HEROES.length)],isNew=!save.owned[h.id];
+  if(isNew)save.owned[h.id]=true;else save.shards[h.id]=(save.shards[h.id]||0)+20;
+  results.push({h,isNew});
+ }
+ trackEvent("summons",count);renderSummonResults(results);renderHeroes();renderFormation();renderMissions("daily");
+}
+function renderSummonResults(results){
+ $("#summonResults").innerHTML=results.map(({h,isNew})=>`<div class="summonCard ${isNew?"new":""}"><div class="bigEmoji">${h.emoji}</div><b>${h.name}</b><span>${h.role}</span><div class="newTag">${isNew?"NOVO HERÓI":"DUPLICATA • +20 🧩"}</div></div>`).join("");
+}
+
+/* ARENA */
+const ARENA_NAMES=["KitsuneBR","MagoPixel","AkiraGO","NekoBlade","OtakuPrime","YumiX","DrakeZero","LunaRaid","KaitoBR"];
+function generateArenaOpponents(){
+ dailyArenaReset();arenaOpponents=[];
+ const offsets=[-55,10,75];
+ offsets.forEach((off,i)=>{
+  const ids=[...HEROES].sort(()=>Math.random()-.5).slice(0,5).map(h=>h.id);
+  const rating=Math.max(850,save.arenaRating+off+Math.floor(Math.random()*31)-15);
+  arenaOpponents.push({id:"opp"+i,name:ARENA_NAMES[Math.floor(Math.random()*ARENA_NAMES.length)],rating,level:Math.max(1,Math.floor((rating-800)/170)),scale:.72+rating/5000,heroes:ids});
+ });
+}
+function renderArena(){
+ dailyArenaReset();if(!arenaOpponents.length)generateArenaOpponents();
+ const [tier,cls]=arenaTier();$("#arenaTierBadge").textContent=tier;$("#arenaTierBadge").className="badge "+cls;$("#arenaRankTitle").textContent=tier+" • Hoje +"+save.arenaDailyPoints;$("#arenaAttempts").textContent=save.arenaAttempts;
+ $("#arenaOpponents").innerHTML=arenaOpponents.map(o=>`<div class="opponentCard"><div class="opponentTop"><div class="opponentName"><b>${o.name}</b><span>Formação IA • Nv. médio ${o.level}</span></div><div class="opponentRating"><b>🏆 ${o.rating}</b><span>Rating</span></div></div><div class="opponentTeam">${o.heroes.map(id=>`<span class="opponentUnit">${hero(id).emoji}</span>`).join("")}</div><button class="btn arenaBtn duelBtn" data-id="${o.id}" ${save.arenaAttempts<1?"disabled":""}>⚔️ Desafiar</button></div>`).join("");
+ $(".duelBtn").forEach(b=>b.onclick=()=>startArenaBattle(arenaOpponents.find(o=>o.id===b.dataset.id)));
+ renderResources();
+}
+function startArenaBattle(o){
+ if(!o||save.arenaAttempts<1)return toast("Sem tentativas de Arena hoje");
+ if(used().length!==5)return toast("Monte uma formação com 5 heróis");
+ save.arenaAttempts--;persist();
+ const enemyMap=Object.fromEntries(SLOTS.map((s,i)=>[s.id,o.heroes[i]]));
+ const enemies=SLOTS.map(s=>new Unit(hero(enemyMap[s.id]),"enemy",s,{level:o.level,scale:o.scale}));
+ lastBattleMode="arena";landscape();battle=new Battle(playerTeam(),enemies,{mode:"arena",code:"Arena",name:o.name,opponent:o});
+ show("battleScreen");$("#battleStageName").textContent="ARENA • "+o.name;$("#battleLog").innerHTML="";battle.log("🏟️ Duelo de Arena iniciado contra "+o.name+".");renderBattle();battle.loop();
+}
+
+/* LOJA */
+function renderShop(){
+ $("#shopGrid").innerHTML=SHOP.map(x=>`<div class="shopItem"><div class="shopIcon">${x.icon}</div><h3>${x.name}</h3><p>${x.desc}</p><div class="shopPrice">${currencyIcon(x.currency)} ${x.price}</div><button class="btn buyBtn" data-id="${x.id}" ${save[x.currency]<x.price?"disabled":""}>Comprar</button></div>`).join("");
+ $(".buyBtn").forEach(b=>b.onclick=()=>buyShop(b.dataset.id));renderResources();
+}
+function buyShop(id){
+ const x=SHOP.find(a=>a.id===id);if(!x||save[x.currency]<x.price)return toast("Saldo insuficiente");
+ save[x.currency]-=x.price;
+ if(x.type==="potion")save.potions+=(x.qty||1);
+ if(x.type==="gear")addGear(x.gear,1);
+ if(x.type==="shard")save.shards[x.hero]=(save.shards[x.hero]||0)+(x.qty||1);
+ if(x.type==="scroll")save.scrolls+=(x.qty||1);
+ persist();renderShop();renderHeroes();toast("🛒 Compra realizada: "+x.name);
+}
+
+/* COMBATE */
+class Unit{
+ constructor(h,team,slot,opt={}){
+  const enemy=team==="enemy",lv=opt.level||1,scale=opt.scale||1,st=enemy?{hp:Math.round(h.hp*scale),pa:Math.round(h.pa*scale),ma:Math.round(h.ma*scale),pd:Math.round(h.pd*scale),md:Math.round(h.md*scale),sp:Math.round(h.sp*(.94+scale*.06)),cr:h.cr*.65,dg:h.dg*.60}:heroStats(h);
+  Object.assign(this,{
+   h,team,slot,level:enemy?lv:st.level,id:team+"_"+h.id+"_"+slot.id,name:h.name,emoji:h.emoji,role:h.role,style:h.style,type:h.type,
+   maxHp:st.hp,pa:st.pa,ma:st.ma,basePd:st.pd,baseMd:st.md,baseSp:st.sp,cr:st.cr,dg:st.dg,hp:st.hp,rage:0,dead:false,
+   shield:0,bleed:0,freeze:0,stun:0,slow:0,haste:0,broken:0,queued:false,readyAlerted:false,
+   atkBuff:0,atkBuffRounds:0,critImmunity:0,awakening:enemy?0:(save.awakening[h.id]||0)
+  });
+ }
+ get line(){return this.slot.line}
+ get sp(){return Math.max(1,Math.round(this.baseSp*(1-this.slow+this.haste)))}
+ get pd(){return Math.max(0,Math.round(this.basePd*(this.line==="front"?1.15:1)*(1-this.broken)))}
+ get md(){return Math.max(0,Math.round(this.baseMd*(this.line==="front"?1.10:1)))}
+ gain(v){if(!this.dead)this.rage=clamp(this.rage+v,0,100)}
+}
+class Battle{
+ constructor(p,e,context){this.p=p;this.e=e;this.context=context;this.synergy=p.synergy||null;this.round=0;this.q=[];this.i=0;this.current=null;this.target=null;this.speed=1;this.paused=false;this.mode="manual";this.ended=false;this.logN=0;this.synergyLogged=false}
+ living(a){return a.filter(x=>!x.dead)}enemies(u){return u.team==="player"?this.e:this.p}allies(u){return u.team==="player"?this.p:this.e}
+ log(t,c=""){const x=document.createElement("div");x.className=c;x.textContent=String(++this.logN).padStart(2,"0")+" • "+t;$("#battleLog").appendChild(x);$("#battleLog").scrollTop=$("#battleLog").scrollHeight}
+ async delay(ms=1750){let left=ms/this.speed,last=performance.now();while(left>0&&!this.ended){await new Promise(r=>setTimeout(r,50));if(this.paused){last=performance.now();continue}const n=performance.now();left-=n-last;last=n}}
+ roundStart(){
+  this.round++;
+  [...this.p,...this.e].forEach(u=>{
+   if(u.dead)return;
+   if(u.bleed){u.bleed--;const d=Math.round(u.maxHp*.03);u.hp=Math.max(0,u.hp-d);this.log("🩸 "+u.name+" sofreu "+d+" de sangramento.");if(!u.hp)this.kill(u,null)}
+   if(u.atkBuffRounds>0){u.atkBuffRounds--;if(u.atkBuffRounds<=0)u.atkBuff=0}
+   u.slow=Math.max(0,u.slow-.06);u.haste=Math.max(0,u.haste-.06);u.broken=Math.max(0,u.broken-.08);u.shield=Math.max(0,u.shield-.08)
+  });
+  this.q=[...this.living(this.p),...this.living(this.e)].sort((a,b)=>b.sp-a.sp||a.name.localeCompare(b.name));this.i=0;
+  this.log("🔄 Rodada "+this.round+": iniciativa recalculada por Speed.","round");renderBattle();
+ }
+ valid(u){const a=this.living(this.enemies(u));if(u.style==="melee"){const f=a.filter(x=>x.line==="front");if(f.length)return f}return a}
+ targetFor(u){const a=this.valid(u);if(!a.length)return null;let total=a.reduce((sum,x)=>sum+(x.line==="front"?1.8:.65),0),r=Math.random()*total;for(const x of a){r-=x.line==="front"?1.8:.65;if(r<=0)return x}return a[0]}
+ weak(a){return this.living(a).sort((x,y)=>x.hp/x.maxHp-y.hp/y.maxHp)[0]}
+ damage(a,t,type,ratio,opt={}){
+  if(!t||t.dead)return;
+  if(!opt.noDodge&&Math.random()<t.dg){this.log("💨 "+t.name+" esquivou.","dodge");renderBattle();requestAnimationFrame(()=>{float(t,"ESQUIVA!","dodge",-8);fxCard(t,"dodgeFx")});AudioEngine.fallbackTone(760,.05,.02);haptic(8);return}
+  const rawAtk=type==="magic"?a.ma:a.pa,atk=rawAtk*(1+(a.atkBuff||0)),def=opt.pierce?0:(type==="magic"?t.md:t.pd),mit=def/(def+600);
+  let n=atk*ratio*(.94+Math.random()*.12)*(1-mit);if(t.shield)n*=1-t.shield;
+  let crit=Math.random()<a.cr;
+  if(crit&&t.critImmunity>0){t.critImmunity--;crit=false;this.log("☀️ Aura protegeu "+t.name+" do primeiro crítico.","ultimate");renderBattle();requestAnimationFrame(()=>float(t,"CRÍTICO ANULADO","critText",-18))}
+  if(crit)n*=1.5;n=Math.max(1,Math.round(n));
+  const before=t.hp,actual=Math.min(before,n);t.hp=Math.max(0,t.hp-n);a.gain(25);t.gain(15);
+  if(this.context.mode==="boss"&&a.team==="player"&&t.h.id==="vorak")this.context.damage=(this.context.damage||0)+actual;
+  this.log((opt.ult?"💥 ULTIMATE • ":"")+(crit?"💢 CRÍTICO • ":"")+a.name+" causou "+n+" em "+t.name+".",opt.ult?"ultimate":crit?"crit":"");
+  if(!t.hp)this.kill(t,a);renderBattle();
+  requestAnimationFrame(()=>{float(t,"-"+n,opt.ult?"ult":"damage",10);if(crit)float(t,"CRÍTICO!","critText",-18);fxCard(t,(crit||opt.ult||n>t.maxHp*.22)?"hitHard":"hitLight")});
+  AudioEngine.sfx("impact");if(crit||opt.ult)haptic(crit?[18,22,30]:[12,18,12]);
+ }
+ kill(t,k){if(t.dead)return;t.dead=true;t.hp=0;if(k)k.gain(25);this.log("☠️ "+t.name+" foi derrotado.","death")}
+ heal(a,t,r){if(!t||t.dead)return;const n=Math.min(t.maxHp-t.hp,Math.round(Math.max(a.ma,a.pa*.55)*r));t.hp+=n;this.log("💚 "+a.name+" curou "+t.name+" em "+n+" HP.");renderBattle();requestAnimationFrame(()=>float(t,"+"+n,"heal"))}
+ async basic(u){const t=this.targetFor(u);if(!t)return;this.target=t;this.log("⚔️ "+u.name+" ataca "+t.name+".");renderBattle();await this.delay(650);this.damage(u,t,u.type,1)}
+ async ult(u){
+  if(u.rage<100||u.dead)return;
+  u.rage=0;u.readyAlerted=false;u.queued=false;
+  const z=u.h.ult,aw=u.awakening||0,ratio=z.ratio*(1+aw*.08);
+  banner(u.emoji+" "+z.name+"!");this.log("━━━━━━━━ 💥 ULTIMATE • "+u.name+" usa "+z.name+(aw?" • Despertar "+aw:"")+"! ━━━━━━━━","ultimate");
+  AudioEngine.sfx("ultimate");renderBattle();requestAnimationFrame(()=>{fxCard(u,"ultimateCast");fxUltimateScreen();haptic([20,25,45])});await this.delay(900);
+
+  if(z.kind==="heal"){
+   this.living(this.allies(u)).forEach(t=>this.heal(u,t,ratio));
+   if(z.effect==="shield")this.living(this.allies(u)).forEach(t=>t.shield=Math.max(t.shield,.32+aw*.025));
+  }else if(z.kind==="single"){
+   const t=this.weak(this.enemies(u));let r=ratio;
+   if(z.effect==="execute"&&t){const threshold=.35+(aw>=2?.10:0)+(aw>=5?.10:0);if(t.hp/t.maxHp<threshold)r*=1.35}
+   this.damage(u,t,u.type,r,{ult:true,noDodge:true});
+  }else if(z.kind==="multi"){
+   const extra=(aw>=1?1:0)+(aw>=3?1:0)+(aw>=5?1:0);
+   for(let i=0;i<(z.hits||5)+extra;i++){const t=this.weak(this.enemies(u));if(!t)break;this.damage(u,t,u.type,ratio,{ult:true,noDodge:true});await this.delay(220)}
+  }else{
+   const typ=z.kind==="aoeMagic"?"magic":u.type;
+   for(const t of [...this.living(this.enemies(u))]){this.damage(u,t,typ,ratio,{ult:true,noDodge:true,pierce:z.effect==="pierce"});await this.delay(220)}
+  }
+
+  if(z.effect==="bleed")this.living(this.enemies(u)).forEach(t=>t.bleed=Math.max(t.bleed,3+(u.h.id==="espinho"&&aw>=1?1:0)+(u.h.id==="espinho"&&aw>=5?1:0)));
+  if(z.effect==="break")this.living(this.enemies(u)).forEach(t=>t.broken=Math.max(t.broken,.30));
+  if(z.effect==="slow")this.living(this.enemies(u)).forEach(t=>t.slow=Math.max(t.slow,.22+(u.h.id==="crepusculo"&&aw>=2?.08:0)));
+  if(z.effect==="freeze"){const count=u.h.id==="valquiria"&&aw>=5?99:u.h.id==="valquiria"&&aw>=1?3:2;this.living(this.enemies(u)).slice(0,count).forEach(t=>t.freeze=1)}
+  if(z.effect==="shield")this.living(this.allies(u)).forEach(t=>t.shield=Math.max(t.shield,.42+aw*.025));
+  if(z.effect==="haste")this.living(this.allies(u)).forEach(t=>t.haste=Math.max(t.haste,.20+aw*.025));
+
+  if(aw>0&&u.h.id==="seraphina"){
+   const boost=.10+(aw>=3?.03:0)+(aw>=5?.05:0);this.living(this.allies(u)).forEach(t=>{t.atkBuff=Math.max(t.atkBuff,boost);t.atkBuffRounds=2});this.log("☀️ Despertar: equipa recebe +"+Math.round(boost*100)+"% ATQ.","ultimate");
+  }
+  if(aw>0&&u.h.id==="quebra"){
+   const targets=this.living(this.enemies(u)).slice(0,aw>=2?2:1);targets.forEach((t,i)=>t.stun=Math.max(t.stun,aw>=5&&i===0?2:1));this.log("🔨 Despertar: impacto causa Atordoamento.","ultimate");
+  }
+  if(aw>0&&u.h.id==="crepusculo"){const drain=aw>=3?20:10;this.living(this.enemies(u)).forEach(t=>t.rage=Math.max(0,t.rage-drain));this.log("🌘 Despertar: "+drain+" Rage drenada dos inimigos.","ultimate")}
+  if(aw>=3&&u.h.id==="relampago")u.gain(20);
+  if(aw>0&&u.h.id==="terra"){
+   const pct=aw>=4?.08:.05;this.living(this.allies(u)).forEach(t=>{const n=Math.round(t.maxHp*pct);t.hp=Math.min(t.maxHp,t.hp+n)});this.log("🌿 Despertar: Fortaleza restaura "+Math.round(pct*100)+"% HP.","ultimate");
+  }
+  if(aw>0&&u.h.id==="anao"){const br=aw>=5?.35:aw>=2?.25:.18;this.living(this.enemies(u)).forEach(t=>t.broken=Math.max(t.broken,br));this.log("💣 Despertar: armaduras inimigas foram quebradas.","ultimate")}
+  if(aw>0&&u.h.id==="fada"){const rg=aw>=4?25:15;this.living(this.allies(u)).forEach(t=>t.gain(rg));this.log("🧚 Despertar: aliados recebem +"+rg+" Rage.","ultimate")}
+  renderBattle();
+ }
+ check(){const p=this.living(this.p).length,e=this.living(this.e).length;if(p&&e)return false;if(this.ended)return true;this.ended=true;setTimeout(()=>finishBattle(!!p,this.context),250);return true}
+ async loop(){
+  if(this.synergy?.active&&!this.synergyLogged){this.synergyLogged=true;this.log("✨ Aura "+this.synergy.name+" ativa: "+this.synergy.label+".","ultimate")}
+  this.roundStart();
+  while(!this.ended){
+   if(this.paused){await this.delay(100);continue}
+   if(this.check())break;
+   if(this.mode==="auto"){const r=this.living(this.p).find(x=>x.rage>=100);if(r){await this.ult(r);await this.delay(1750);continue}}
+   if(this.i>=this.q.length){this.roundStart();await this.delay(1000);continue}
+   const u=this.q[this.i++];if(u.dead)continue;this.current=u;this.target=null;$("#actionLabel").textContent="Vez de "+u.name;renderBattle();
+   if(u.stun){u.stun--;this.log("💫 "+u.name+" está atordoado e perde a ação.");await this.delay(1750)}
+   else if(u.freeze){u.freeze--;this.log("❄️ "+u.name+" está congelado e perde a ação.");await this.delay(1750)}
+   else if(u.team==="enemy"&&u.rage>=100)await this.ult(u);
+   else if(u.team==="player"&&this.mode==="manual"&&u.queued&&u.rage>=100)await this.ult(u);
+   else await this.basic(u);
+   this.current=null;this.target=null;renderBattle();if(this.check())break;await this.delay(1750);
+  }
+ }
+}
+
+function playerTeam(){
+ const units=SLOTS.map(slot=>new Unit(hero(formation[slot.id]),"player",slot));
+ return applySynergy(units,computeSynergy(used()));
+}
+function campaignEnemyFormation(stg){const comps=[["terra","espinho","crepusculo","anao","fada"],["quebra","valquiria","umbra","crepusculo","seraphina"],["terra","relampago","espinho","anao","fada"],["quebra","valquiria","relampago","crepusculo","umbra"],["terra","quebra","valquiria","crepusculo","relampago"]];const ids=comps[stg.id-1]||comps[0];return Object.fromEntries(SLOTS.map((slot,i)=>[slot.id,ids[i]]))}
+function campaignEnemyTeam(stg){const form=campaignEnemyFormation(stg);return SLOTS.map(slot=>new Unit(hero(form[slot.id]),"enemy",slot,{level:stg.enemyLevel,scale:stg.scale}))}
+async function landscape(){try{await screen.orientation?.lock?.("landscape")}catch{}}
+function beginCampaignBattle(stg){
+ lastBattleMode="campaign";landscape();battle=new Battle(playerTeam(),campaignEnemyTeam(stg),{mode:"campaign",...stg});
+ show("battleScreen");$("#battleStageName").textContent="FASE "+stg.code;$("#battleLog").innerHTML="";
+ battle.log("⚔️ Fase "+stg.code+" iniciada • Inimigos Nv."+stg.enemyLevel+".");renderBattle();battle.loop();
+}
+function startBattle(){
+ if(used().length!==5)return;
+ const stg=stage();campaignCutscene(stg,()=>beginCampaignBattle(stg));
+}
+function quick(){if(used().length!==5){renderFormation();show("formationScreen");return}startBattle()}
+function pos(u){if(u.h.id==="vorak")return"right:18%;top:27%;";const p=POS[u.slot.id];return u.team==="player"?"left:"+p.x+"%;top:"+p.y+"%;":"right:"+p.x+"%;top:"+p.y+"%;"}
+function card(u){
+ const hp=clamp(u.hp/u.maxHp*100,0,100),r=clamp(u.rage,0,100),ready=r>=100&&!u.dead,st=(u.shield?"🛡️":"")+(u.bleed?"🩸":"")+(u.freeze?"❄️":"")+(u.stun?"💫":"")+(u.atkBuff?"⚔️":"")+(u.slow?"🐌":"")+(u.broken?"🔨":"");
+ const bossCls=u.h.id==="vorak"?" worldBossCard":"";
+ return `<div class="combatCard ${u.team}${bossCls}${battle.current===u?" active":""}${battle.target===u?" targeted":""}${u.dead?" dead":""}" data-card="${u.id}" style="${pos(u)}"><div class="ccTop"><span class="lineTag ${u.line}">${u.h.id==="vorak"?"WORLD BOSS":u.line==="front"?"FRONT-LINE":"BACK-LINE"}</span><span class="ccLevel">Nv.${u.level}</span><span class="statusIcons">${st}</span></div><div class="ccHero"><div class="ccAvatar">${u.emoji}</div><div class="ccIdentity"><div class="ccName">${u.name}</div><div class="ccRole">${u.role} • SPD ${u.sp}</div></div></div><div class="barMeta"><span>HP</span><b>${Math.ceil(u.hp).toLocaleString("pt-BR")}/${u.maxHp.toLocaleString("pt-BR")}</b></div><div class="bar hp"><i style="width:${hp}%"></i></div><div class="barMeta"><span>RAGE</span><b>${Math.floor(r)}/100</b></div><div class="bar rage"><i style="width:${r}%"></i></div>${u.team==="player"?`<button class="ultBtn ${ready?"ready":""}${u.queued?" queued":""}" data-uid="${u.id}" ${(!ready||battle.mode==="auto"||u.dead)?"disabled":""}>${battle.mode==="auto"?"AUTO":u.queued?"ULTIMATE ARMADA":"ULTIMATE"}</button>`:`<div class="enemyAuto">${ready?"💥 ULTIMATE PRONTA":"ULTIMATE AUTO"}</div>`}</div>`;
+}
+function renderBattle(){
+ if(!battle)return;
+ ["playerArea","enemyArea"].forEach(id=>$("#"+id).querySelectorAll(".combatCard").forEach(x=>x.remove()));
+ battle.e.forEach(u=>$("#enemyArea").insertAdjacentHTML("beforeend",card(u)));battle.p.forEach(u=>$("#playerArea").insertAdjacentHTML("beforeend",card(u)));
+ $(".ultBtn[data-uid]").forEach(b=>b.onclick=()=>{const u=battle.p.find(x=>x.id===b.dataset.uid);if(u&&u.rage>=100){u.queued=!u.queued;battle.log((u.queued?"⏳ ":"↩️ ")+u.name+(u.queued?": Ultimate armada.":": Ultimate cancelada."),"ultimate");renderBattle()}}); battle.p.forEach(u=>{if(u.rage>=100&&!u.dead&&!u.readyAlerted){u.readyAlerted=true;AudioEngine.sfx("ultimateReady");haptic(10)}if(u.rage<100)u.readyAlerted=false});
+ $("#roundLabel").textContent="Rodada "+(battle.round||1);$("#modeBtn").textContent="ULT: "+battle.mode.toUpperCase();$("#modeBtn").classList.toggle("active",battle.mode==="auto");
+ $("#speed1").classList.toggle("active",battle.speed===1);$("#speed2").classList.toggle("active",battle.speed===2);$("#pauseBtn").classList.toggle("active",battle.paused);
+ $("#pauseBtn").textContent=battle.paused?"▶ CONTINUAR":"Ⅱ PAUSA";$("#battleState").textContent=battle.paused?"PAUSADO":battle.ended?"FINALIZADO":"EM BATALHA";
+ $("#turnOrder").innerHTML=battle.q.map((u,i)=>`<span class="turnChip${i<battle.i?" done":""}${battle.current===u?" current":""}">${u.emoji} ${u.name.split(" ")[0]} <b>${u.sp}</b></span>`).join(""); const aura=$("#teamAuraLabel");if(aura)aura.textContent=battle.synergy?.active?("✨ "+battle.synergy.name+" "+battle.synergy.count+"/5"):"SEM AURA";
+ const bossMode=battle.context.mode==="boss",hud=$("#bossRaidHud");hud.classList.toggle("show",bossMode);
+ if(bossMode){
+  const b=battle.e[0],pct=clamp(b.hp/b.maxHp*100,0,100);
+  $("#bossRaidBarFill").style.width=pct+"%";$("#bossRaidHp").textContent=Math.ceil(b.hp).toLocaleString("pt-BR")+" / "+b.maxHp.toLocaleString("pt-BR");
+  $("#bossRaidDamage").textContent="DANO "+Math.round(battle.context.damage||0).toLocaleString("pt-BR");$("#bossRaidRound").textContent="Rodada "+(battle.round||1);
+ }
+}
+function float(u,t,c,offset=0){const e=document.querySelector('[data-card="'+u.id+'"]');if(!e)return;const a=$("#arena").getBoundingClientRect(),r=e.getBoundingClientRect(),d=document.createElement("div");d.className="floatText "+c;d.textContent=t;d.style.left=(r.left-a.left+r.width/2)+"px";d.style.top=(r.top-a.top+20+offset)+"px";$("#arena").appendChild(d);setTimeout(()=>d.remove(),1000)}
+function fxCard(u,cls){const e=document.querySelector('[data-card="'+u.id+'"]');if(!e)return;e.classList.remove(cls);void e.offsetWidth;e.classList.add(cls);setTimeout(()=>e.classList.remove(cls),720)}
+function fxUltimateScreen(){const a=$("#arena");if(!a)return;a.classList.remove("ultScreenFlash");void a.offsetWidth;a.classList.add("ultScreenFlash");setTimeout(()=>a.classList.remove("ultScreenFlash"),700)}
+function banner(t){const b=$("#ultBanner");b.textContent=t;b.classList.remove("show");void b.offsetWidth;b.classList.add("show")}
+
+/* RESULTADOS */
+function rollGearDrop(s){const pool=DROP_POOLS[s.id]||DROP_POOLS[1];return pool[Math.floor(Math.random()*pool.length)]}
+function grantCampaignRewards(s){
+ const r=s.rewards;save.gold+=r.gold;save.accountExp+=r.exp;save.essence+=r.essence;save.diamonds+=r.diamonds||0;save.scrolls+=r.scrolls||0;
+ const team=used(),shardHero=team[(s.id-1)%team.length]||"seraphina";save.shards[shardHero]=(save.shards[shardHero]||0)+r.shards;
+ const gearId=rollGearDrop(s);addGear(gearId,1);if(s.id<STAGES.length)save.unlockedStage=Math.max(save.unlockedStage,s.id+1);persist();return{...r,shardHero,gearId};
+}
+function finishBattle(win,ctx){
+ trackEvent("battles",1);
+ const next=$("#nextStageBtn"),retry=$("#retryBtn");$("#resultBadge").textContent=win?"🏆":"💀";$("#resultTitle").textContent=win?"Vitória!":"Derrota";
+ if(ctx.mode==="boss"){
+  const boss=battle.e[0],damage=Math.round(ctx.damage||0),rw=bossRewardFor(damage);
+  save.worldBossRemainingHp=Math.max(0,Math.round(boss.hp));save.worldBossLast=damage;save.worldBossBest=Math.max(save.worldBossBest||0,damage);save.worldBossTotal=(save.worldBossTotal||0)+damage;
+  save.gold+=rw.gold;save.diamonds+=rw.diamonds;save.guildContribution+=rw.contribution;save.awakeningStones+=(rw.stones||0);
+  if(save.worldBossRemainingHp<=0){save.diamonds+=250;rw.bonus=250}
+  persist();renderWorldBoss();
+  $("#resultBadge").textContent=save.worldBossRemainingHp<=0?"🐲":"🐉";$("#resultTitle").textContent=save.worldBossRemainingHp<=0?"Chefe Derrotado!":"Raid Concluída";
+  $("#resultStage").textContent="Vorak • Dano "+damage.toLocaleString("pt-BR");
+  $("#resultText").textContent="Sua pontuação diária foi registrada no ranking. Quanto maior o dano, melhores as recompensas.";
+  $("#resultRewards").innerHTML=`<span class="reward">💥 Dano<strong>${damage.toLocaleString("pt-BR")}</strong></span><span class="reward">🪙 Ouro<strong>+${rw.gold}</strong></span><span class="reward">💎 Diamantes<strong>+${rw.diamonds}</strong></span><span class="reward">🤝 Contribuição<strong>+${rw.contribution}</strong></span>${rw.stones?`<span class="reward">🌟 Pedras<strong>+${rw.stones}</strong></span>`:""}${rw.bonus?'<span class="reward">🐲 Abate<strong>💎 +250</strong></span>':""}`;
+  rewardBurst([{text:"💥 "+damage.toLocaleString("pt-BR")+" dano",kind:"diamond"},{text:"🪙 +"+rw.gold,kind:"gold"},{text:"💎 +"+(rw.diamonds+(rw.bonus||0)),kind:"diamond"},{text:rw.stones?"🌟 +"+rw.stones+" Pedras":"",kind:"crystal"}].filter(x=>x.text));
+  next.style.display="none";retry.style.display="none";$("#resultMenuBtn").textContent="Voltar ao Chefe Épico";$("#resultModal").classList.add("show");return;
+ }
+ if(ctx.mode==="tower"){
+  const fl=ctx.floor,firstClear=fl>save.towerBest;
+  $("#resultStage").textContent="Torre do Abismo • Andar "+fl;$("#resultMenuBtn").textContent="Voltar à Torre";
+  if(win){
+   let rw={gold:0,diamonds:0,crystals:0,contribution:0,stones:0};
+   if(firstClear){rw=towerReward(fl);save.gold+=rw.gold;save.diamonds+=rw.diamonds;save.abyssCrystals+=rw.crystals;save.guildContribution+=rw.contribution;save.awakeningStones+=(rw.stones||0);save.towerBest=Math.max(save.towerBest,fl);save.towerFloor=Math.min(TOWER_MAX,fl+1);persist()}
+   $("#resultTitle").textContent=fl===TOWER_MAX&&firstClear?"Topo Conquistado!":"Andar Concluído!";
+   $("#resultText").textContent=firstClear?"Recompensa de primeira conclusão recebida.":"Este andar já havia sido concluído; nenhuma recompensa rara adicional foi concedida.";
+   $("#resultRewards").innerHTML=firstClear?`<span class="reward">🔷 Cristais<strong>+${rw.crystals}</strong></span><span class="reward">🪙 Ouro<strong>+${rw.gold}</strong></span><span class="reward">💎 Diamantes<strong>+${rw.diamonds}</strong></span><span class="reward">🤝 Contribuição<strong>+${rw.contribution}</strong></span>${rw.stones?`<span class="reward">🌟 Pedras<strong>+${rw.stones}</strong></span>`:""}`:'<span class="reward">Repetição<strong>Sem prêmio raro</strong></span>';
+   if(firstClear)rewardBurst([{text:"🔷 +"+rw.crystals+" Cristais",kind:"crystal"},{text:"🪙 +"+rw.gold,kind:"gold"},{text:"💎 +"+rw.diamonds,kind:"diamond"},{text:rw.stones?"🌟 +"+rw.stones+" Pedras":"",kind:"crystal"}].filter(x=>x.text));
+   next.textContent=fl<TOWER_MAX?"Próximo andar →":"Topo alcançado";next.style.display=fl<TOWER_MAX?"":"none";retry.style.display="none";
+  }else{
+   $("#resultText").textContent="A Torre fica mais forte a cada piso. Evolua estrelas, equipamentos e Guilda para continuar.";
+   $("#resultRewards").innerHTML='<span class="reward">Andar não concluído<strong>—</strong></span>';next.style.display="none";retry.style.display="";
+  }
+  renderTower();$("#resultModal").classList.add("show");return;
+ }
+ if(ctx.mode==="arena"){
+  const o=ctx.opponent;$("#resultStage").textContent="Arena • "+o.name;
+  if(win){const gain=20+Math.max(0,Math.round((o.rating-save.arenaRating)/25));save.arenaRating+=gain;save.arenaCoins+=25;save.arenaDailyPoints+=gain;save.guildContribution+=20;save.dailyCounters.arenaWins=(save.dailyCounters.arenaWins||0)+1;save.lifetime.arenaWins=(save.lifetime.arenaWins||0)+1;persist();$("#resultText").textContent="Vitória na Arena! Ranking, Moedas da Arena e contribuição recebidos.";$("#resultRewards").innerHTML=`<span class="reward">🏆 Rating<strong>+${gain}</strong></span><span class="reward">🏟️ Moedas<strong>+25</strong></span><span class="reward">🤝 Contribuição<strong>+20</strong></span>`;rewardBurst([{text:"🏟️ +25",kind:"gold"},{text:"🏆 +"+gain,kind:"exp"}])}
+  else{const loss=Math.min(8,Math.max(3,Math.round((save.arenaRating-o.rating)/40)+5));save.arenaRating=Math.max(800,save.arenaRating-loss);save.arenaCoins+=5;save.guildContribution+=5;persist();$("#resultText").textContent="Derrota na Arena. Você recebeu uma pequena recompensa de participação.";$("#resultRewards").innerHTML=`<span class="reward">🏆 Rating<strong>-${loss}</strong></span><span class="reward">🏟️ Moedas<strong>+5</strong></span><span class="reward">🤝 Contribuição<strong>+5</strong></span>`;}
+  renderMissions("daily");next.style.display="none";retry.style.display="none";$("#resultMenuBtn").textContent="Voltar à Arena";$("#resultModal").classList.add("show");return;
+ }
+ const stg=ctx;$("#resultStage").textContent="Fase "+stg.code+" • "+stg.name;$("#resultMenuBtn").textContent="Voltar ao menu";next.textContent="Próxima fase →";
+ if(win){
+  const rw=grantCampaignRewards(stg),sh=hero(rw.shardHero),g=GEAR[rw.gearId],cont=10+stg.id*3;
+  save.guildContribution+=cont;save.dailyCounters.campaignWins=(save.dailyCounters.campaignWins||0)+1;save.lifetime.campaignWins=(save.lifetime.campaignWins||0)+1;persist();
+  $("#resultText").textContent=stg.id<5?"Próxima fase desbloqueada. O equipamento recebido já está no inventário.":"Capítulo 1 concluído!";
+  $("#resultRewards").innerHTML=`<span class="reward">🪙 Ouro<strong>+${rw.gold}</strong></span><span class="reward">⭐ EXP<strong>+${rw.exp}</strong></span><span class="reward">💎 Diamantes<strong>+${rw.diamonds}</strong></span><span class="reward">${sh.emoji} Fragmentos<strong>+${rw.shards}</strong></span><span class="reward">🤝 Contribuição<strong>+${cont}</strong></span><span class="reward gearReward">🎁 Equipamento<strong class="dropName">${g.icon} ${g.name}</strong></span>${rw.scrolls?'<span class="reward">📜 Pergaminho<strong>+1</strong></span>':""}`;
+  rewardBurst([{text:"🪙 +"+rw.gold,kind:"gold"},{text:"⭐ +"+rw.exp+" EXP",kind:"exp"},{text:"💎 +"+rw.diamonds,kind:"diamond"}]);
+  next.style.display=stg.id<5?"":"none";retry.style.display="none";
+ }else{$("#resultText").textContent="Melhore níveis/equipamentos ou ajuste a formação e tente novamente.";$("#resultRewards").innerHTML='<span class="reward">Sem recompensas<strong>—</strong></span>';next.style.display="none";retry.style.display=""}
+ renderMissions("daily");$("#resultModal").classList.add("show");
+}
+function closeResult(){$("#resultModal").classList.remove("show");try{screen.orientation?.unlock?.()}catch{}}
+function goNextStage(){
+ if(lastBattleMode==="tower"){closeResult();renderTower();show("towerScreen");return}
+ const stg=stage();if(stg.id>=STAGES.length)return;save.selectedStage=stg.id+1;persist();closeResult();renderFormation();show("formationScreen");
+}
+function retryStage(){
+ closeResult();
+ if(lastBattleMode==="arena"){renderArena();show("arenaScreen");return}
+ if(lastBattleMode==="boss"){renderWorldBoss();show("worldBossScreen");return}
+ if(lastBattleMode==="tower"){startTowerBattle();return}
+ startBattle();
+}
+function goResultMenu(){
+ closeResult();
+ if(lastBattleMode==="arena"){generateArenaOpponents();renderArena();show("arenaScreen");return}
+ if(lastBattleMode==="boss"){renderWorldBoss();show("worldBossScreen");return}
+ if(lastBattleMode==="tower"){renderTower();show("towerScreen");return}
+ renderCampaign();renderHeroes();show("homeScreen");
+}
+
+/* NAVEGAÇÃO */
+function setBottomNavActive(key){
+ $(".bottomNav button[data-nav]").forEach(b=>b.classList.toggle("active",b.dataset.nav===key));
+}
+function openNav(key){
+ const map={
+  campaign:()=>{renderCampaign();show("campaignScreen")},
+  heroes:()=>{renderHeroes();show("heroesScreen")},
+  equipment:()=>{renderHeroes();show("heroesScreen");setBottomNavActive("equipment")},
+  portal:()=>{renderPortal();show("portalScreen")},
+  arena:()=>{renderArena();show("arenaScreen")},
+  shop:()=>{renderShop();show("shopScreen")},
+  missions:()=>{renderMissions("daily");show("missionsScreen")},
+  synergy:()=>{renderFormation();show("formationScreen");setBottomNavActive("synergy")}
+ };
+ if(map[key])map[key]();
+}
+$(".bottomNav button[data-nav]").forEach(b=>b.onclick=()=>openNav(b.dataset.nav));
+
+$("#goCampaign").onclick=()=>openNav("campaign");$("#campaignBack").onclick=()=>show("homeScreen");
+$("#goFormation").onclick=()=>{renderFormation();show("formationScreen")};$("#formationBack").onclick=()=>show("homeScreen");
+$("#goHeroes").onclick=()=>openNav("heroes");$("#heroesBack").onclick=()=>show("homeScreen");
+$("#goPortal").onclick=()=>openNav("portal");$("#portalBack").onclick=()=>show("homeScreen");
+$("#goArena").onclick=()=>openNav("arena");$("#arenaBack").onclick=()=>show("homeScreen");$("#refreshArena").onclick=()=>{generateArenaOpponents();renderArena()};
+$("#goShop").onclick=()=>openNav("shop");$("#shopBack").onclick=()=>show("homeScreen");
+$("#goMissions").onclick=()=>openNav("missions");$("#missionsBack").onclick=()=>show("homeScreen");
+$("#goGuild").onclick=()=>{renderGuild();show("guildScreen")};$("#guildBack").onclick=()=>show("homeScreen");
+$("#missionsGuildBtn").onclick=()=>{renderGuild();show("guildScreen")};
+$("#goWorldBoss").onclick=()=>{renderWorldBoss();show("worldBossScreen")};$("#worldBossBack").onclick=()=>show("homeScreen");$("#startWorldBoss").onclick=startWorldBossBattle;
+$("#goTower").onclick=()=>{renderTower();show("towerScreen")};$("#towerBack").onclick=()=>show("homeScreen");$("#startTower").onclick=startTowerBattle;
+$("#goAfk").onclick=()=>{startAfkTicker();show("afkScreen")};$("#afkBack").onclick=()=>show("homeScreen");$("#claimAfkBtn").onclick=()=>claimAfk(false);
+$("#goAwakening").onclick=()=>{renderAwakening();show("awakeningScreen")};$("#awakeningBack").onclick=()=>show("homeScreen");
+$("#muteBtn").onclick=()=>AudioEngine.toggle();
+$("#storyNext").onclick=nextStory;$("#storySkip").onclick=skipStory;const storyBoxEl=$("#storyBox");if(storyBoxEl)storyBoxEl.onclick=e=>{if(!e.target.closest("button"))nextStory()};
+$("#dailyTab").onclick=()=>renderMissions("daily");$("#achievementTab").onclick=()=>renderMissions("achievements");
+$("#startBattle").onclick=startBattle;$("#quickBattle").onclick=quick;$("#summonOne").onclick=()=>summon(1);$("#summonTen").onclick=()=>summon(10);
+$("#battleBack").onclick=()=>{if(battle)battle.ended=true;try{screen.orientation?.unlock?.()}catch{}if(lastBattleMode==="arena"){renderArena();show("arenaScreen")}else if(lastBattleMode==="boss"){renderWorldBoss();show("worldBossScreen")}else if(lastBattleMode==="tower"){renderTower();show("towerScreen")}else{renderCampaign();show("campaignScreen")}};
+$("#speed1").onclick=()=>{if(battle){battle.speed=1;renderBattle()}};$("#speed2").onclick=()=>{if(battle){battle.speed=2;renderBattle()}};
+$("#pauseBtn").onclick=()=>{if(battle&&!battle.ended){battle.paused=!battle.paused;renderBattle()}};
+$("#modeBtn").onclick=()=>{if(battle&&!battle.ended){battle.mode=battle.mode==="manual"?"auto":"manual";battle.log("🤖 Ultimate: "+battle.mode.toUpperCase(),"ultimate");renderBattle()}};
+$("#nextStageBtn").onclick=goNextStage;$("#retryBtn").onclick=retryStage;$("#resultMenuBtn").onclick=goResultMenu;
+
+/* PWA / UPDATE */
+let remoteVersionInfo=null;
+function status(t){const e=$("#updateStatus");if(e)e.textContent=t}
+function hideSplash(ms=300){setTimeout(()=>{const x=$("#updateSplash");if(x){x.classList.add("hidden");setTimeout(()=>x.remove(),350)}},ms)}
+function timeout(ms){return new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),ms))}
+async function fetchVersion(){const req=fetch("./version.json?ts="+Date.now(),{cache:"no-store"});const res=await Promise.race([req,timeout(2500)]);if(!res.ok)throw new Error("version");return res.json()}
+async function checkUpdate(showMsg=false){
+ const n=$("#homeUpdateNotice");
+ try{const v=await fetchVersion();remoteVersionInfo=v;if(v.version&&v.version!==APP_VERSION){status("Nova versão "+v.version+" disponível.");const b=$("#splashUpdateBtn");if(b)b.style.display="";if(n){n.innerHTML='Nova versão <b>'+v.version+'</b> disponível.';n.classList.add("show")}const chk=$("#checkUpdateBtn");if(chk)chk.textContent="⬆ Atualizar para v"+v.version;hideSplash(650);return true}status("Nerdora Chibi Raiders v"+APP_VERSION+" está atualizado.");if(showMsg&&n){n.textContent="Você já está na versão "+APP_VERSION+".";n.classList.add("show")}}
+ catch(e){status("v"+APP_VERSION+" pronta. Verificação online indisponível.");if(showMsg&&n){n.textContent="Não foi possível consultar atualizações agora.";n.classList.add("show")}}
+ hideSplash(550);return false;
+}
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferred=e;const a=$("#installAppBtn"),b=$("#splashInstallBtn");if(a)a.style.display="";if(b)b.style.display=""});
+async function install(){if(!deferred){const n=$("#homeUpdateNotice");if(n){n.textContent='Abra o menu do navegador e escolha “Instalar app” ou “Adicionar à tela inicial”.';n.classList.add("show")}return}deferred.prompt();await deferred.userChoice;deferred=null}
+async function updateNow(){status("Abrindo a nova versão…");try{const v=remoteVersionInfo||await fetchVersion();if(v.entry){location.replace(v.entry+(v.entry.includes("?")?"&":"?")+"update="+Date.now());return}}catch(e){}location.reload()}
+if("serviceWorker"in navigator){addEventListener("load",()=>{navigator.serviceWorker.register("./sw-2.0.1.js",{scope:"./",updateViaCache:"none"}).then(r=>{reg=r;r.update().catch(()=>{})}).catch(()=>{});checkUpdate(false)})}else addEventListener("load",()=>checkUpdate(false));
+setTimeout(()=>hideSplash(0),3500);
+$("#installAppBtn").onclick=install;$("#splashInstallBtn").onclick=install;$("#checkUpdateBtn").onclick=async()=>{const has=await checkUpdate(true);if(has)updateNow()};$("#splashUpdateBtn").onclick=updateNow;
+
+resetDailyMissions();dailyArenaReset();dailyWorldBossReset();renderResources();renderCampaign();renderFormation();renderHeroes();renderPortal();renderShop();renderMissions("daily");renderGuild();renderWorldBoss();renderTower();renderAwakening();renderAfk();AudioEngine.updateButton();updateMissionIndicators();startAfkTicker();processOfflineRewards();
+})();
+</script>
+</body>
+</html>
