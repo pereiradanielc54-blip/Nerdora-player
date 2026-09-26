@@ -367,7 +367,7 @@ function loadSave(){
  }catch(e){}
  return defaultSave();
 }
-let save=loadSave(),formation={...save.formation},activeSlot="F1",selectedHero="seraphina",selectedAwakeningHero="seraphina",selectedPet=save.activePet||"drakko",battle=null,deferred=null,reg=null,arenaOpponents=[],guildWarCastles=[],lastBattleMode="campaign",afkTicker=null,chatTimer=null,storyState=null;
+let save=loadSave(),formation={...save.formation},activeSlot="F1",selectedHero="guarda",selectedAwakeningHero="guarda",selectedPet=save.activePet||"drakko",battle=null,deferred=null,reg=null,arenaOpponents=[],guildWarCastles=[],lastBattleMode="campaign",afkTicker=null,chatTimer=null,storyState=null;
 
 function persist(){save.formation={...formation};localStorage.setItem(SAVE_KEY,JSON.stringify(save));renderResources();updateMissionIndicators()}
 function hero(id){return HEROES.find(h=>h.id===id)}
@@ -1328,7 +1328,7 @@ function playerTeam(){
  const units=SLOTS.map(slot=>new Unit(hero(formation[slot.id]),"player",slot));
  return applyPetAura(applySynergy(units,computeSynergy(used())));
 }
-function campaignEnemyFormation(stg){const comps=[["terra","espinho","crepusculo","anao","fada"],["quebra","valquiria","umbra","crepusculo","seraphina"],["terra","relampago","espinho","anao","fada"],["quebra","valquiria","relampago","crepusculo","umbra"],["terra","quebra","valquiria","crepusculo","relampago"]];const ids=comps[stg.id-1]||comps[0];return Object.fromEntries(SLOTS.map((slot,i)=>[slot.id,ids[i]]))}
+function campaignEnemyFormation(stg){const comps=[["guarda","espinho","acolito","batedor","aguas"],["terra","espinho","umbra","anao","aguas"],["quebra","valquiria","batedor","anao","fada"],["quebra","relampago","crepusculo","fada","barbanegra"],["aegis","valquiria","seraphina","ignis","lyra"]];const ids=comps[stg.id-1]||comps[0];return Object.fromEntries(SLOTS.map((slot,i)=>[slot.id,ids[i]]))}
 function campaignEnemyTeam(stg){const form=campaignEnemyFormation(stg);return SLOTS.map(slot=>new Unit(hero(form[slot.id]),"enemy",slot,{level:stg.enemyLevel,scale:stg.scale}))}
 async function landscape(){try{await screen.orientation?.lock?.("landscape")}catch{}}
 function beginCampaignBattle(stg){
