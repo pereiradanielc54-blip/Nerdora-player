@@ -1063,9 +1063,8 @@ function renderPortal(){
  if($("#portalVipLevel"))$("#portalVipLevel").textContent=vipLevel();
 }
 function rollBannerHero(type="standard"){
- if(type!=="event")return HEROES[Math.floor(Math.random()*HEROES.length)];
- const pool=[...HEROES,hero(LIMITED_HERO_ID)];
- return pool[Math.floor(Math.random()*pool.length)];
+ const rarity=rollRarity();
+ return pickHeroByRarity(rarity,type);
 }
 function summonFromBanner(count,type="standard"){
  const price=type==="event"?(count===1?250:2200):(count===1?200:1800);
@@ -1080,9 +1079,23 @@ function summonFromBanner(count,type="standard"){
  trackEvent("summons",count);persist();renderSummonResults(results);renderHeroes();renderFormation();renderMissions("daily");renderPortal();renderVip();
 }
 function summon(count){summonFromBanner(count,"standard")}
+function summonRarityFlash(results){
+ const elite=results.map(x=>x.h).filter(h=>rarityMeta(h).rank>=RARITY_CONFIG.SR.rank).sort((a,b)=>rarityMeta(b).rank-rarityMeta(a).rank)[0];
+ if(!elite)return;
+ const meta=rarityMeta(elite),flash=$("#rarityFlash");if(!flash)return;
+ flash.className="rarityFlash "+heroRarityClass(elite);
+ flash.innerHTML='<div class="rarityFlashCore"><span>'+meta.code+'</span><b>'+meta.name.toUpperCase()+'</b><small>'+elite.emoji+' '+elite.name+'</small></div>';
+ void flash.offsetWidth;flash.classList.add("show");
+ setTimeout(()=>flash.classList.remove("show"),meta.code==="SSR"?1700:1250);
+ haptic(meta.code==="SSR"?[25,40,70,40,95]:[18,28,48]);AudioEngine.sfx("ultimate");
+}
 function renderSummonResults(results){
  const root=$("#summonResults");if(!root)return;
- root.innerHTML=results.map(x=>'<div class="summonCard '+(x.isNew?'new':'')+' '+(x.featured?'featured':'')+'"><div class="bigEmoji">'+x.h.emoji+'</div><b>'+x.h.name+'</b><span>'+x.h.role+'</span><div class="newTag">'+(x.featured?'✨ DESTAQUE • ':'')+(x.isNew?'NOVO HERÓI':'DUPLICATA • +20 🧩')+'</div></div>').join("");
+ root.innerHTML=results.map(x=>{
+  const m=rarityMeta(x.h);
+  return '<div class="summonCard '+heroRarityClass(x.h)+' '+(x.isNew?'new':'')+' '+(x.featured?'featured':'')+'"><div class="summonRarity"><span class="rarityTag '+heroRarityClass(x.h)+'">'+m.code+'</span><small>'+m.name+'</small></div><div class="bigEmoji">'+x.h.emoji+'</div><b class="rarityName">'+x.h.name+'</b><span>'+x.h.role+'</span><div class="newTag">'+(x.featured?'✨ DESTAQUE • ':'')+(x.isNew?'NOVO HERÓI':'DUPLICATA • +20 🧩')+'</div></div>';
+ }).join("");
+ summonRarityFlash(results);
 }
 
 /* ARENA */
@@ -1281,7 +1294,7 @@ function pos(u){if(u.h.id==="vorak")return"right:18%;top:27%;";const p=POS[u.slo
 function card(u){
  const hp=clamp(u.hp/u.maxHp*100,0,100),r=clamp(u.rage,0,100),ready=r>=100&&!u.dead,st=(u.shield?"🛡️":"")+(u.bleed?"🩸":"")+(u.freeze?"❄️":"")+(u.stun?"💫":"")+(u.atkBuff?"⚔️":"")+(u.slow?"🐌":"")+(u.broken?"🔨":"");
  const bossCls=u.h.id==="vorak"?" worldBossCard":"";
- return `<div class="combatCard ${u.team}${bossCls}${battle.current===u?" active":""}${battle.target===u?" targeted":""}${u.dead?" dead":""}" data-card="${u.id}" style="${pos(u)}"><div class="ccTop"><span class="lineTag ${u.line}">${u.h.id==="vorak"?"WORLD BOSS":u.line==="front"?"FRONT-LINE":"BACK-LINE"}</span><span class="ccLevel">Nv.${u.level}</span><span class="statusIcons">${st}</span></div><div class="ccHero"><div class="ccAvatar">${u.emoji}</div><div class="ccIdentity"><div class="ccName">${u.name}</div><div class="ccRole">${u.role} • SPD ${u.sp}</div></div></div><div class="barMeta"><span>HP</span><b>${Math.ceil(u.hp).toLocaleString("pt-BR")}/${u.maxHp.toLocaleString("pt-BR")}</b></div><div class="bar hp"><i style="width:${hp}%"></i></div><div class="barMeta"><span>RAGE</span><b>${Math.floor(r)}/100</b></div><div class="bar rage"><i style="width:${r}%"></i></div>${u.team==="player"?`<button class="ultBtn ${ready?"ready":""}${u.queued?" queued":""}" data-uid="${u.id}" ${(!ready||battle.mode==="auto"||u.dead)?"disabled":""}>${battle.mode==="auto"?"AUTO":u.queued?"ULTIMATE ARMADA":"ULTIMATE"}</button>`:`<div class="enemyAuto">${ready?"💥 ULTIMATE PRONTA":"ULTIMATE AUTO"}</div>`}</div>`;
+ return `<div class="combatCard ${u.team} ${heroRarityClass(u.h)}${bossCls}${battle.current===u?" active":""}${battle.target===u?" targeted":""}${u.dead?" dead":""}" data-card="${u.id}" style="${pos(u)}"><div class="ccTop"><span class="lineTag ${u.line}">${u.h.id==="vorak"?"WORLD BOSS":u.line==="front"?"FRONT-LINE":"BACK-LINE"}</span><span class="rarityTag ${heroRarityClass(u.h)}">${u.h.rarity||"BOSS"}</span><span class="ccLevel">Nv.${u.level}</span><span class="statusIcons">${st}</span></div><div class="ccHero"><div class="ccAvatar">${u.emoji}</div><div class="ccIdentity"><div class="ccName rarityName">${u.name}</div><div class="ccRole">${u.role} • SPD ${u.sp}</div></div></div><div class="barMeta"><span>HP</span><b>${Math.ceil(u.hp).toLocaleString("pt-BR")}/${u.maxHp.toLocaleString("pt-BR")}</b></div><div class="bar hp"><i style="width:${hp}%"></i></div><div class="barMeta"><span>RAGE</span><b>${Math.floor(r)}/100</b></div><div class="bar rage"><i style="width:${r}%"></i></div>${u.team==="player"?`<button class="ultBtn ${ready?"ready":""}${u.queued?" queued":""}" data-uid="${u.id}" ${(!ready||battle.mode==="auto"||u.dead)?"disabled":""}>${battle.mode==="auto"?"AUTO":u.queued?"ULTIMATE ARMADA":"ULTIMATE"}</button>`:`<div class="enemyAuto">${ready?"💥 ULTIMATE PRONTA":"ULTIMATE AUTO"}</div>`}</div>`;
 }
 function renderBattle(){
  if(!battle)return;
