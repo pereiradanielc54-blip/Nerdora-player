@@ -1121,6 +1121,130 @@ jobs:
           grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           echo "v0.9.14: Excel Viewer migrado para ExcelJS 4.4.0; Word preservado."
 
+      - name: Configurar Node 22 para Office Kit
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Trocar Excel Viewer para Office Kit v0.9.15
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ASSETS="extracted_project/app/src/main/assets/xlsx_renderer"
+          rm -rf "$ASSETS"
+          mkdir -p "$ASSETS/licenses"
+          cp .github/overlays/v0.9.15/viewer.html "$ASSETS/viewer.html"
+
+          rm -rf /tmp/nerdora-officekit
+          mkdir -p /tmp/nerdora-officekit
+          cd /tmp/nerdora-officekit
+          npm init -y >/dev/null 2>&1
+          npm install --silent --no-audit --no-fund \
+            @office-kit/xlsx@0.21.1 \
+            esbuild@0.25.9 \
+            exceljs@4.4.0
+
+          cp "$GITHUB_WORKSPACE/.github/overlays/v0.9.15/officekit-viewer.ts" ./officekit-viewer.ts
+          npx esbuild ./officekit-viewer.ts \
+            --bundle \
+            --format=iife \
+            --global-name=NerdoraOfficeKit \
+            --platform=browser \
+            --target=chrome100 \
+            --minify \
+            --outfile="$GITHUB_WORKSPACE/$ASSETS/officekit-viewer.js"
+
+          LIC=$(find node_modules/@office-kit/xlsx -maxdepth 2 -type f -iname 'LICENSE*' | head -n 1 || true)
+          test -n "$LIC"
+          cp "$LIC" "$GITHUB_WORKSPACE/$ASSETS/licenses/office-kit-xlsx-LICENSE.txt"
+          NOTICE=$(find node_modules/@office-kit/xlsx -maxdepth 2 -type f -iname 'THIRD_PARTY_NOTICES*' | head -n 1 || true)
+          if [ -n "$NOTICE" ]; then
+            cp "$NOTICE" "$GITHUB_WORKSPACE/$ASSETS/licenses/office-kit-xlsx-THIRD_PARTY_NOTICES.txt"
+          fi
+
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          import ExcelJS from 'exceljs';
+          import { fromArrayBuffer, loadWorkbook } from '@office-kit/xlsx/io';
+          import { iterWorksheets } from '@office-kit/xlsx/workbook';
+          import { getCell, getCellExtent, getMergedCells } from '@office-kit/xlsx/worksheet';
+          import { getCellDisplayText } from '@office-kit/xlsx/styles';
+
+          // Gera um XLSX por uma biblioteca independente e o reabre no Office Kit.
+          // Isso evita testar apenas o próprio round-trip do novo motor.
+          const source = new ExcelJS.Workbook();
+          const resumo = source.addWorksheet('Resumo');
+          source.addWorksheet('Vendas');
+          source.addWorksheet('Layout & Mesclas');
+
+          resumo.mergeCells('A1:H2');
+          resumo.getCell('A1').value = 'NERDORA PLAYER — TESTE DE FIDELIDADE EXCEL';
+          resumo.getCell('A1').font = { name: 'Calibri', size: 18, bold: true, color: { argb: 'FFFFFFFF' } };
+          resumo.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF5B21B6' } };
+          resumo.getCell('A20').value = 'fim';
+          resumo.getCell('H20').value = 123.45;
+          resumo.getCell('H20').numFmt = '"R$" #,##0.00';
+          resumo.getColumn(1).width = 24;
+          resumo.getRow(20).height = 26;
+
+          const generated = await source.xlsx.writeBuffer();
+          fs.writeFileSync('/tmp/Teste_Nerdora_Excel.xlsx', Buffer.from(generated));
+
+          const bytes = new Uint8Array(fs.readFileSync('/tmp/Teste_Nerdora_Excel.xlsx'));
+          const wb = await loadWorkbook(fromArrayBuffer(bytes));
+          const sheets = [...iterWorksheets(wb)];
+
+          if (sheets.length !== 3) throw new Error('Fixture deveria ter 3 abas, recebeu ' + sheets.length);
+          if (sheets[0].title !== 'Resumo') throw new Error('Primeira aba divergente: ' + sheets[0].title);
+
+          const ext = getCellExtent(sheets[0]);
+          if (!ext || ext.minRow !== 1 || ext.minCol !== 1 || ext.maxRow < 20 || ext.maxCol < 8) {
+            throw new Error('Área útil da aba Resumo divergente: ' + JSON.stringify(ext));
+          }
+
+          const a1 = getCell(sheets[0], 1, 1);
+          if (!a1) throw new Error('A1 ausente na fixture');
+          const title = getCellDisplayText(wb, a1);
+          if (!title.includes('NERDORA PLAYER')) throw new Error('Título A1 divergente: ' + title);
+
+          const merges = getMergedCells(sheets[0]);
+          if (!merges.some(m => m.minRow === 1 && m.maxRow === 2 && m.minCol === 1 && m.maxCol === 8)) {
+            throw new Error('Mesclagem A1:H2 não encontrada');
+          }
+
+          console.log('Office Kit 0.21.1 validado contra XLSX externo:', {
+            sheets: sheets.map(s => s.title),
+            extent: ext,
+            title,
+            merges: merges.length
+          });
+          JS
+
+          cd "$GITHUB_WORKSPACE"
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 75/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.15"/' extracted_project/app/build.gradle.kts
+
+          VIEWER="$ASSETS/viewer.html"
+
+          grep -q 'versionName = "0.9.15"' extracted_project/app/build.gradle.kts
+          test -s "$ASSETS/officekit-viewer.js"
+          test -s "$ASSETS/licenses/office-kit-xlsx-LICENSE.txt"
+          grep -q 'officekit-viewer.js' "$VIEWER"
+          grep -q 'NerdoraOfficeKit.renderXlsx' "$VIEWER"
+          grep -q 'body.has-tabs #viewport' "$VIEWER"
+          grep -q 'bottom: 60px' "$VIEWER"
+          node --check "$ASSETS/officekit-viewer.js"
+
+          test ! -e "$ASSETS/exceljs.min.js"
+          test ! -e "$ASSETS/luckyexcel.umd.js"
+          test ! -e "$ASSETS/luckysheet"
+
+          grep -q 'DocumentKind.XLSX -> HighFidelityXlsxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          echo "v0.9.15: Excel Viewer migrado para Office Kit XLSX 0.21.1; Word preservado."
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
@@ -1194,7 +1318,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.14"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.15"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -1216,21 +1340,18 @@ jobs:
           test -s app/src/main/assets/docx_renderer/fonts/carlito-400.woff2
           grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           test -f app/src/main/java/com/nerdora/player/ui/HighFidelityXlsxViewer.kt
-          test -s app/src/main/assets/xlsx_renderer/exceljs.min.js
-          test -s app/src/main/assets/xlsx_renderer/licenses/exceljs-LICENSE.txt
+          test -s app/src/main/assets/xlsx_renderer/officekit-viewer.js
+          test -s app/src/main/assets/xlsx_renderer/licenses/office-kit-xlsx-LICENSE.txt
           grep -q 'DocumentKind.XLSX -> HighFidelityXlsxViewer' app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           grep -q 'scanQuickPublicFolders(root)' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
-          grep -q 'new ExcelJS.Workbook()' app/src/main/assets/xlsx_renderer/viewer.html
-          grep -q 'workbook.xlsx.load' app/src/main/assets/xlsx_renderer/viewer.html
-          grep -q 'computeBounds' app/src/main/assets/xlsx_renderer/viewer.html
-          grep -q 'worksheet.model.merges' app/src/main/assets/xlsx_renderer/viewer.html
-          grep -q 'worksheet.model.rows' app/src/main/assets/xlsx_renderer/viewer.html
-          grep -q 'applyFitToWidth' app/src/main/assets/xlsx_renderer/viewer.html
+          grep -q 'officekit-viewer.js' app/src/main/assets/xlsx_renderer/viewer.html
+          grep -q 'NerdoraOfficeKit.renderXlsx' app/src/main/assets/xlsx_renderer/viewer.html
           grep -q 'body.has-tabs #viewport' app/src/main/assets/xlsx_renderer/viewer.html
           grep -q 'bottom: 60px' app/src/main/assets/xlsx_renderer/viewer.html
-          ! grep -q 'LuckyExcel' app/src/main/assets/xlsx_renderer/viewer.html
-          ! grep -q 'luckysheet' app/src/main/assets/xlsx_renderer/viewer.html
-          echo "Nerdora Player v0.9.14 validado."
+          test ! -e app/src/main/assets/xlsx_renderer/exceljs.min.js
+          test ! -e app/src/main/assets/xlsx_renderer/luckyexcel.umd.js
+          test ! -e app/src/main/assets/xlsx_renderer/luckysheet
+          echo "Nerdora Player v0.9.15 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -1279,7 +1400,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.14 assinada
+      - name: Publicar Release pública v0.9.15 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -1288,8 +1409,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Novo Excel Viewer com ExcelJS"
-          NOTES="Nerdora Player v0.9.14: substitui completamente o parser Excel anterior pelo ExcelJS 4.4.0, biblioteca MIT madura para leitura XLSX no navegador/WebView. O novo visualizador continua somente leitura e em modo final, sem grade de edição, usando as estruturas já interpretadas pelo ExcelJS para valores, fórmulas com resultado salvo, estilos, mesclas e dimensões de linhas/colunas. As abas permanecem no rodapé. O leitor Word não foi alterado."
+          TITLE="Nerdora Player v${VERSION} — Excel Viewer com Office Kit"
+          NOTES="Nerdora Player v0.9.15: substitui o ExcelJS pelo @office-kit/xlsx 0.21.1, biblioteca MIT moderna e ativa. O visualizador usa a mesma API de leitura e estilos do playground oficial do Office Kit, preservando valores formatados, fórmulas com resultado salvo, fontes, preenchimentos, bordas, mesclas, larguras de coluna e alturas de linha. A fixture Teste_Nerdora_Excel.xlsx é validada no build com 3 abas, área Resumo A1:H20 e mesclagem A1:H2. Continua somente leitura, sem grade de edição, com abas no rodapé. O leitor Word permanece inalterado."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
