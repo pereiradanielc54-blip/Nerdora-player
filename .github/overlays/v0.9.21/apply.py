@@ -252,6 +252,33 @@ private fun LegacySafBrowser(
 '''
 text = text[:start] + new_saf + text[end:]
 
+# A substituição acima também alcança o helper que a v0.9.19 injeta logo antes
+# de hasFullStorageAccess. Recolocamos o helper de forma explícita.
+helper_marker = 'private fun hasFullStorageAccess(context: Context): Boolean'
+if 'private fun resolveInitialFolder(' not in text:
+    helper = '''private fun resolveInitialFolder(root: File, requested: String?): File? {
+    val raw = requested?.trim().orEmpty()
+    if (raw.isBlank()) return null
+    val candidates = when (raw.uppercase(Locale.ROOT)) {
+        "DOWNLOAD", "DOWNLOADS" -> listOf(File(root, "Download"))
+        "DCIM" -> listOf(File(root, "DCIM"))
+        "MOVIES" -> listOf(File(root, "Movies"))
+        "MUSIC" -> listOf(File(root, "Music"))
+        "PICTURES" -> listOf(File(root, "Pictures"))
+        "WHATSAPP" -> listOf(
+            File(root, "Android/media/com.whatsapp/WhatsApp/Media"),
+            File(root, "WhatsApp/Media"),
+            File(root, "WhatsApp")
+        )
+        else -> listOf(File(raw), File(root, raw))
+    }
+    return candidates.firstOrNull { it.exists() && it.isDirectory && it.canRead() }
+}
+
+'''
+    assert helper_marker in text, "marcador hasFullStorageAccess não encontrado"
+    text = text.replace(helper_marker, helper + helper_marker, 1)
+
 text = text.replace(
     'private fun scanTrashFiles(): List<DeviceFileItem> { val trash = nerdoraTrashRoot(); if (!trash.exists() || !trash.isDirectory) return emptyList(); return trash.listFiles()?.filter { it.isFile }?.map(::deviceItem).orEmpty() }',
     'private fun scanTrashFiles(): List<DeviceFileItem> { val trash = nerdoraTrashRoot(); if (!trash.exists() || !trash.isDirectory) return emptyList(); return trash.listFiles()?.filter { it.isFile || it.isDirectory }?.map(::deviceItem).orEmpty() }',
