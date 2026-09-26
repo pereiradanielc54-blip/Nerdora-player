@@ -867,3 +867,7 @@ body.reduceMotion .cardCarousel{animation:none!important}
 @media(max-width:560px){
   .multiCardNav{grid-template-columns:36px 1fr 36px;margin:6px auto 8px;gap:5px}.carouselArrow{width:36px;height:34px;font-size:21px!important}.multiCardMeta small{font-size:6px}.cardCarousel{width:100%}
 }
+
+/* HOST HANDOFF V40 */
+.playerPro .playerInfo small{transition:color .18s ease}
+.playerPro:has(.playerInfo small){transition:border-color .18s ease,background .18s ease}
