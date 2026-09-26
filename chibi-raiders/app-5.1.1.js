@@ -1771,8 +1771,9 @@ function handleCentralButton(btn,e){
  const id=btn.id||"";
 
  // Navegação principal e atalhos.
- if(UI_ROUTE_BUTTONS[id]){
-  const route=UI_ROUTE_BUTTONS[id];
+ const declaredRoute=btn.dataset.route||UI_ROUTE_BUTTONS[id];
+ if(declaredRoute){
+  const route=declaredRoute;
   if(route==="equipamentos"&&!save.owned[selectedHero])selectedHero=firstOwnedHeroId();
   showScreen(route,route==="equipamentos"?{focus:"equipment"}:{});
   return true;
