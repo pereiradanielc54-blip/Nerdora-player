@@ -2150,3 +2150,10 @@ button{-webkit-tap-highlight-color:transparent}
  .lobbyTopbar{padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right))}
  .bottomNav{padding-bottom:max(5px,env(safe-area-inset-bottom))!important}
 }
+
+.combatCard.hitLight{animation:identityHitLight .22s ease!important}
+.combatCard.hitHard{animation:identityHitHard .34s ease!important}
+.combatCard.ultimateCast{animation:identityUlt .68s ease!important}
+.combatCard.dodgeFx{animation:dodgeCard .34s ease!important}
+@keyframes identityHitLight{0%,100%{filter:brightness(1)}45%{filter:brightness(1.35);translate:2px 0}}
+@keyframes identityHitHard{0%,100%{filter:brightness(1);translate:0 0}22%{filter:brightness(1.9);translate:5px 0}48%{translate:-4px 0}72%{translate:2px 0}}
