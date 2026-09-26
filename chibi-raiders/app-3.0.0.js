@@ -333,7 +333,184 @@ function backToLobby(){
  showScreen("lobby");
 }
 function renderResources(){
- $$("[data-res]").forEach(e=>{const k=e.dataset.res;if(k==="accountLevel")e.textContent=accountLevel();else e.textContent=save[k]??0});
+ $("[data-res]").forEach(e=>{const k=e.dataset.res;if(k==="accountLevel")e.textContent=accountLevel();else e.textContent=save[k]??0});
+ const v=vipLevel();if($("#vipTopLevel"))$("#vipTopLevel").textContent=v;if($("#portalVipLevel"))$("#portalVipLevel").textContent=v;
+}
+
+function vipLevel(){
+ let level=1;
+ for(let i=0;i<VIP_THRESHOLDS.length;i++)if(save.vipPoints>=VIP_THRESHOLDS[i])level=i+1;
+ return clamp(level,1,10);
+}
+function vipAfkGoldBonus(){return vipLevel()*.02}
+function arenaMaxAttempts(){const v=vipLevel();return 5+(v>=4?1:0)+(v>=8?1:0)}
+function addVipPoints(points,reason=""){
+ const before=vipLevel();save.vipPoints=Math.max(0,(save.vipPoints||0)+Math.max(0,Math.round(points||0)));
+ const after=vipLevel();
+ if(after>before){rewardFloat("👑 VIP "+after+" desbloqueado!","gold");toast("👑 Você alcançou VIP "+after);haptic([18,24,38])}
+ return after;
+}
+function spendDiamonds(amount,reason=""){
+ amount=Math.max(0,Math.round(amount||0));
+ if(save.diamonds<amount)return false;
+ save.diamonds-=amount;save.diamondsSpent=(save.diamondsSpent||0)+amount;addVipPoints(amount,reason);
+ return true;
+}
+function renderVip(){
+ const lv=vipLevel(),cur=VIP_THRESHOLDS[lv-1]||0,next=lv<10?VIP_THRESHOLDS[lv]:cur,span=Math.max(1,next-cur),pct=lv>=10?100:clamp((save.vipPoints-cur)/span*100,0,100);
+ if($("#vipScreenLevel"))$("#vipScreenLevel").textContent=lv;
+ if($("#vipSpent"))$("#vipSpent").textContent=(save.diamondsSpent||0).toLocaleString("pt-BR");
+ if($("#vipPoints"))$("#vipPoints").textContent=(save.vipPoints||0).toLocaleString("pt-BR");
+ if($("#vipTitle"))$("#vipTitle").textContent="VIP "+lv;
+ if($("#vipDesc"))$("#vipDesc").textContent="Diamantes gastos e missões diárias aumentam seu status. As vantagens são aplicadas automaticamente aos sistemas do jogo.";
+ if($("#vipProgress"))$("#vipProgress").innerHTML=`<div class="vipProgressTop"><b>VIP ${lv}</b><span>${lv>=10?"Nível máximo":(save.vipPoints-cur)+" / "+span+" para VIP "+(lv+1)}</span></div><div class="vipProgressBar"><i style="width:${pct}%"></i></div>`;
+ const perks=[
+  {need:1,title:"📦 Farm AFK",desc:"+"+Math.round(vipAfkGoldBonus()*100)+"% Ouro AFK no seu nível atual."},
+  {need:4,title:"🏟️ Arena VIP 4",desc:"+1 tentativa diária de Arena."},
+  {need:6,title:"🎫 Passe acelerado",desc:"+10% XP do Passe a partir do VIP 6."},
+  {need:8,title:"⚔️ Arena VIP 8",desc:"+2 tentativas diárias no total."},
+  {need:10,title:"👑 Prestígio VIP 10",desc:"+20% Ouro AFK e máximo de tentativas VIP."}
+ ];
+ if($("#vipPerks"))$("#vipPerks").innerHTML=perks.map(p=>`<div class="vipPerk ${lv>=p.need?"active":""}"><b>${lv>=p.need?"✓":"🔒"} ${p.title}</b><small>${p.desc}</small></div>`).join("");
+ renderResources();
+}
+function addBattlePassXp(base,reason=""){
+ const mult=vipLevel()>=6?1.10:1,amount=Math.max(1,Math.round(base*mult));
+ save.battlePassXp=(save.battlePassXp||0)+amount;
+ if($("#battlePassScreen")?.classList.contains("active"))renderBattlePass();
+ return amount;
+}
+function battlePassUnlockedTier(){return clamp(Math.floor((save.battlePassXp||0)/BATTLE_PASS_STEP),0,BATTLE_PASS_TIERS)}
+function passReward(tier,premium=false){
+ if(premium){
+  if(tier%5===0)return{type:"stones",qty:2+Math.floor(tier/10),label:"🌟 Pedras de Despertar"};
+  if(tier%3===0)return{type:"shards",qty:15,label:"👼 Fragmentos de Seraphina"};
+  return{type:"diamonds",qty:60+tier*5,label:"💎 Diamantes"};
+ }
+ if(tier%5===0)return{type:"scrolls",qty:1,label:"📜 Pergaminho"};
+ if(tier%2===0)return{type:"gold",qty:500+tier*80,label:"🪙 Ouro"};
+ return{type:"essence",qty:2+Math.ceil(tier/4),label:"✨ Essência"};
+}
+function grantPassReward(r){
+ if(r.type==="gold")save.gold+=r.qty;
+ else if(r.type==="diamonds")save.diamonds+=r.qty;
+ else if(r.type==="scrolls")save.scrolls+=r.qty;
+ else if(r.type==="essence")save.essence+=r.qty;
+ else if(r.type==="stones")save.awakeningStones+=r.qty;
+ else if(r.type==="shards")save.shards.seraphina=(save.shards.seraphina||0)+r.qty;
+}
+function claimPassReward(tier,premium=false){
+ tier=Number(tier);if(tier<1||tier>BATTLE_PASS_TIERS||battlePassUnlockedTier()<tier)return;
+ const map=premium?save.battlePassPremiumClaimed:save.battlePassFreeClaimed;
+ if(premium&&!save.battlePassPremium)return toast("Desbloqueie o Passe Premium primeiro");
+ if(map[tier])return;
+ const r=passReward(tier,premium);grantPassReward(r);map[tier]=true;persist();renderBattlePass();renderResources();
+ rewardFloat(r.label+" +"+r.qty,premium?"diamond":"gold");AudioEngine.sfx("reward");
+}
+function unlockPremiumPass(){
+ if(save.battlePassPremium)return;
+ if(!spendDiamonds(1200,"Passe Premium"))return toast("Diamantes insuficientes");
+ save.battlePassPremium=true;persist();renderBattlePass();renderVip();toast("🎫 Passe Premium desbloqueado!");
+}
+function renderBattlePass(){
+ const unlocked=battlePassUnlockedTier(),displayLevel=Math.min(BATTLE_PASS_TIERS,unlocked+1),within=(save.battlePassXp||0)%BATTLE_PASS_STEP;
+ if($("#battlePassLevel"))$("#battlePassLevel").textContent=displayLevel;
+ if($("#battlePassXp"))$("#battlePassXp").textContent=(save.battlePassXp||0).toLocaleString("pt-BR");
+ if($("#battlePassProgressFill"))$("#battlePassProgressFill").style.width=(unlocked>=BATTLE_PASS_TIERS?100:within/BATTLE_PASS_STEP*100)+"%";
+ if($("#battlePassProgressText"))$("#battlePassProgressText").textContent=unlocked>=BATTLE_PASS_TIERS?"Passe concluído":within+"/"+BATTLE_PASS_STEP+" XP";
+ const premiumBtn=$("#unlockPremiumPass");if(premiumBtn){premiumBtn.disabled=save.battlePassPremium||save.diamonds<1200;premiumBtn.textContent=save.battlePassPremium?"✓ PREMIUM ATIVO":"Desbloquear Premium • 💎1.200"}
+ const track=$("#battlePassTrack");if(!track)return;
+ track.innerHTML=Array.from({length:BATTLE_PASS_TIERS},(_,i)=>i+1).map(t=>{
+  const free=passReward(t,false),prem=passReward(t,true),open=unlocked>=t,fc=!!save.battlePassFreeClaimed[t],pc=!!save.battlePassPremiumClaimed[t];
+  return `<div class="passTier ${open?"unlocked":""}"><div class="passLevel">Nv.${t}</div>
+   <div class="passReward ${fc?"claimed":""} ${open?"":"locked"}"><div><b>GRÁTIS • ${free.label}</b><small>Quantidade: ${free.qty}</small></div><button class="btn claimPassBtn" data-tier="${t}" data-premium="0" ${!open||fc?"disabled":""}>${fc?"✓":"Resgatar"}</button></div>
+   <div class="passReward premium ${pc?"claimed":""} ${open&&save.battlePassPremium?"":"locked"}"><div><b>PREMIUM • ${prem.label}</b><small>Quantidade: ${prem.qty}</small></div><button class="btn claimPassBtn" data-tier="${t}" data-premium="1" ${!open||pc||!save.battlePassPremium?"disabled":""}>${pc?"✓":"Resgatar"}</button></div></div>`;
+ }).join("");
+ $(".claimPassBtn").forEach(b=>b.addEventListener("click",()=>claimPassReward(b.dataset.tier,b.dataset.premium==="1")));
+}
+function petById(id){return PETS.find(p=>p.id===id)||PETS[0]}
+function petAuraData(id=save.activePet){
+ if(!id||!save.petsOwned[id])return null;
+ const p=petById(id),lv=clamp(save.petLevels[id]||1,1,10);
+ if(id==="drakko")return{pet:p,level:lv,def:.15+(lv-1)*.005,atk:0};
+ return{pet:p,level:lv,def:0,atk:.10+(lv-1)*.005};
+}
+function applyPetAura(units){
+ const aura=petAuraData();if(!aura)return units;
+ units.forEach(u=>{u.basePd=Math.round(u.basePd*(1+aura.def));u.baseMd=Math.round(u.baseMd*(1+aura.def));u.pa=Math.round(u.pa*(1+aura.atk));u.ma=Math.round(u.ma*(1+aura.atk))});
+ units.pet=aura;return units;
+}
+function petFeedNeed(id){const lv=save.petLevels[id]||1;return 3+Math.floor(lv/2)}
+function feedPet(id){
+ if(!save.petsOwned[id])return;
+ const lv=save.petLevels[id]||1;if(lv>=10)return toast("Mascote no nível máximo");
+ const gold=300+lv*140,ess=Math.max(1,Math.ceil(lv/3));
+ if(save.gold<gold||save.essence<ess)return toast("Recursos insuficientes para alimentar");
+ save.gold-=gold;save.essence-=ess;save.petFeed[id]=(save.petFeed[id]||0)+1;
+ const need=petFeedNeed(id);
+ if(save.petFeed[id]>=need){save.petFeed[id]=0;save.petLevels[id]=lv+1;rewardFloat("🐾 "+petById(id).name+" Nv."+(lv+1),"exp")}
+ persist();renderPets();renderResources();
+}
+function unlockPet(id){
+ const p=petById(id);if(save.petsOwned[id])return;
+ if(p.unlock==="diamonds"){if(!spendDiamonds(p.price,"Mascote "+p.name))return toast("Diamantes insuficientes")}
+ save.petsOwned[id]=true;save.activePet=id;selectedPet=id;persist();renderPets();renderVip();toast("🐾 "+p.name+" foi desbloqueado!");
+}
+function activatePet(id){if(!save.petsOwned[id])return;save.activePet=id;selectedPet=id;persist();renderPets();toast("🐾 "+petById(id).name+" equipado")}
+function renderPets(){
+ const grid=$("#petGrid"),detail=$("#petDetail");if(!grid||!detail)return;
+ if(!PETS.some(p=>p.id===selectedPet))selectedPet=save.activePet||PETS[0].id;
+ grid.innerHTML=PETS.map(p=>{const own=!!save.petsOwned[p.id],lv=save.petLevels[p.id]||1;return `<button class="petCard ${selectedPet===p.id?"selected":""} ${own?"":"locked"}" data-pet="${p.id}"><div class="petAvatar">${p.emoji}</div><div><b>${p.name}</b><small>${p.role} • ${own?"Nv."+lv:"Bloqueado"}</small></div>${save.activePet===p.id?'<span class="petActive">ATIVO</span>':""}</button>`}).join("");
+ $(".petCard").forEach(b=>b.addEventListener("click",()=>{selectedPet=b.dataset.pet;renderPets()}));
+ const p=petById(selectedPet),own=!!save.petsOwned[p.id],lv=save.petLevels[p.id]||1,aura=petAuraData(p.id),feed=save.petFeed[p.id]||0,need=petFeedNeed(p.id);
+ const auraText=p.id==="drakko"?("+"+Math.round((aura?.def||.15)*100)+"% DEF Global"):("+"+Math.round((aura?.atk||.10)*100)+"% ATQ Global");
+ detail.innerHTML=`<div class="petDetailHead"><div class="big">${p.emoji}</div><div><h2>${p.name}</h2><p>${p.role} • Nv.${lv}/10</p></div></div><p>${p.desc}</p>
+ <div class="petAuraBox"><b>✨ Aura: ${auraText}</b><small>Habilidade automática: ${p.skill} • ativa a cada 3 rodadas.</small></div>
+ ${own?`<div class="petAuraBox"><b>🍖 Alimentação ${feed}/${need}</b><small>Custo atual: 🪙 ${(300+lv*140).toLocaleString("pt-BR")} + ✨ ${Math.max(1,Math.ceil(lv/3))}</small></div><div class="petActions"><button id="feedPetBtn" class="btn primary" ${lv>=10?"disabled":""}>Alimentar</button><button id="activatePetBtn" class="btn gold" ${save.activePet===p.id?"disabled":""}>${save.activePet===p.id?"✓ Equipado":"Equipar"}</button></div>`:`<button id="unlockPetBtn" class="btn gold" style="width:100%">Desbloquear • 💎${p.price||0}</button>`}`;
+ const f=$("#feedPetBtn"),act=$("#activatePetBtn"),unlock=$("#unlockPetBtn");
+ if(f)f.addEventListener("click",()=>feedPet(p.id));if(act)act.addEventListener("click",()=>activatePet(p.id));if(unlock)unlock.addEventListener("click",()=>unlockPet(p.id));
+ if($("#activePetBadge"))$("#activePetBadge").textContent=petById(save.activePet).emoji+" "+petById(save.activePet).name;
+}
+function renderChatState(){
+ const chat=$("#globalChat");if(!chat)return;chat.classList.toggle("collapsed",!!save.chatCollapsed);if($("#chatChevron"))$("#chatChevron").textContent=save.chatCollapsed?"⌃":"⌄";
+}
+function pushChatMessage(seed=false){
+ const box=$("#chatMessages");if(!box)return;
+ const item=CHAT_MESSAGES[Math.floor(Math.random()*CHAT_MESSAGES.length)],row=document.createElement("div");
+ row.className="chatMsg "+(item[2]||"");row.innerHTML="<b>"+item[0]+":</b> "+item[1];box.appendChild(row);
+ while(box.children.length>5)box.removeChild(box.firstChild);
+ if(!seed)row.animate?.([{opacity:0,transform:"translateY(5px)"},{opacity:1,transform:"none"}],{duration:220});
+}
+function startGlobalChat(){
+ clearInterval(chatTimer);renderChatState();const box=$("#chatMessages");if(box&&!box.children.length){pushChatMessage(true);pushChatMessage(true);pushChatMessage(true)}
+ chatTimer=setInterval(()=>{if(!document.hidden)pushChatMessage(false)},6500);
+}
+function toggleGlobalChat(){save.chatCollapsed=!save.chatCollapsed;persist();renderChatState()}
+function dailyGuildWarReset(){
+ if(save.guildWarDate!==todayKey()){save.guildWarDate=todayKey();save.guildWarAttempts=3;save.guildWarPoints=0;guildWarCastles=[];persist()}
+}
+function generateGuildWarCastles(){
+ dailyGuildWarReset();if(guildWarCastles.length)return guildWarCastles;
+ const names=["Fortaleza Rubra","Bastião Lunar","Cidadela de Ferro","Trono Abissal"];
+ guildWarCastles=names.map((name,i)=>{
+  const heroes=[...HEROES].sort(()=>Math.random()-.5).slice(0,5).map(h=>h.id),level=5+i*3,scale=.88+i*.14;
+  return{id:"castle"+i,name,icon:i===3?"🏯":"🏰",level,scale,power:Math.round(9200*(scale+.35)),heroes,elite:i===3};
+ });
+ return guildWarCastles;
+}
+function guildWarHtml(){
+ if(!save.guildId)return"";
+ dailyGuildWarReset();const castles=generateGuildWarCastles();
+ return `<div class="guildWar card"><div class="guildWarHeader"><div><h3>⚔️ Guerra de Guildas</h3><span>Mapa diário simulado • escolha um castelo inimigo</span></div><div class="warScore">🏅 ${save.guildWarPoints} • ⚔️ ${save.guildWarAttempts}/3</div></div><div class="warMap">${castles.map(c=>`<div class="warCastle ${c.elite?"elite":""}"><div class="castleIcon">${c.icon}</div><b>${c.name}</b><small>Defesa IA • Nv. médio ${c.level}</small><div class="warPower">Poder estimado ${c.power.toLocaleString("pt-BR")}</div><button class="btn guildWarBtn" data-castle="${c.id}" ${save.guildWarAttempts<1?"disabled":""}>⚔️ Atacar</button></div>`).join("")}</div></div>`;
+}
+function startGuildWarBattle(id){
+ dailyGuildWarReset();const c=generateGuildWarCastles().find(x=>x.id===id);
+ if(!c||save.guildWarAttempts<1)return toast("Sem ataques de Guerra hoje");
+ if(used().length!==5)return toast("Monte uma formação com 5 heróis");
+ save.guildWarAttempts--;persist();
+ const enemies=SLOTS.map((slot,i)=>new Unit(hero(c.heroes[i]),"enemy",slot,{level:c.level,scale:c.scale}));
+ lastBattleMode="guildWar";landscape();battle=new Battle(playerTeam(),enemies,{mode:"guildWar",castle:c,name:c.name});
+ showScreen("battleScreen");$("#battleStageName").textContent="GUERRA • "+c.name;$("#battleLog").innerHTML="";battle.log("⚔️ Ataque de Guilda iniciado contra "+c.name+".");renderBattle();battle.loop();
 }
 
 function haptic(pattern=10){try{navigator.vibrate&&navigator.vibrate(pattern)}catch(e){}}
@@ -384,8 +561,8 @@ function formatDuration(ms){
  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s2).padStart(2,"0");
 }
 function afkSnapshot(now=Date.now()){
- const elapsed=clamp(now-(save.lastAfkClaim||now),0,AFK_CAP_MS),minutes=elapsed/60000;
- return{elapsed,gold:Math.floor(minutes*AFK_RATES.goldPerMin),exp:Math.floor(minutes*AFK_RATES.expPerMin),essence:Math.floor(minutes*AFK_RATES.essencePerMin)};
+ const elapsed=clamp(now-(save.lastAfkClaim||now),0,AFK_CAP_MS),minutes=elapsed/60000,goldMult=1+vipAfkGoldBonus();
+ return{elapsed,gold:Math.floor(minutes*AFK_RATES.goldPerMin*goldMult),exp:Math.floor(minutes*AFK_RATES.expPerMin),essence:Math.floor(minutes*AFK_RATES.essencePerMin),goldMult};
 }
 function renderAfk(){
  const r=afkSnapshot(),badge=$("#afkTimerBadge");
@@ -393,7 +570,7 @@ function renderAfk(){
  if($("#afkGold"))$("#afkGold").textContent=r.gold.toLocaleString("pt-BR");
  if($("#afkExp"))$("#afkExp").textContent=r.exp.toLocaleString("pt-BR");
  if($("#afkEssence"))$("#afkEssence").textContent=r.essence.toLocaleString("pt-BR");
- if($("#afkRateText"))$("#afkRateText").textContent="Taxa: 🪙 "+AFK_RATES.goldPerMin+"/min • ⭐ "+AFK_RATES.expPerMin+"/min • ✨ ~"+Math.round(AFK_RATES.essencePerMin*60)+"/h";
+ if($("#afkRateText"))$("#afkRateText").textContent="Taxa base: 🪙 "+AFK_RATES.goldPerMin+"/min • Bônus VIP +"+Math.round(vipAfkGoldBonus()*100)+"% • ⭐ "+AFK_RATES.expPerMin+"/min • ✨ ~"+Math.round(AFK_RATES.essencePerMin*60)+"/h";
  if($("#claimAfkBtn"))$("#claimAfkBtn").disabled=r.gold<1&&r.exp<1&&r.essence<1;
 }
 function claimAfk(auto=false){
