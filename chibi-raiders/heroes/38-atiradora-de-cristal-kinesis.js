@@ -1,0 +1,3 @@
+/* Nerdora Chibi Raiders — Herói #38: Atiradora de Cristal Kinesis */
+window.NERDORA_HERO_SOURCE=window.NERDORA_HERO_SOURCE||{};
+window.NERDORA_HERO_SOURCE["atiradora_cristal_kinesis"]={"number":38,"id":"atiradora_cristal_kinesis","name":"Atiradora de Cristal Kinesis","rarity":"SR","color":"#FFA500","colorName":"Laranja","img":"","atlasPage":2,"atlasCol":2,"atlasRow":3,"emoji":"💎","class":"Atiradora","position":"back","style":"ranged","type":"physical","finalBase":true,"ultimateFinal":true,"hp":1950,"pa":460,"ma":125,"pd":200,"md":190,"speed":138,"cr":0.23,"dg":0.13,"ult":{"name":"Disparo Telecinético","kind":"multi","ratio":0.98,"hits":5,"effect":"pierce"}};
