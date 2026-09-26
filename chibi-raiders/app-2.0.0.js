@@ -371,7 +371,7 @@ const AudioEngine={
  muted:!!save.audioMuted,unlocked:false,bgm:null,bgmKey:null,cache:{},
  get(key,loop=false){
   if(!AUDIO_ASSETS[key])return null;
-  if(!this.cache[key]){const a=new Audio(AUDIO_ASSETS[key]);a.preload="none";a.loop=loop;a.volume=loop?.28:.45;this.cache[key]=a}
+  if(!this.cache[key]){const a=new Audio(AUDIO_ASSETS[key]);a.preload="none";a.loop=loop;a.volume=loop ? .28 : .45;this.cache[key]=a}
   return this.cache[key];
  },
  unlock(){this.unlocked=true;this.updateButton()},
