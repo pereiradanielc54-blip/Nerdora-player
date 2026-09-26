@@ -21,10 +21,17 @@ function decodeBridgeFile() {
   return new File([bytes], "Nerdora.xlsx", { type: MIME });
 }
 
+function decodeHtmlText(value) {
+  const textarea = document.createElement("textarea");
+  textarea.innerHTML = String(value ?? "");
+  return textarea.value;
+}
+
 function normalizeSheets(input) {
   const sheets = Array.isArray(input) ? input : [];
   return sheets.map((sheet, index) => ({
     ...sheet,
+    name: decodeHtmlText(sheet?.name || ("Aba " + (index + 1))),
     config: { ...(sheet?.config || {}) },
     showGridLines: 0,
     status: index === 0 ? 1 : 0,
