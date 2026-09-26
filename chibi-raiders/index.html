@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Nerdora Chibi Raiders v0.8.0</title>
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<div id="updateSplash" class="updateSplash">
+  <div class="updateCard">
+    <div class="updateLogo">N</div>
+    <div class="brand">NERDORA <span>CHIBI RAIDERS</span></div>
+    <div id="updateStatus" class="updateStatus">Verificando versão e atualizações…</div>
+    <div class="installRow">
+      <button id="splashInstallBtn" class="btn primary" style="display:none">📲 Instalar</button>
+      <button id="splashUpdateBtn" class="btn gold" style="display:none">⬆ Atualizar agora</button>
+    </div>
+    <div class="small" style="margin-top:10px">Versão local: 0.8.0</div>
+  </div>
+</div>
+<div id="game">
+
+  <section id="homeScreen" class="screen active">
+    <div class="topbar">
+      <div class="brand">NERDORA <span>CHIBI RAIDERS</span></div>
+      <div class="badge">v0.8.0 • Horizontal</div>
+    </div>
+    <div class="section">
+      <div class="heroTitle card">
+        <div class="small">RPG MOBILE • GACHA / TURN-BASED</div>
+        <h1>Monte a equipa.<br>Domine a iniciativa.</h1>
+        <p>Protótipo completo em um único HTML: formação Front-line/Back-line, Speed, Rage, Ultimates, crítico, esquiva e combate automático.</p>
+        <div class="pills">
+          <span class="pill">10 heróis</span>
+          <span class="pill">5×5</span>
+          <span class="pill">Speed Initiative</span>
+          <span class="pill">Rage 0–100</span>
+          <span class="pill">Ultimate Manual/Auto</span>
+        </div>
+      </div>
+      <div class="homeActions card" style="margin-top:10px">
+        <button id="goFormation" class="btn primary">⚔️ Montar formação</button>
+        <button id="quickBattle" class="btn gold">⚡ Batalha rápida</button>
+        <button id="installAppBtn" class="btn ghost" style="display:none">📲 Instalar aplicativo</button>
+        <button id="checkUpdateBtn" class="btn ghost">🔄 Verificar atualização</button>
+        <div id="homeUpdateNotice" class="updateNotice"></div>
+        <div class="small">Na batalha rápida, o jogo monta uma formação automática com 5 heróis.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="formationScreen" class="screen">
+    <div class="topbar">
+      <button id="formationBack" class="btn ghost">←</button>
+      <div class="brand">FORMAÇÃO</div>
+      <div class="badge"><span id="selectedCount">0</span>/5</div>
+    </div>
+    <div class="section">
+      <div class="formationExplain card">
+        <strong>🛡️ Front-line x Back-line</strong>
+        <div class="small">Front-line recebe +15% DEF Física, +10% DEF Mágica e mais aggro. Ataques básicos melee não alcançam a Back-line enquanto algum Front-line estiver vivo.</div>
+      </div>
+      <div id="formationBoard" class="formationBoard"></div>
+      <div class="lineHeader">HERÓIS DISPONÍVEIS — toque num slot e depois num herói</div>
+      <div id="roster" class="roster"></div>
+      <button id="startBattle" class="btn primary" style="width:100%;margin-top:10px" disabled>Iniciar batalha</button>
+    </div>
+  </section>
+
+  <section id="battleScreen" class="screen">
+    <div class="topbar">
+      <button id="battleBack" class="btn ghost">←</button>
+      <div class="brand" style="font-size:14px">BATALHA</div>
+      <div id="battleState" class="badge">EM BATALHA</div>
+    </div>
+    <div class="battleShell">
+      <div id="arena" class="arena">
+        <div class="battleHeader">
+          <div class="group">
+            <button id="speed1" class="controlBtn active">1×</button>
+            <button id="speed2" class="controlBtn">2×</button>
+            <button id="pauseBtn" class="controlBtn">Ⅱ PAUSA</button>
+          </div>
+          <div class="group">
+            <button id="modeBtn" class="controlBtn">ULT: MANUAL</button>
+            <div id="roundLabel" class="stateLabel">Rodada 1</div>
+          </div>
+        </div>
+
+        <div class="teamLabel enemy"><span>INIMIGOS</span><span>FRONT ← → BACK</span></div>
+        <div id="enemyArea" class="formationArea enemy">
+          <div class="lineBox back"></div><div class="lineBox front"></div>
+        </div>
+
+        <div id="turnPanel" class="orderPanel">
+          <div class="orderTitle">INICIATIVA DESTA RODADA — SPEED</div>
+          <div id="turnOrder" class="turnOrder"></div>
+        </div>
+
+        <div class="teamLabel player"><span>SUA EQUIPA</span><span>BACK ← → FRONT</span></div>
+        <div id="playerArea" class="formationArea player">
+          <div class="lineBox back"></div><div class="lineBox front"></div>
+        </div>
+
+        <div class="rotateHint">
+          <div>
+            <strong>📱 Gire o celular</strong>
+            <span>A batalha foi desenhada para modo horizontal. Em PWA instalado, o jogo tentará abrir em paisagem automaticamente.</span>
+          </div>
+       </div>
+       <div id="ultBanner" class="ultBanner"></div>
+
+        <div class="logPanel">
+          <div class="logHeader">
+            <span>REGISTRO</span>
+            <span id="actionLabel" class="small">Preparando...</span>
+          </div>
+          <div id="battleLog" class="log"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="resultModal" class="modal">
+  <div class="modalCard">
+    <h2 id="resultTitle">Vitória!</h2>
+    <div id="resultText" class="small"></div>
+    <div id="resultRewards" class="rewards"></div>
+    <button id="resultBtn" class="btn primary" style="width:100%">Voltar ao início</button>
+  </div>
+</div>
+
+<script src="./app.js"></script>
+</body>
+</html>
