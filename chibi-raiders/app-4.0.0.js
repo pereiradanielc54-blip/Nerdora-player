@@ -652,8 +652,8 @@ function renderAwakening(){
  const grid=$("#awakeningHeroGrid");if(!grid)return;grid.innerHTML="";
  HEROES.forEach(h=>{
   const own=save.owned[h.id],lv=save.awakening[h.id]||0,a=affinityOf(h.id),e=document.createElement("button");
-  e.className="awakenHeroCard"+(selectedAwakeningHero===h.id?" selected":"")+(!own?" locked":"");
-  e.innerHTML=`<div class="awakenHeroTop"><span>${own?h.emoji:"❔"}</span><div><b>${h.name}</b><small>${a.icon} ${a.element} • ${a.factionName}</small></div></div><div class="awakenLevel">🌟 Despertar ${lv}/${AWAKEN_MAX}</div>`;
+  e.className="awakenHeroCard "+heroRarityClass(h)+(selectedAwakeningHero===h.id?" selected":"")+(!own?" locked":"");
+  e.innerHTML=`<div class="awakenHeroTop"><span>${own?h.emoji:"❔"}</span><div><b class="rarityName">${h.name}</b><small><span class="rarityTag ${heroRarityClass(h)}">${h.rarity}</span> ${a.icon} ${a.element} • ${a.factionName}</small></div></div><div class="awakenLevel">🌟 Despertar ${lv}/${AWAKEN_MAX}</div>`;
   e.onclick=()=>{selectedAwakeningHero=h.id;renderAwakening()};grid.appendChild(e);
  });
  const h=hero(selectedAwakeningHero),own=save.owned[h.id],aw=save.awakening[h.id]||0,eligible=awakeningEligible(h.id),cost=awakeningCost(h.id),a=affinityOf(h.id);
@@ -992,14 +992,14 @@ function renderFormation(){
  const board=$("#formationBoard");board.innerHTML="";
  SLOTS.forEach(slot=>{
   const h=formation[slot.id]?hero(formation[slot.id]):null,e=document.createElement("button");
-  e.className="slot "+slot.line+(activeSlot===slot.id?" selected":"")+(h?" filled":"");e.dataset.slot=slot.id;
-  e.innerHTML=h?`<span class="emoji">${h.emoji}</span><b>${h.name}</b><em>Nv.${save.heroLevels[h.id]} • ${affinityOf(h.id).factionName}</em>`:`<span class="emoji">＋</span><b>${slot.label}</b><em>${slot.line==="front"?"Front-line":"Back-line"}</em>`;
+  e.className="slot "+slot.line+(h?" "+heroRarityClass(h):"")+(activeSlot===slot.id?" selected":"")+(h?" filled":"");e.dataset.slot=slot.id;
+  e.innerHTML=h?`<span class="emoji">${h.emoji}</span><b>${h.name}</b><em><span class="rarityTag ${heroRarityClass(h)}">${h.rarity}</span> Nv.${save.heroLevels[h.id]} • ${affinityOf(h.id).factionName}</em>`:`<span class="emoji">＋</span><b>${slot.label}</b><em>${slot.line==="front"?"Front-line":"Back-line"}</em>`;
   e.onclick=()=>{activeSlot=slot.id;renderFormation()};board.appendChild(e);
  });
  const roster=$("#roster");roster.innerHTML="";
- HEROES.filter(h=>save.owned[h.id]).forEach(h=>{
-  const st=heroStats(h),a=affinityOf(h.id),e=document.createElement("button");e.className="rosterCard"+(used().includes(h.id)?" used":"");
-  e.innerHTML=`<div class="rosterHead"><span class="avatar">${h.emoji}</span><div><b>${h.name}</b><div class="meta">Nv.${st.level} • ${h.role} • SPD ${st.sp}</div><span class="factionTag ${a.faction}">${a.icon} ${a.factionName} • ${a.element}</span></div></div><div class="rosterStats"><span>HP ${st.hp}</span><span>ATQ ${Math.max(st.pa,st.ma)}</span><span>DEF ${Math.max(st.pd,st.md)}</span></div>`;
+ sortedHeroes(HEROES.filter(h=>save.owned[h.id])).forEach(h=>{
+  const st=heroStats(h),a=affinityOf(h.id),e=document.createElement("button");e.className="rosterCard "+heroRarityClass(h)+(used().includes(h.id)?" used":"");
+  e.innerHTML=`<div class="rosterHead"><span class="avatar">${h.emoji}</span><div><b class="rarityName">${h.name}</b><div class="meta"><span class="rarityTag ${heroRarityClass(h)}">${h.rarity}</span> Nv.${st.level} • ${h.role} • SPD ${st.sp}</div><span class="factionTag ${a.faction}">${a.icon} ${a.factionName} • ${a.element}</span></div></div><div class="rosterStats"><span>HP ${st.hp}</span><span>ATQ ${Math.max(st.pa,st.ma)}</span><span>DEF ${Math.max(st.pd,st.md)}</span></div>`;
   e.onclick=()=>{Object.keys(formation).forEach(k=>{if(formation[k]===h.id)formation[k]=null});formation[activeSlot]=h.id;const i=SLOTS.findIndex(x=>x.id===activeSlot);activeSlot=SLOTS[Math.min(i+1,4)].id;persist();renderFormation()};roster.appendChild(e);
  });
  $("#selectedCount").textContent=used().length;$("#startBattle").disabled=used().length!==5;renderSynergyPanel();
@@ -1010,15 +1010,16 @@ function bonusText(g){return Object.entries(g.bonus).map(([k,v])=>({hp:"HP",pa:"
 function rarityClass(r){return r==="Épico"?"gearEpic":r==="Raro"?"gearRare":""}
 function renderHeroes(){
  const grid=$("#heroManageGrid");grid.innerHTML="";
- HEROES.forEach(h=>{
+ sortedHeroes().forEach(h=>{
   const own=save.owned[h.id],st=heroStats(h),e=document.createElement("button");
-  e.className="heroManageCard"+(selectedHero===h.id?" selected":"")+(!own?" locked":"");
-  e.innerHTML=`<div class="heroManageTop"><span class="heroManageEmoji">${own?h.emoji:"❔"}</span><div><div class="heroManageName">${h.name}</div><div class="heroManageMeta">${h.role} • ${own?"Nv."+st.level:"Não obtido"} • ${affinityOf(h.id).element}</div></div></div><div class="heroManageBars"><span>HP ${own?st.hp:"—"}</span><span>ATQ ${own?Math.max(st.pa,st.ma):"—"}</span></div><div class="heroOwnership">${own?starString(st.stars)+" • 🧩 "+(save.shards[h.id]||0):"🔒 Invoque no Portal"}</div>`;
+  e.className="heroManageCard "+heroRarityClass(h)+(selectedHero===h.id?" selected":"")+(!own?" locked":"");
+  e.innerHTML=`<div class="heroManageTop"><span class="heroManageEmoji">${own?h.emoji:"❔"}</span><div><div class="heroManageName">${h.name}</div><div class="heroManageMeta"><span class="rarityTag ${heroRarityClass(h)}">${h.rarity}</span> ${h.role} • ${own?"Nv."+st.level:"Não obtido"} • ${affinityOf(h.id).element}</div></div></div><div class="heroManageBars"><span>HP ${own?st.hp:"—"}</span><span>ATQ ${own?Math.max(st.pa,st.ma):"—"}</span></div><div class="heroOwnership">${own?starString(st.stars)+" • 🧩 "+(save.shards[h.id]||0):"🔒 Invoque no Portal"}</div>`;
   e.onclick=()=>{selectedHero=h.id;renderHeroes()};grid.appendChild(e);
  });
  const h=hero(selectedHero),own=save.owned[h.id],st=heroStats(h),cost=levelCost(h.id),max=st.level>=20;
+ $("#heroDetail").className="heroDetail card "+heroRarityClass(h);
  if(!own){
-  $("#heroDetail").innerHTML=`<div class="heroDetailHeader"><div class="heroDetailAvatar">❔</div><div class="heroDetailTitle"><h2>${h.name}</h2><p>${h.role} • ainda não obtido</p></div></div><div class="levelPanel"><p class="small">Este herói pode ser obtido no Portal de Invocação. Duplicatas futuras serão convertidas em Fragmentos.</p><button class="btn portalBtn" id="heroToPortal" style="width:100%">🔮 Ir ao Portal</button></div>`;
+  $("#heroDetail").innerHTML=`<div class="heroDetailHeader"><div class="heroDetailAvatar">❔</div><div class="heroDetailTitle"><h2>${h.name}</h2><p><span class="rarityTag ${heroRarityClass(h)}">${h.rarity} • ${rarityMeta(h).name}</span> ${h.role} • ainda não obtido</p></div></div><div class="levelPanel"><p class="small">Este herói pode ser obtido no Portal de Invocação. Duplicatas futuras serão convertidas em Fragmentos.</p><button class="btn portalBtn" id="heroToPortal" style="width:100%">🔮 Ir ao Portal</button></div>`;
   $("#heroToPortal").onclick=()=>{renderPortal();show("portalScreen")};return;
  }
  const eq=save.equipment[h.id];
@@ -1029,7 +1030,7 @@ function renderHeroes(){
  const inv=Object.entries(save.gearInventory).filter(([,q])=>q>0).map(([gid,q])=>({g:GEAR[gid],q})).filter(x=>x.g);
  const invHtml=inv.length?inv.map(({g,q})=>`<div class="gearRow"><div class="gearIcon">${g.icon}</div><div><b class="${rarityClass(g.rarity)}">${g.name} ×${q}</b><small>${SLOT_NAMES[g.slot]} • ${bonusText(g)}</small></div><button class="btn equipBtn" data-gear="${g.id}">Equipar</button></div>`).join(""):'<div class="small">Nenhum equipamento no inventário. Vença fases ou visite a Loja.</div>';
  const stars=st.stars,starCost=stars<5?STAR_COST[stars]:0,have=save.shards[h.id]||0,starPct=stars>=5?100:Math.min(100,have/starCost*100);
- $("#heroDetail").innerHTML=`<div class="heroDetailHeader"><div class="heroDetailAvatar">${h.emoji}</div><div class="heroDetailTitle"><h2>${h.name}</h2><p>${h.role} • ${h.line==="front"?"Front-line":"Back-line"} • ${h.type==="magic"?"Mágico":"Físico"}</p><div class="heroAffinityLine"><span class="factionTag ${affinityOf(h.id).faction}">${affinityOf(h.id).icon} ${affinityOf(h.id).factionName}</span><span class="factionTag">${affinityOf(h.id).element}</span></div><div class="starLine">${starString(stars)}</div><div class="awakenMini">🌟 Despertar ${save.awakening[h.id]||0}/${AWAKEN_MAX}</div></div></div>
+ $("#heroDetail").innerHTML=`<div class="heroDetailHeader"><div class="heroDetailAvatar">${h.emoji}</div><div class="heroDetailTitle"><h2>${h.name}</h2><p><span class="rarityTag ${heroRarityClass(h)}">${h.rarity} • ${rarityMeta(h).name}</span> ${h.role} • ${h.line==="front"?"Front-line":"Back-line"} • ${h.type==="magic"?"Mágico":"Físico"}</p><div class="heroAffinityLine"><span class="factionTag ${affinityOf(h.id).faction}">${affinityOf(h.id).icon} ${affinityOf(h.id).factionName}</span><span class="factionTag">${affinityOf(h.id).element}</span></div><div class="starLine">${starString(stars)}</div><div class="awakenMini">🌟 Despertar ${save.awakening[h.id]||0}/${AWAKEN_MAX}</div></div></div>
  <div class="heroStatGrid"><div class="heroStat"><span>HP Máximo</span><b>${st.hp}</b></div><div class="heroStat"><span>Velocidade</span><b>${st.sp}</b></div><div class="heroStat"><span>ATQ Físico</span><b>${st.pa}</b></div><div class="heroStat"><span>ATQ Mágico</span><b>${st.ma}</b></div><div class="heroStat"><span>DEF Física</span><b>${st.pd}</b></div><div class="heroStat"><span>DEF Mágica</span><b>${st.md}</b></div></div>
  <div class="starPanel"><div class="starPanelTop"><b>⭐ Evolução de Estrelas</b><span>${stars}/5</span></div><div class="starProgress"><i style="width:${starPct}%"></i></div><button id="starUpBtn" class="btn gold" ${stars>=5||have<starCost?"disabled":""}>${stars>=5?"5★ MÁXIMO":"Evoluir para "+(stars+1)+"★ • 🧩 "+starCost}</button><div class="starBonus">${stars>=5?"Atributos base no multiplicador máximo ×2,00":"Próximo multiplicador: ×"+STAR_MULT[stars+1].toFixed(2)} • Fragmentos: ${have}</div></div>
  <button id="heroAwakenShortcut" class="btn awakenBtn" style="width:100%;margin-top:9px">🌟 Talentos e Despertar</button><div class="levelPanel"><div class="levelProgress"><b>Nível ${st.level}${max?" • MÁXIMO":""}</b><span>🪙 ${save.gold}</span></div><button id="levelUpBtn" class="btn primary levelUpBtn" ${max||save.gold<cost?"disabled":""}>${max?"Nível máximo":"⬆ Subir de Nível • 🪙 "+cost}</button><button id="usePotionBtn" class="btn ghost levelUpBtn" style="margin-top:6px" ${max||save.potions<1?"disabled":""}>🧪 Usar Poção de Treino (${save.potions})</button><div class="shardLine">Ultimate: <b>${h.ult.name}</b></div></div>
