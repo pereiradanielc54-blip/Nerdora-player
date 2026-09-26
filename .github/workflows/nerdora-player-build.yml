@@ -1615,18 +1615,16 @@ jobs:
           '''
           text = text.replace(sort_marker, sync_block + sort_marker, 1)
 
-          old_when = '''            UniversalCategory.ALL -> allFiles
-              UniversalCategory.LARGE -> allFiles.filter { it.file.length() >= 100L * 1024L * 1024L }'''
-          new_when = '''            UniversalCategory.ALL -> allFiles
+          all_case = '            UniversalCategory.ALL -> allFiles'
+          assert all_case in text, "caso ALL de categorias não encontrado"
+          documents_case = '''            UniversalCategory.ALL -> allFiles
               UniversalCategory.DOCUMENTS -> allFiles.filter {
                   it.category in setOf(
                       UniversalCategory.PDF, UniversalCategory.WORD, UniversalCategory.EXCEL,
                       UniversalCategory.POWERPOINT, UniversalCategory.TEXT
                   )
-              }
-              UniversalCategory.LARGE -> allFiles.filter { it.file.length() >= 100L * 1024L * 1024L }'''
-          assert old_when in text, "when de categorias não encontrado"
-          text = text.replace(old_when, new_when, 1)
+              }'''
+          text = text.replace(all_case, documents_case, 1)
 
           zip_line = '        ext in setOf("zip", "7z", "rar", "tar", "gz") || mime.contains("zip") -> UniversalCategory.ZIP'
           assert zip_line in text, "regra ZIP não encontrada"
