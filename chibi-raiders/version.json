@@ -1,7 +1,7 @@
 {
-  "version": "5.1.0",
-  "entry": "./index-5.1.0.html",
-  "serviceWorker": "./sw-5.1.0.js",
-  "build": "2026-09-26-v5.1.0-40-heroes-expansion",
-  "notes": "Expansão para 40 heróis. Heróis 21–40 possuem arquivo de fonte individual, imagem mapeada na segunda folha oficial, atributos exatos fornecidos, raridade, classe, posição, afinidade, Gacha, formação, coleção, ficha individual e batalha integrados."
+  "version": "5.1.1",
+  "entry": "./index-5.1.1.html",
+  "serviceWorker": "./sw-5.1.1.js",
+  "build": "2026-09-26-v5.1.1-navigation-recovery",
+  "notes": "Hotfix crítico: corrige seletor múltiplo que interrompia renderResources e bloqueava navegação, restaura todos os botões inferiores, mantém a barra inferior visível no Lobby, adiciona roteamento redundante por data-route e inicialização tolerante a falhas."
 }
