@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+  <link rel="stylesheet" href="../docx_renderer/font-aliases.css" />
+  <link rel="stylesheet" href="fortune-sheet.css" />
+  <style>
+    html, body, #root {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    body {
+      -webkit-text-size-adjust: 100%;
+      overscroll-behavior: contain;
+    }
+
+    #root {
+      position: fixed;
+      inset: 0;
+      min-width: 280px;
+      min-height: 320px;
+    }
+
+    /* Apenas leitura: remove affordances de edição sem mexer no renderer. */
+    textarea,
+    input[type="text"] {
+      caret-color: transparent !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="fortune-viewer.js"></script>
+</body>
+</html>

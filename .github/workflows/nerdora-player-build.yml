@@ -1245,6 +1245,177 @@ jobs:
           grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           echo "v0.9.15: Excel Viewer migrado para Office Kit XLSX 0.21.1; Word preservado."
 
+      - name: Trocar Excel Viewer para FortuneSheet v0.9.16
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ASSETS="extracted_project/app/src/main/assets/xlsx_renderer"
+          rm -rf "$ASSETS"
+          mkdir -p "$ASSETS/licenses"
+          cp .github/overlays/v0.9.16/viewer.html "$ASSETS/viewer.html"
+
+          rm -rf /tmp/nerdora-fortune
+          mkdir -p /tmp/nerdora-fortune
+          cd /tmp/nerdora-fortune
+          npm init -y >/dev/null 2>&1
+          npm install --silent --no-audit --no-fund \
+            @fortune-sheet/react@1.0.4 \
+            @corbe30/fortune-excel@2.3.3 \
+            react@18.2.0 \
+            react-dom@18.2.0 \
+            esbuild@0.25.9 \
+            exceljs@4.4.0
+
+          cp "$GITHUB_WORKSPACE/.github/overlays/v0.9.16/fortune-viewer.jsx" ./fortune-viewer.jsx
+
+          npx esbuild ./fortune-viewer.jsx \
+            --bundle \
+            --platform=browser \
+            --format=iife \
+            --target=chrome100 \
+            --loader:.jsx=jsx \
+            --define:process.env.NODE_ENV='"production"' \
+            --minify \
+            --outfile="$GITHUB_WORKSPACE/$ASSETS/fortune-viewer.js"
+
+          cp node_modules/@fortune-sheet/react/dist/index.css "$GITHUB_WORKSPACE/$ASSETS/fortune-sheet.css"
+
+          copy_license() {
+            PACKAGE_DIR="$1"
+            DEST="$2"
+            LIC=$(find "$PACKAGE_DIR" -maxdepth 2 -type f -iname 'LICENSE*' | head -n 1 || true)
+            if [ -n "$LIC" ]; then
+              cp "$LIC" "$GITHUB_WORKSPACE/$ASSETS/licenses/$DEST"
+            fi
+          }
+
+          cp "$GITHUB_WORKSPACE/.github/overlays/v0.9.16/fortune-sheet-LICENSE.txt" \
+            "$GITHUB_WORKSPACE/$ASSETS/licenses/fortune-sheet-react-LICENSE.txt"
+          cp "$GITHUB_WORKSPACE/.github/overlays/v0.9.16/fortune-sheet-LICENSE.txt" \
+            "$GITHUB_WORKSPACE/$ASSETS/licenses/fortune-sheet-core-LICENSE.txt"
+          cp "$GITHUB_WORKSPACE/.github/overlays/v0.9.16/fortune-excel-LICENSE.txt" \
+            "$GITHUB_WORKSPACE/$ASSETS/licenses/fortune-excel-LICENSE.txt"
+          copy_license node_modules/react react-LICENSE.txt
+          copy_license node_modules/react-dom react-dom-LICENSE.txt
+
+          node <<'JS'
+          const ExcelJS = require("exceljs");
+
+          global.File = function TestFile(parts, name, options = {}) {
+            const buffers = parts.map(part => {
+              if (Buffer.isBuffer(part)) return part;
+              if (part instanceof ArrayBuffer) return Buffer.from(part);
+              if (ArrayBuffer.isView(part)) return Buffer.from(part.buffer, part.byteOffset, part.byteLength);
+              return Buffer.from(String(part));
+            });
+            const buffer = Buffer.concat(buffers);
+            buffer.name = name;
+            buffer.type = options.type || "";
+            buffer.arrayBuffer = async () =>
+              buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+            buffer.text = async () => buffer.toString();
+            return buffer;
+          };
+          global.window = { navigator: { userAgent: "node-test" } };
+
+          const { transformExcelToFortune } = require("@corbe30/fortune-excel");
+
+          (async () => {
+            const wb = new ExcelJS.Workbook();
+            const resumo = wb.addWorksheet("Resumo");
+            wb.addWorksheet("Vendas");
+            wb.addWorksheet("Layout & Mesclas");
+
+            resumo.mergeCells("A1:H2");
+            resumo.getCell("A1").value = "NERDORA PLAYER — TESTE DE FIDELIDADE EXCEL";
+            resumo.getCell("A1").font = { name: "Calibri", size: 18, bold: true };
+            resumo.getCell("A1").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF5B21B6" } };
+            resumo.getCell("H20").value = 123.45;
+            resumo.getCell("H20").numFmt = '"R$" #,##0.00';
+            resumo.getColumn(1).width = 24;
+            resumo.getRow(20).height = 26;
+
+            const buffer = Buffer.from(await wb.xlsx.writeBuffer());
+            const file = new File([buffer], "Teste_Nerdora_Excel.xlsx", {
+              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            });
+
+            let sheets = null;
+            await transformExcelToFortune(
+              file,
+              value => { sheets = value; },
+              () => {},
+              {
+                current: {
+                  setColumnWidth: () => {},
+                  setRowHeight: () => {}
+                }
+              }
+            );
+
+            await new Promise(resolve => setTimeout(resolve, 20));
+
+            if (!Array.isArray(sheets) || sheets.length !== 3) {
+              throw new Error("FortuneExcel deveria retornar 3 abas.");
+            }
+            if (sheets[0].name !== "Resumo") {
+              throw new Error("Primeira aba divergente: " + sheets[0].name);
+            }
+
+            const a1 = sheets[0].celldata.find(c => c.r === 0 && c.c === 0);
+            const h20 = sheets[0].celldata.find(c => c.r === 19 && c.c === 7);
+            if (!a1 || !String(a1.v?.v ?? a1.v?.m ?? "").includes("NERDORA PLAYER")) {
+              throw new Error("A1 não foi importada corretamente.");
+            }
+            if (!h20 || Number(h20.v?.v) !== 123.45) {
+              throw new Error("H20 não foi importada corretamente.");
+            }
+
+            const merges = sheets[0].config?.merge || {};
+            const hasMerge = Object.values(merges).some(m =>
+              Number(m.r) === 0 && Number(m.c) === 0 && Number(m.rs) === 2 && Number(m.cs) === 8
+            );
+            if (!hasMerge) throw new Error("Mesclagem A1:H2 não foi importada.");
+
+            console.log("FortuneExcel 2.3.3 validado:", {
+              sheets: sheets.map(s => s.name),
+              cells: sheets[0].celldata.length,
+              mergeCount: Object.keys(merges).length
+            });
+          })().catch(error => {
+            console.error(error);
+            process.exit(1);
+          });
+          JS
+
+          cd "$GITHUB_WORKSPACE"
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 76/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.16"/' extracted_project/app/build.gradle.kts
+
+          VIEWER="$ASSETS/viewer.html"
+
+          grep -q 'versionName = "0.9.16"' extracted_project/app/build.gradle.kts
+          test -s "$ASSETS/fortune-viewer.js"
+          test -s "$ASSETS/fortune-sheet.css"
+          test -s "$ASSETS/licenses/fortune-sheet-react-LICENSE.txt"
+          test -s "$ASSETS/licenses/fortune-excel-LICENSE.txt"
+          grep -q 'fortune-sheet.css' "$VIEWER"
+          grep -q 'fortune-viewer.js' "$VIEWER"
+          grep -q 'width: 100%' "$VIEWER"
+          grep -q 'height: 100%' "$VIEWER"
+          node --check "$ASSETS/fortune-viewer.js"
+
+          test ! -e "$ASSETS/officekit-viewer.js"
+          test ! -e "$ASSETS/exceljs.min.js"
+          test ! -e "$ASSETS/luckyexcel.umd.js"
+          test ! -e "$ASSETS/luckysheet"
+
+          grep -q 'DocumentKind.XLSX -> HighFidelityXlsxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
+          echo "v0.9.16: Excel Viewer migrado para FortuneSheet 1.0.4 + FortuneExcel 2.3.3; Word preservado."
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
@@ -1318,7 +1489,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.15"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.16"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -1340,18 +1511,19 @@ jobs:
           test -s app/src/main/assets/docx_renderer/fonts/carlito-400.woff2
           grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           test -f app/src/main/java/com/nerdora/player/ui/HighFidelityXlsxViewer.kt
-          test -s app/src/main/assets/xlsx_renderer/officekit-viewer.js
-          test -s app/src/main/assets/xlsx_renderer/licenses/office-kit-xlsx-LICENSE.txt
+          test -s app/src/main/assets/xlsx_renderer/fortune-viewer.js
+          test -s app/src/main/assets/xlsx_renderer/fortune-sheet.css
+          test -s app/src/main/assets/xlsx_renderer/licenses/fortune-sheet-react-LICENSE.txt
+          test -s app/src/main/assets/xlsx_renderer/licenses/fortune-excel-LICENSE.txt
           grep -q 'DocumentKind.XLSX -> HighFidelityXlsxViewer' app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           grep -q 'scanQuickPublicFolders(root)' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
-          grep -q 'officekit-viewer.js' app/src/main/assets/xlsx_renderer/viewer.html
-          grep -q 'NerdoraOfficeKit.renderXlsx' app/src/main/assets/xlsx_renderer/viewer.html
-          grep -q 'body.has-tabs #viewport' app/src/main/assets/xlsx_renderer/viewer.html
-          grep -q 'bottom: 60px' app/src/main/assets/xlsx_renderer/viewer.html
+          grep -q 'fortune-sheet.css' app/src/main/assets/xlsx_renderer/viewer.html
+          grep -q 'fortune-viewer.js' app/src/main/assets/xlsx_renderer/viewer.html
+          test ! -e app/src/main/assets/xlsx_renderer/officekit-viewer.js
           test ! -e app/src/main/assets/xlsx_renderer/exceljs.min.js
           test ! -e app/src/main/assets/xlsx_renderer/luckyexcel.umd.js
           test ! -e app/src/main/assets/xlsx_renderer/luckysheet
-          echo "Nerdora Player v0.9.15 validado."
+          echo "Nerdora Player v0.9.16 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -1400,7 +1572,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.15 assinada
+      - name: Publicar Release pública v0.9.16 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -1409,8 +1581,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Excel Viewer com Office Kit"
-          NOTES="Nerdora Player v0.9.15: substitui o ExcelJS pelo @office-kit/xlsx 0.21.1, biblioteca MIT moderna e ativa. O visualizador usa a mesma API de leitura e estilos do playground oficial do Office Kit, preservando valores formatados, fórmulas com resultado salvo, fontes, preenchimentos, bordas, mesclas, larguras de coluna e alturas de linha. A fixture Teste_Nerdora_Excel.xlsx é validada no build com 3 abas, área Resumo A1:H20 e mesclagem A1:H2. Continua somente leitura, sem grade de edição, com abas no rodapé. O leitor Word permanece inalterado."
+          TITLE="Nerdora Player v${VERSION} — Excel Viewer com FortuneSheet"
+          NOTES="Nerdora Player v0.9.16: abandona o renderer próprio/Office Kit para Excel e passa a usar FortuneSheet 1.0.4 com FortuneExcel 2.3.3, ambos MIT. O arquivo XLSX é importado por um conversor mantido recentemente e exibido pelo renderer completo do FortuneSheet, com adaptação mobile, estilos, bordas, mesclas, formatos e fórmulas. O Nerdora usa modo somente leitura, esconde barra de ferramentas, barra de fórmulas, cabeçalhos de linhas/colunas e linhas de grade, mantendo as abas de navegação. O build valida 3 abas, A1, H20 e a mesclagem A1:H2. O leitor Word permanece inalterado."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
