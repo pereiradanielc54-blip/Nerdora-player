@@ -1083,7 +1083,7 @@ class Unit{
  gain(v){if(!this.dead)this.rage=clamp(this.rage+v,0,100)}
 }
 class Battle{
- constructor(p,e,context){this.p=p;this.e=e;this.context=context;this.synergy=p.synergy||null;this.round=0;this.q=[];this.i=0;this.current=null;this.target=null;this.speed=1;this.paused=false;this.mode="manual";this.ended=false;this.logN=0;this.synergyLogged=false}
+ constructor(p,e,context){this.p=p;this.e=e;this.context=context;this.synergy=p.synergy||null;this.pet=p.pet||null;this.petPending=false;this.round=0;this.q=[];this.i=0;this.current=null;this.target=null;this.speed=1;this.paused=false;this.mode="manual";this.ended=false;this.logN=0;this.synergyLogged=false}
  living(a){return a.filter(x=>!x.dead)}enemies(u){return u.team==="player"?this.e:this.p}allies(u){return u.team==="player"?this.p:this.e}
  log(t,c=""){const x=document.createElement("div");x.className=c;x.textContent=String(++this.logN).padStart(2,"0")+" • "+t;$("#battleLog").appendChild(x);$("#battleLog").scrollTop=$("#battleLog").scrollHeight}
  async delay(ms=1750){let left=ms/this.speed,last=performance.now();while(left>0&&!this.ended){await new Promise(r=>setTimeout(r,50));if(this.paused){last=performance.now();continue}const n=performance.now();left-=n-last;last=n}}
@@ -1096,6 +1096,7 @@ class Battle{
    u.slow=Math.max(0,u.slow-.06);u.haste=Math.max(0,u.haste-.06);u.broken=Math.max(0,u.broken-.08);u.shield=Math.max(0,u.shield-.08)
   });
   this.q=[...this.living(this.p),...this.living(this.e)].sort((a,b)=>b.sp-a.sp||a.name.localeCompare(b.name));this.i=0;
+  if(this.pet&&this.round%3===0)this.petPending=true;
   this.log("🔄 Rodada "+this.round+": iniciativa recalculada por Speed.","round");renderBattle();
  }
  valid(u){const a=this.living(this.enemies(u));if(u.style==="melee"){const f=a.filter(x=>x.line==="front");if(f.length)return f}return a}
@@ -1163,15 +1164,28 @@ class Battle{
   if(aw>0&&u.h.id==="fada"){const rg=aw>=4?25:15;this.living(this.allies(u)).forEach(t=>t.gain(rg));this.log("🧚 Despertar: aliados recebem +"+rg+" Rage.","ultimate")}
   renderBattle();
  }
+ async petSkill(){
+  if(!this.pet||!this.petPending||this.ended)return;
+  this.petPending=false;const p=this.pet.pet,lv=this.pet.level||1;
+  this.log("🐾 "+p.name+" usa "+p.skill+"!","ultimate");banner(p.emoji+" "+p.skill+"!");petSkillFx();AudioEngine.sfx("ultimate");haptic([10,16,22]);
+  if(p.id==="drakko"){
+   const shield=.12+lv*.01;this.living(this.p).forEach(u=>u.shield=Math.max(u.shield,shield));
+   this.log("🛡️ Drakko protege a equipa com "+Math.round(shield*100)+"% de escudo.","ultimate");
+  }else{
+   const healPct=.05+lv*.006;this.living(this.p).forEach(u=>{const n=Math.round(u.maxHp*healPct);u.hp=Math.min(u.maxHp,u.hp+n)});
+   const t=this.weak(this.e);if(t&&!t.dead){const n=Math.round((220+lv*35)*(1-t.md/(t.md+600)));t.hp=Math.max(0,t.hp-n);if(!t.hp)this.kill(t,null);this.log("🔥 Fênix causa "+n+" de dano e cura a equipa.","ultimate")}
+  }
+  renderBattle();await this.delay(650);
+ }
  check(){const p=this.living(this.p).length,e=this.living(this.e).length;if(p&&e)return false;if(this.ended)return true;this.ended=true;setTimeout(()=>finishBattle(!!p,this.context),250);return true}
  async loop(){
   if(this.synergy?.active&&!this.synergyLogged){this.synergyLogged=true;this.log("✨ Aura "+this.synergy.name+" ativa: "+this.synergy.label+".","ultimate")}
-  this.roundStart();
+  this.roundStart();if(this.petPending)await this.petSkill();
   while(!this.ended){
    if(this.paused){await this.delay(100);continue}
    if(this.check())break;
    if(this.mode==="auto"){const r=this.living(this.p).find(x=>x.rage>=100);if(r){await this.ult(r);await this.delay(1750);continue}}
-   if(this.i>=this.q.length){this.roundStart();await this.delay(1000);continue}
+   if(this.i>=this.q.length){this.roundStart();if(this.petPending)await this.petSkill();await this.delay(1000);continue}
    const u=this.q[this.i++];if(u.dead)continue;this.current=u;this.target=null;$("#actionLabel").textContent="Vez de "+u.name;renderBattle();
    if(u.stun){u.stun--;this.log("💫 "+u.name+" está atordoado e perde a ação.");await this.delay(1750)}
    else if(u.freeze){u.freeze--;this.log("❄️ "+u.name+" está congelado e perde a ação.");await this.delay(1750)}
@@ -1185,7 +1199,7 @@ class Battle{
 
 function playerTeam(){
  const units=SLOTS.map(slot=>new Unit(hero(formation[slot.id]),"player",slot));
- return applySynergy(units,computeSynergy(used()));
+ return applyPetAura(applySynergy(units,computeSynergy(used())));
 }
 function campaignEnemyFormation(stg){const comps=[["terra","espinho","crepusculo","anao","fada"],["quebra","valquiria","umbra","crepusculo","seraphina"],["terra","relampago","espinho","anao","fada"],["quebra","valquiria","relampago","crepusculo","umbra"],["terra","quebra","valquiria","crepusculo","relampago"]];const ids=comps[stg.id-1]||comps[0];return Object.fromEntries(SLOTS.map((slot,i)=>[slot.id,ids[i]]))}
 function campaignEnemyTeam(stg){const form=campaignEnemyFormation(stg);return SLOTS.map(slot=>new Unit(hero(form[slot.id]),"enemy",slot,{level:stg.enemyLevel,scale:stg.scale}))}
@@ -1215,6 +1229,7 @@ function renderBattle(){
  $("#speed1").classList.toggle("active",battle.speed===1);$("#speed2").classList.toggle("active",battle.speed===2);$("#pauseBtn").classList.toggle("active",battle.paused);
  $("#pauseBtn").textContent=battle.paused?"▶ CONTINUAR":"Ⅱ PAUSA";$("#battleState").textContent=battle.paused?"PAUSADO":battle.ended?"FINALIZADO":"EM BATALHA";
  $("#turnOrder").innerHTML=battle.q.map((u,i)=>`<span class="turnChip${i<battle.i?" done":""}${battle.current===u?" current":""}">${u.emoji} ${u.name.split(" ")[0]} <b>${u.sp}</b></span>`).join(""); const aura=$("#teamAuraLabel");if(aura)aura.textContent=battle.synergy?.active?("✨ "+battle.synergy.name+" "+battle.synergy.count+"/5"):"SEM AURA";
+ const petEl=$("#battlePet");if(petEl){if(battle.pet){petEl.classList.add("show");petEl.innerHTML='<div class="battlePetAvatar">'+battle.pet.pet.emoji+'</div><div class="battlePetName">'+battle.pet.pet.name+' • Nv.'+battle.pet.level+'</div>'}else{petEl.classList.remove("show");petEl.innerHTML=""}}
  const bossMode=battle.context.mode==="boss",hud=$("#bossRaidHud");hud.classList.toggle("show",bossMode);
  if(bossMode){
   const b=battle.e[0],pct=clamp(b.hp/b.maxHp*100,0,100);
@@ -1225,6 +1240,7 @@ function renderBattle(){
 function float(u,t,c,offset=0){const e=document.querySelector('[data-card="'+u.id+'"]');if(!e)return;const a=$("#arena").getBoundingClientRect(),r=e.getBoundingClientRect(),d=document.createElement("div");d.className="floatText "+c;d.textContent=t;d.style.left=(r.left-a.left+r.width/2)+"px";d.style.top=(r.top-a.top+20+offset)+"px";$("#arena").appendChild(d);setTimeout(()=>d.remove(),1000)}
 function fxCard(u,cls){const e=document.querySelector('[data-card="'+u.id+'"]');if(!e)return;e.classList.remove(cls);void e.offsetWidth;e.classList.add(cls);setTimeout(()=>e.classList.remove(cls),720)}
 function fxUltimateScreen(){const a=$("#arena");if(!a)return;a.classList.remove("ultScreenFlash");void a.offsetWidth;a.classList.add("ultScreenFlash");setTimeout(()=>a.classList.remove("ultScreenFlash"),700)}
+function petSkillFx(){const e=$("#battlePet");if(!e)return;e.classList.remove("skill");void e.offsetWidth;e.classList.add("skill");setTimeout(()=>e.classList.remove("skill"),760)}
 function banner(t){const b=$("#ultBanner");b.textContent=t;b.classList.remove("show");void b.offsetWidth;b.classList.add("show")}
 
 /* RESULTADOS */
