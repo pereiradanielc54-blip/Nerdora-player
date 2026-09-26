@@ -1583,7 +1583,7 @@ function finishBattle(win,ctx){
   else{const loss=Math.min(8,Math.max(3,Math.round((save.arenaRating-o.rating)/40)+5));save.arenaRating=Math.max(800,save.arenaRating-loss);save.arenaCoins+=5;save.guildContribution+=5;persist();$("#resultText").textContent="Derrota na Arena. Você recebeu uma pequena recompensa de participação.";$("#resultRewards").innerHTML=`<span class="reward">🏆 Rating<strong>-${loss}</strong></span><span class="reward">🏟️ Moedas<strong>+5</strong></span><span class="reward">🤝 Contribuição<strong>+5</strong></span>`;}
   renderMissions("daily");next.style.display="none";retry.style.display="none";$("#resultMenuBtn").textContent="Voltar à Arena";openResultModal();return;
  }
- const stg=ctx;$("#resultStage").textContent="Fase "+stg.code+" • "+stg.name;$("#resultMenuBtn").textContent="Voltar ao menu";next.textContent="Próxima fase →";
+ const stg=ctx;$("#resultStage").textContent="Fase "+stg.code+" • "+stg.name;$("#resultMenuBtn").textContent="Voltar ao Lobby";next.textContent="Próxima fase →";
  if(win){
   const rw=grantCampaignRewards(stg),sh=hero(rw.shardHero),g=GEAR[rw.gearId],cont=10+stg.id*3;
   save.guildContribution+=cont;save.dailyCounters.campaignWins=(save.dailyCounters.campaignWins||0)+1;save.lifetime.campaignWins=(save.lifetime.campaignWins||0)+1;persist();
