@@ -1,7 +1,7 @@
 {
-  "version": "2.0.0",
-  "entry": "./index-2.0.0.html",
-  "serviceWorker": "./sw-2.0.0.js",
-  "build": "2026-09-26-v2.0.0-massive-update",
-  "notes": "Atualização Massiva: Auras de Fação, progressão AFK, Despertar e talentos de Ultimate, motor de áudio com BGM/SFX, cutscenes Visual Novel e integração completa com o endgame existente."
+  "version": "2.0.1",
+  "entry": "./index-2.0.1.html",
+  "serviceWorker": "./sw-2.0.1.js",
+  "build": "2026-09-26-v2.0.1-landscape-lobby",
+  "notes": "Reformulação total do Menu Principal para Lobby fullscreen landscape, barra superior de recursos, bottom bar de gestão, modos distribuídos como estruturas no mapa e batalha panorâmica 100vw."
 }
