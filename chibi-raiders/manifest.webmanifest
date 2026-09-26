@@ -3,7 +3,7 @@
   "short_name": "Chibi Raiders",
   "id": "./",
   "description": "RPG mobile Gacha/Turn-based do universo Nerdora.",
-  "start_url": "./index-1.1.0.html",
+  "start_url": "./index-1.2.0.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "landscape",
