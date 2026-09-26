@@ -1604,25 +1604,16 @@ jobs:
               1
           )
 
-          back_marker = '''    BackHandler(enabled = folder != null) {
-              val current = folder
-              folder = when {
-                  current == null -> null
-                  current.absolutePath == root.absolutePath -> null
-                  current.parentFile != null && current.parentFile!!.absolutePath.startsWith(root.absolutePath) -> current.parentFile
-                  else -> null
-              }
-              query = ""
+          sort_marker = '        val sort = runCatching { FileSort.valueOf(sortName) }.getOrDefault(FileSort.NEWEST)'
+          assert sort_marker in text, "marcador de ordenação de FilesScreen não encontrado"
+          sync_block = '''    LaunchedEffect(initialCategoryName, initialFolderPath, initialQuery) {
+              categoryName = initialCategoryName
+              folder = resolveInitialFolder(root, initialFolderPath)
+              query = initialQuery
           }
+
           '''
-          assert back_marker in text, "BackHandler de FilesScreen não encontrado"
-          text = text.replace(back_marker, back_marker + '''
-              LaunchedEffect(initialCategoryName, initialFolderPath, initialQuery) {
-                  categoryName = initialCategoryName
-                  folder = resolveInitialFolder(root, initialFolderPath)
-                  query = initialQuery
-              }
-          ''', 1)
+          text = text.replace(sort_marker, sync_block + sort_marker, 1)
 
           old_when = '''            UniversalCategory.ALL -> allFiles
               UniversalCategory.LARGE -> allFiles.filter { it.file.length() >= 100L * 1024L * 1024L }'''
