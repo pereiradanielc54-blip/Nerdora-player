@@ -1,7 +1,7 @@
 {
-  "version": "2.0.2",
-  "entry": "./index-2.0.2.html",
-  "serviceWorker": "./sw-2.0.2.js",
-  "build": "2026-09-26-v2.0.2-navigation-visibility-hotfix",
-  "notes": "Corrige todos os cliques do Lobby com Screen Manager centralizado e addEventListener, adiciona retorno ao Lobby em todas as telas e pausa/resume BGM via Page Visibility API sem interromper o cálculo AFK por Date.now()."
+  "version": "3.0.0",
+  "entry": "./index-3.0.0.html",
+  "serviceWorker": "./sw-3.0.0.js",
+  "build": "2026-09-26-v3.0.0-live-ops",
+  "notes": "Live Ops: VIP 1-10 com bônus reais, Passe de Batalha grátis/premium, banner limitado da Seraphina com taxa dobrada, Mascotes com aura e habilidade automática, Guerra de Guildas simulada e Chat Global simulado."
 }
