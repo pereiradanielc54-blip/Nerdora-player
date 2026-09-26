@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.18 Polimento Visual
+name: Nerdora Player - Build v0.9.19 Reorganização Funcional
 
 on:
   workflow_dispatch:
@@ -1516,6 +1516,223 @@ jobs:
           grep -q 'width(18.dp)' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
           echo "v0.9.18: primeiro pacote de polimento visual aplicado."
 
+      - name: Aplicar Reorganização Funcional v0.9.19
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp .github/overlays/v0.9.19/HomeScreen.kt extracted_project/app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
+          cp .github/overlays/v0.9.19/NerdoraOfficialBottomBar.kt extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
+          cp .github/overlays/v0.9.19/NerdoraPlayerApp.kt extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          cp .github/overlays/v0.9.19/LibraryScreen.kt extracted_project/app/src/main/java/com/nerdora/player/ui/LibraryScreen.kt
+          cp .github/overlays/v0.9.19/NerdoraCentralScreen.kt extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraCentralScreen.kt
+          cp .github/overlays/v0.9.19/GlobalSearchScreen.kt extracted_project/app/src/main/java/com/nerdora/player/ui/GlobalSearchScreen.kt
+          cp .github/overlays/v0.9.19/TrashScreen.kt extracted_project/app/src/main/java/com/nerdora/player/ui/TrashScreen.kt
+          cp .github/overlays/v0.9.19/LibraryStore.kt extracted_project/app/src/main/java/com/nerdora/player/LibraryStore.kt
+          cp .github/overlays/v0.9.19/UniversalFilesStore.kt extracted_project/app/src/main/java/com/nerdora/player/UniversalFilesStore.kt
+          cp .github/overlays/v0.9.19/NerdoraBackup.kt extracted_project/app/src/main/java/com/nerdora/player/NerdoraBackup.kt
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          # Arquivos: filtros reais, pasta inicial real e Downloads deixando de ser rota duplicada.
+          path = Path("extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt")
+          text = path.read_text(encoding="utf-8")
+
+          old_enum = '''private enum class UniversalCategory(val label: String) {
+              ALL("Todos"), PDF("PDF"), WORD("Word"), EXCEL("Excel"), POWERPOINT("PowerPoint"),
+              TEXT("Texto"), ZIP("ZIP"), IMAGE("Imagens"), VIDEO("Vídeos"), AUDIO("Áudio"),
+              LARGE("Grandes"), FAVORITES("Favoritos"), RECENT("Recentes"), DUPLICATES("Duplicados*"),
+              TRASH("Lixeira"), OTHER("Outros")
+          }'''
+          new_enum = '''private enum class UniversalCategory(val label: String) {
+              ALL("Todos"), DOCUMENTS("Documentos"), PDF("PDF"), WORD("Word"), EXCEL("Excel"), POWERPOINT("PowerPoint"),
+              TEXT("Texto"), ZIP("ZIP"), APK("Aplicativos"), IMAGE("Imagens"), VIDEO("Vídeos"), AUDIO("Áudio"),
+              LARGE("Grandes"), FAVORITES("Favoritos"), RECENT("Recentes"), DUPLICATES("Duplicados*"),
+              TRASH("Lixeira de arquivos"), OTHER("Outros")
+          }'''
+          assert old_enum in text, "UniversalCategory original não encontrada"
+          text = text.replace(old_enum, new_enum, 1)
+
+          old_sig = '''fun FilesScreen(
+              context: Context,
+              onOpenMedia: (NerdoraMedia) -> Unit,
+              onOpenDocument: (DocumentRef) -> Unit
+          ) {'''
+          new_sig = '''fun FilesScreen(
+              context: Context,
+              initialCategoryName: String = "ALL",
+              initialFolderPath: String? = null,
+              initialQuery: String = "",
+              onOpenMedia: (NerdoraMedia) -> Unit,
+              onOpenDocument: (DocumentRef) -> Unit
+          ) {'''
+          assert old_sig in text, "FilesScreen signature não encontrada"
+          text = text.replace(old_sig, new_sig, 1)
+
+          old_call = '    UniversalFilesDashboard(context, accessEpoch, onOpenMedia, onOpenDocument)'
+          new_call = '    UniversalFilesDashboard(context, accessEpoch, initialCategoryName, initialFolderPath, initialQuery, onOpenMedia, onOpenDocument)'
+          assert old_call in text, "UniversalFilesDashboard call não encontrada"
+          text = text.replace(old_call, new_call, 1)
+
+          old_dash = '''private fun UniversalFilesDashboard(
+              context: Context,
+              accessEpoch: Int,
+              onOpenMedia: (NerdoraMedia) -> Unit,
+              onOpenDocument: (DocumentRef) -> Unit
+          ) {'''
+          new_dash = '''private fun UniversalFilesDashboard(
+              context: Context,
+              accessEpoch: Int,
+              initialCategoryName: String,
+              initialFolderPath: String?,
+              initialQuery: String,
+              onOpenMedia: (NerdoraMedia) -> Unit,
+              onOpenDocument: (DocumentRef) -> Unit
+          ) {'''
+          assert old_dash in text, "UniversalFilesDashboard signature não encontrada"
+          text = text.replace(old_dash, new_dash, 1)
+
+          text = text.replace(
+              '    var categoryName by rememberSaveable { mutableStateOf(UniversalCategory.ALL.name) }\n    var query by rememberSaveable { mutableStateOf("") }',
+              '    var categoryName by rememberSaveable { mutableStateOf(initialCategoryName) }\n    var query by rememberSaveable { mutableStateOf(initialQuery) }',
+              1
+          )
+          text = text.replace(
+              '    var folder by remember { mutableStateOf<File?>(null) }',
+              '    var folder by remember { mutableStateOf(resolveInitialFolder(root, initialFolderPath)) }',
+              1
+          )
+
+          back_marker = '''    BackHandler(enabled = folder != null) {
+              val current = folder
+              folder = when {
+                  current == null -> null
+                  current.absolutePath == root.absolutePath -> null
+                  current.parentFile != null && current.parentFile!!.absolutePath.startsWith(root.absolutePath) -> current.parentFile
+                  else -> null
+              }
+              query = ""
+          }
+          '''
+          assert back_marker in text, "BackHandler de FilesScreen não encontrado"
+          text = text.replace(back_marker, back_marker + '''
+              LaunchedEffect(initialCategoryName, initialFolderPath, initialQuery) {
+                  categoryName = initialCategoryName
+                  folder = resolveInitialFolder(root, initialFolderPath)
+                  query = initialQuery
+              }
+          ''', 1)
+
+          old_when = '''            UniversalCategory.ALL -> allFiles
+              UniversalCategory.LARGE -> allFiles.filter { it.file.length() >= 100L * 1024L * 1024L }'''
+          new_when = '''            UniversalCategory.ALL -> allFiles
+              UniversalCategory.DOCUMENTS -> allFiles.filter {
+                  it.category in setOf(
+                      UniversalCategory.PDF, UniversalCategory.WORD, UniversalCategory.EXCEL,
+                      UniversalCategory.POWERPOINT, UniversalCategory.TEXT
+                  )
+              }
+              UniversalCategory.LARGE -> allFiles.filter { it.file.length() >= 100L * 1024L * 1024L }'''
+          assert old_when in text, "when de categorias não encontrado"
+          text = text.replace(old_when, new_when, 1)
+
+          zip_line = '        ext in setOf("zip", "7z", "rar", "tar", "gz") || mime.contains("zip") -> UniversalCategory.ZIP'
+          assert zip_line in text, "regra ZIP não encontrada"
+          text = text.replace(zip_line, zip_line + '''
+              ext in setOf("apk", "xapk", "apks", "aab") || mime.contains("android.package") -> UniversalCategory.APK''', 1)
+
+          old_count = '''private fun categoryCount(category: UniversalCategory, all: List<DeviceFileItem>, trash: List<DeviceFileItem>, favorites: Set<String>, recents: List<String>, duplicates: Set<String>): Int = when (category) {
+              UniversalCategory.ALL -> all.size; UniversalCategory.LARGE -> -1; UniversalCategory.FAVORITES -> favorites.size; UniversalCategory.RECENT -> recents.size; UniversalCategory.DUPLICATES -> if (duplicates.isEmpty()) -1 else duplicates.size; UniversalCategory.TRASH -> trash.size; else -> all.count { it.category == category }
+          }'''
+          new_count = '''private fun categoryCount(category: UniversalCategory, all: List<DeviceFileItem>, trash: List<DeviceFileItem>, favorites: Set<String>, recents: List<String>, duplicates: Set<String>): Int = when (category) {
+              UniversalCategory.ALL -> all.size
+              UniversalCategory.DOCUMENTS -> all.count { it.category in setOf(UniversalCategory.PDF, UniversalCategory.WORD, UniversalCategory.EXCEL, UniversalCategory.POWERPOINT, UniversalCategory.TEXT) }
+              UniversalCategory.LARGE -> -1
+              UniversalCategory.FAVORITES -> favorites.size
+              UniversalCategory.RECENT -> recents.size
+              UniversalCategory.DUPLICATES -> if (duplicates.isEmpty()) -1 else duplicates.size
+              UniversalCategory.TRASH -> trash.size
+              else -> all.count { it.category == category }
+          }'''
+          assert old_count in text, "categoryCount não encontrado"
+          text = text.replace(old_count, new_count, 1)
+
+          helper_marker = 'private fun hasFullStorageAccess(context: Context): Boolean'
+          assert helper_marker in text, "helper marker não encontrado"
+          helper = '''private fun resolveInitialFolder(root: File, requested: String?): File? {
+              val raw = requested?.trim().orEmpty()
+              if (raw.isBlank()) return null
+              val candidates = when (raw.uppercase(Locale.ROOT)) {
+                  "DOWNLOAD", "DOWNLOADS" -> listOf(File(root, "Download"))
+                  "DCIM" -> listOf(File(root, "DCIM"))
+                  "MOVIES" -> listOf(File(root, "Movies"))
+                  "MUSIC" -> listOf(File(root, "Music"))
+                  "PICTURES" -> listOf(File(root, "Pictures"))
+                  "WHATSAPP" -> listOf(
+                      File(root, "Android/media/com.whatsapp/WhatsApp/Media"),
+                      File(root, "WhatsApp/Media"),
+                      File(root, "WhatsApp")
+                  )
+                  else -> listOf(File(raw), File(root, raw))
+              }
+              return candidates.firstOrNull { it.exists() && it.isDirectory && it.canRead() }
+          }
+
+          '''
+          text = text.replace(helper_marker, helper + helper_marker, 1)
+          path.write_text(text, encoding="utf-8")
+
+          # Ajustes: separar itens removidos da Biblioteca da lixeira física de arquivos.
+          path = Path("extracted_project/app/src/main/java/com/nerdora/player/ui/SettingsScreen.kt")
+          text = path.read_text(encoding="utf-8")
+          sig_old = '''    onOpenPrivate: () -> Unit,
+              onOpenTrash: () -> Unit,
+              onOpenDiagnostics: () -> Unit,'''
+          sig_new = '''    onOpenPrivate: () -> Unit,
+              onOpenTrash: () -> Unit,
+              onOpenFileTrash: () -> Unit,
+              onOpenDiagnostics: () -> Unit,'''
+          assert sig_old in text, "Settings signature marker não encontrado"
+          text = text.replace(sig_old, sig_new, 1)
+
+          privacy_old = '''            ActionSetting(Icons.Rounded.Lock, "Mídia oculta", "$hiddenCount item(ns). Protegido pela biometria/tela de bloqueio.", onOpenPrivate)
+              ActionSetting(Icons.Rounded.DeleteSweep, "Lixeira do Nerdora", "$trashCount item(ns). Não apaga os arquivos físicos do celular.", onOpenTrash)
+              ActionSetting(Icons.Rounded.DeleteSweep, "Limpar histórico", "Apaga a lista de reproduzidos recentemente", onClearHistory)
+              Text("A área oculta e a lixeira são camadas do Nerdora: os arquivos originais continuam no armazenamento do Android.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)'''
+          privacy_new = '''            ActionSetting(Icons.Rounded.Lock, "Mídia oculta", "$hiddenCount item(ns). Protegido pela biometria/tela de bloqueio.", onOpenPrivate)
+              ActionSetting(Icons.Rounded.DeleteSweep, "Itens removidos da Biblioteca", "$trashCount item(ns). O arquivo físico continua no celular.", onOpenTrash)
+              ActionSetting(Icons.Rounded.DeleteSweep, "Lixeira de arquivos", "Arquivos movidos fisicamente para a área de recuperação do Nerdora.", onOpenFileTrash)
+              ActionSetting(Icons.Rounded.DeleteSweep, "Limpar histórico", "Limpa mídia e arquivos reproduzidos/abertos recentemente", onClearHistory)
+              Text("Ocultar e remover da Biblioteca não apagam o arquivo. A Lixeira de arquivos é a área usada pelo gerenciador para mover arquivos físicos.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)'''
+          assert privacy_old in text, "Settings privacy block não encontrado"
+          text = text.replace(privacy_old, privacy_new, 1)
+          text = text.replace('title = { Text("Nerdora Player 0.9.0 — Visual Refresh") }', 'title = { Text("Nerdora Player 0.9.19 — Reorganização Funcional") }', 1)
+          path.write_text(text, encoding="utf-8")
+
+          # Player: a ação lógica não deve mais se chamar Lixeira.
+          path = Path("extracted_project/app/src/main/java/com/nerdora/player/ui/MediaViewerScreen.kt")
+          text = path.read_text(encoding="utf-8")
+          text = text.replace('Text("Lixeira")', 'Text("Remover")')
+          path.write_text(text, encoding="utf-8")
+          PY
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 79/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.19"/' extracted_project/app/build.gradle.kts
+
+          grep -q 'versionName = "0.9.19"' extracted_project/app/build.gradle.kts
+          grep -q 'AppScreen.CENTRAL' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          ! grep -q 'AppScreen.DOWNLOADS' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          ! grep -q 'AppScreen.FOLDERS' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          grep -q 'GlobalSearchScreen' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          grep -q 'DOCUMENTS("Documentos")' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'APK("Aplicativos")' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'Lixeira de arquivos' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'Pastas' extracted_project/app/src/main/java/com/nerdora/player/ui/LibraryScreen.kt
+          grep -q 'FILE_PREFIX = "file:"' extracted_project/app/src/main/java/com/nerdora/player/LibraryStore.kt
+          grep -q 'root.put("files"' extracted_project/app/src/main/java/com/nerdora/player/NerdoraBackup.kt
+          echo "v0.9.19: reorganização funcional aplicada."
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
@@ -1589,7 +1806,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.18"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.19"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -1628,7 +1845,10 @@ jobs:
           grep -q 'AppScreen.DOWNLOADS' app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
           grep -q 'nerdoraPress' app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
           grep -q 'nerdoraNavPress' app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
-          echo "Nerdora Player v0.9.18 validado."
+          grep -q 'AppScreen.CENTRAL' app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          grep -q 'GlobalSearchScreen' app/src/main/java/com/nerdora/player/ui/GlobalSearchScreen.kt
+          grep -q 'Lixeira de arquivos' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          echo "Nerdora Player v0.9.19 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -1677,7 +1897,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.18 assinada
+      - name: Publicar Release pública v0.9.19 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -1686,8 +1906,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Polimento Visual"
-          NOTES="Nerdora Player v0.9.18: primeiro pacote de polimento visual da Home oficial. Adiciona feedback de toque com escala suave, profundidade e gradientes discretos nos cards, badges semânticos para ZIP/APK/Downloads, cards de recentes maiores, botão central N elevado com sombra e barra inferior refinada com indicador ativo. Mantém todas as funções da v0.9.17 e os leitores de documentos inalterados."
+          TITLE="Nerdora Player v${VERSION} — Reorganização Funcional"
+          NOTES="Nerdora Player v0.9.19: reorganiza as funções repetidas detectadas na auditoria. O N central agora abre a Central Nerdora; a barra inferior passa a ter cinco destinos únicos; Downloads abre a pasta real; Home abre filtros e pastas específicos; Pastas foi incorporado à Biblioteca; a busca do topo passa a ser global; favoritos e recentes de mídia/arquivos usam uma fonte única com migração automática; o backup inclui metadados da lixeira física; e a antiga lixeira lógica passa a se chamar Itens removidos da Biblioteca, separada da Lixeira de arquivos. Mantém players e leitores DOCX/XLSX."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
