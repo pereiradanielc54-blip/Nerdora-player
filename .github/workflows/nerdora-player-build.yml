@@ -1142,7 +1142,8 @@ jobs:
           npm init -y >/dev/null 2>&1
           npm install --silent --no-audit --no-fund \
             @office-kit/xlsx@0.21.1 \
-            esbuild@0.25.9
+            esbuild@0.25.9 \
+            exceljs@4.4.0
 
           cp "$GITHUB_WORKSPACE/.github/overlays/v0.9.15/officekit-viewer.ts" ./officekit-viewer.ts
           npx esbuild ./officekit-viewer.ts \
@@ -1162,14 +1163,33 @@ jobs:
             cp "$NOTICE" "$GITHUB_WORKSPACE/$ASSETS/licenses/office-kit-xlsx-THIRD_PARTY_NOTICES.txt"
           fi
 
-          base64 --decode "$GITHUB_WORKSPACE/.github/fixtures/Teste_Nerdora_Excel.xlsx.b64" > /tmp/Teste_Nerdora_Excel.xlsx
-
           node --input-type=module <<'JS'
           import fs from 'node:fs';
+          import ExcelJS from 'exceljs';
           import { fromArrayBuffer, loadWorkbook } from '@office-kit/xlsx/io';
           import { iterWorksheets } from '@office-kit/xlsx/workbook';
           import { getCell, getCellExtent, getMergedCells } from '@office-kit/xlsx/worksheet';
           import { getCellDisplayText } from '@office-kit/xlsx/styles';
+
+          // Gera um XLSX por uma biblioteca independente e o reabre no Office Kit.
+          // Isso evita testar apenas o próprio round-trip do novo motor.
+          const source = new ExcelJS.Workbook();
+          const resumo = source.addWorksheet('Resumo');
+          source.addWorksheet('Vendas');
+          source.addWorksheet('Layout & Mesclas');
+
+          resumo.mergeCells('A1:H2');
+          resumo.getCell('A1').value = 'NERDORA PLAYER — TESTE DE FIDELIDADE EXCEL';
+          resumo.getCell('A1').font = { name: 'Calibri', size: 18, bold: true, color: { argb: 'FFFFFFFF' } };
+          resumo.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF5B21B6' } };
+          resumo.getCell('A20').value = 'fim';
+          resumo.getCell('H20').value = 123.45;
+          resumo.getCell('H20').numFmt = '"R$" #,##0.00';
+          resumo.getColumn(1).width = 24;
+          resumo.getRow(20).height = 26;
+
+          const generated = await source.xlsx.writeBuffer();
+          fs.writeFileSync('/tmp/Teste_Nerdora_Excel.xlsx', Buffer.from(generated));
 
           const bytes = new Uint8Array(fs.readFileSync('/tmp/Teste_Nerdora_Excel.xlsx'));
           const wb = await loadWorkbook(fromArrayBuffer(bytes));
@@ -1193,7 +1213,7 @@ jobs:
             throw new Error('Mesclagem A1:H2 não encontrada');
           }
 
-          console.log('Office Kit 0.21.1 validado na fixture real:', {
+          console.log('Office Kit 0.21.1 validado contra XLSX externo:', {
             sheets: sheets.map(s => s.title),
             extent: ext,
             title,
