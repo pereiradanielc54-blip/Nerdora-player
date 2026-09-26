@@ -1,7 +1,7 @@
 {
-  "version": "4.5.0",
-  "entry": "./index-4.5.0.html",
-  "serviceWorker": "./sw-4.5.0.js",
-  "build": "2026-09-26-v4.5.0-uiux-overhaul",
-  "notes": "UI/UX Overhaul: modal de vitória rolável e com ações acessíveis, Lobby reorganizado em Grid sem sobreposições, glassmorphism, transições de telas, feedback tátil/visual de clique e hierarquia de z-index refinada."
+  "version": "5.0.0",
+  "entry": "./index-5.0.0.html",
+  "serviceWorker": "./sw-5.0.0.js",
+  "build": "2026-09-26-v5.0.0-ui-routing-hero-detail",
+  "notes": "Reconexão completa do roteamento de UI, correção do Screen Manager, tela dedicada de herói com arte, atributos, nível, estrelas, despertar e 4 slots de equipamento, configurações de áudio e modal de vitória rolável reforçado."
 }
