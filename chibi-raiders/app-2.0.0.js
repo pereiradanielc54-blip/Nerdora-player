@@ -263,7 +263,7 @@ function show(id){
  const navMap={campaignScreen:"campaign",formationScreen:"campaign",heroesScreen:"heroes",portalScreen:"portal",arenaScreen:"arena",shopScreen:"shop",missionsScreen:"missions"};
  const active=navMap[id]||"";
  $$(".bottomNav button[data-nav]").forEach(b=>b.classList.toggle("active",b.dataset.nav===active));
- renderResources();updateMissionIndicators();
+ renderResources();updateMissionIndicators();AudioEngine.scene(id);
 }
 function renderResources(){
  $$("[data-res]").forEach(e=>{const k=e.dataset.res;if(k==="accountLevel")e.textContent=accountLevel();else e.textContent=save[k]??0});
@@ -280,6 +280,141 @@ function rewardFloat(text,kind="gold",delay=0){
 function rewardBurst(items){
  items.forEach((it,i)=>rewardFloat(it.text,it.kind||"gold",i*150));
 }
+
+
+function affinityOf(id){return HERO_AFFINITY[id]||{faction:"neutral",factionName:"Neutro",element:"Arcano",icon:"✦"}}
+function computeSynergy(ids){
+ const counts={};ids.filter(Boolean).forEach(id=>{const a=affinityOf(id);counts[a.faction]=(counts[a.faction]||0)+1});
+ const best=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+ if(!best||best[1]<3)return{active:false,count:best?best[1]:0,faction:best?best[0]:null,label:"Sem aura ativa",atk:0,def:0,hp:0,crit:0,rage:0,critImmunity:0};
+ const [faction,count]=best,base={...SYNERGY_RULES[Math.min(count,5)]},name=faction==="aurora"?"Aurora":"Eclipse";
+ const out={active:true,count,faction,name,...base,critImmunity:0};
+ if(count>=5&&faction==="aurora"){out.critImmunity=1;out.label+=""+" • 1º crítico anulado";}
+ if(count>=5&&faction==="eclipse"){out.crit=.15;out.rage=15;out.label+=""+" • +15% CRIT • +15 Rage";}
+ return out;
+}
+function applySynergy(units,syn){
+ if(!syn||!syn.active)return units;
+ units.forEach(u=>{
+  u.maxHp=Math.round(u.maxHp*(1+syn.hp));u.hp=u.maxHp;
+  u.pa=Math.round(u.pa*(1+syn.atk));u.ma=Math.round(u.ma*(1+syn.atk));
+  u.basePd=Math.round(u.basePd*(1+syn.def));u.baseMd=Math.round(u.baseMd*(1+syn.def));
+  u.cr=clamp(u.cr+(syn.crit||0),0,.85);u.rage=clamp((u.rage||0)+(syn.rage||0),0,100);
+  u.critImmunity=syn.critImmunity||0;
+ });
+ units.synergy=syn;return units;
+}
+function renderSynergyPanel(){
+ const el=$("#synergyPanel");if(!el)return;
+ const syn=computeSynergy(used()),counts={aurora:0,eclipse:0};
+ used().forEach(id=>counts[affinityOf(id).faction]=(counts[affinityOf(id).faction]||0)+1);
+ el.innerHTML=`<div class="synergyTitle"><b>✨ Aura de Fação</b><span>${syn.active?syn.name+" • "+syn.count+"/5":"Ative com 3+ heróis da mesma fação"}</span></div>
+ <div class="synergyBadges"><span class="synergyBadge ${counts.aurora>=3?"active":""}">☀️ Aurora ${counts.aurora}/5</span><span class="synergyBadge ${counts.eclipse>=3?"active":""}">🌘 Eclipse ${counts.eclipse}/5</span><span class="synergyBadge ${syn.active?"active":""}">${syn.active?syn.label:"3 = ATQ • 4 = DEF • 5 = efeito máximo"}</span></div>`;
+}
+
+function formatDuration(ms){
+ const sec=Math.max(0,Math.floor(ms/1000)),h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s2=sec%60;
+ return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s2).padStart(2,"0");
+}
+function afkSnapshot(now=Date.now()){
+ const elapsed=clamp(now-(save.lastAfkClaim||now),0,AFK_CAP_MS),minutes=elapsed/60000;
+ return{elapsed,gold:Math.floor(minutes*AFK_RATES.goldPerMin),exp:Math.floor(minutes*AFK_RATES.expPerMin),essence:Math.floor(minutes*AFK_RATES.essencePerMin)};
+}
+function renderAfk(){
+ const r=afkSnapshot(),badge=$("#afkTimerBadge");
+ if(badge)badge.textContent=formatDuration(r.elapsed);
+ if($("#afkGold"))$("#afkGold").textContent=r.gold.toLocaleString("pt-BR");
+ if($("#afkExp"))$("#afkExp").textContent=r.exp.toLocaleString("pt-BR");
+ if($("#afkEssence"))$("#afkEssence").textContent=r.essence.toLocaleString("pt-BR");
+ if($("#afkRateText"))$("#afkRateText").textContent="Taxa: 🪙 "+AFK_RATES.goldPerMin+"/min • ⭐ "+AFK_RATES.expPerMin+"/min • ✨ ~"+Math.round(AFK_RATES.essencePerMin*60)+"/h";
+ if($("#claimAfkBtn"))$("#claimAfkBtn").disabled=r.gold<1&&r.exp<1&&r.essence<1;
+}
+function claimAfk(auto=false){
+ const r=afkSnapshot();if(r.gold<1&&r.exp<1&&r.essence<1){if(!auto)toast("O baú ainda está vazio");return false}
+ save.gold+=r.gold;save.accountExp+=r.exp;save.essence+=r.essence;save.lastAfkClaim=Date.now();persist();renderAfk();
+ rewardBurst([{text:"🪙 +"+r.gold,kind:"gold"},{text:"⭐ +"+r.exp+" EXP",kind:"exp"},{text:"✨ +"+r.essence,kind:"diamond"}]);
+ if(!auto)toast("📦 Espólios AFK recolhidos");else toast("📦 Recompensas offline recebidas");
+ AudioEngine.sfx("reward");haptic([10,20,25]);return true;
+}
+function processOfflineRewards(){const r=afkSnapshot();if(r.elapsed>=60000)setTimeout(()=>claimAfk(true),900)}
+function startAfkTicker(){clearInterval(afkTicker);renderAfk();afkTicker=setInterval(()=>{if($("#afkScreen")?.classList.contains("active"))renderAfk()},1000)}
+
+function awakeningEligible(id){return (save.heroLevels[id]||1)>=20||(save.stars[id]||1)>=5}
+function awakeningCost(id){return AWAKEN_COSTS[clamp(save.awakening[id]||0,0,AWAKEN_MAX-1)]||{gold:0,stones:0}}
+function renderAwakening(){
+ if(!save.owned[selectedAwakeningHero])selectedAwakeningHero=HEROES.find(h=>save.owned[h.id])?.id||HEROES[0].id;
+ const grid=$("#awakeningHeroGrid");if(!grid)return;grid.innerHTML="";
+ HEROES.forEach(h=>{
+  const own=save.owned[h.id],lv=save.awakening[h.id]||0,a=affinityOf(h.id),e=document.createElement("button");
+  e.className="awakenHeroCard"+(selectedAwakeningHero===h.id?" selected":"")+(!own?" locked":"");
+  e.innerHTML=`<div class="awakenHeroTop"><span>${own?h.emoji:"❔"}</span><div><b>${h.name}</b><small>${a.icon} ${a.element} • ${a.factionName}</small></div></div><div class="awakenLevel">🌟 Despertar ${lv}/${AWAKEN_MAX}</div>`;
+  e.onclick=()=>{selectedAwakeningHero=h.id;renderAwakening()};grid.appendChild(e);
+ });
+ const h=hero(selectedAwakeningHero),own=save.owned[h.id],aw=save.awakening[h.id]||0,eligible=awakeningEligible(h.id),cost=awakeningCost(h.id),a=affinityOf(h.id);
+ if(!own){$("#awakeningDetail").innerHTML='<div class="small">Invoque este herói primeiro para liberar o Despertar.</div>';return}
+ const effects=AWAKEN_EFFECTS[h.id]||[];
+ $("#awakeningDetail").innerHTML=`<div class="awakenHead"><div class="awakenAvatar">${h.emoji}</div><div><h2>${h.name}</h2><p>${a.icon} ${a.element} • Fação ${a.factionName}<br>${starString(save.stars[h.id]||1)} • Nv.${save.heroLevels[h.id]||1}</p></div></div>
+ <div class="awakenReq ${eligible?"ready":""}">${eligible?"✓ Requisito cumprido":"🔒 Requer Nível 20 OU 5★"} • Ultimate: <b>${h.ult.name}</b></div>
+ <div class="talentSteps">${effects.map((txt,i)=>`<div class="talentStep ${aw>i?"active":""}"><b>${aw>i?"✓":"○"} Despertar ${i+1}</b><small>${txt}</small></div>`).join("")}</div>
+ <div class="awakenCost"><span>🪙 ${aw<AWAKEN_MAX?cost.gold.toLocaleString("pt-BR"):"—"}</span><span>🌟 ${aw<AWAKEN_MAX?cost.stones:"—"} Pedras</span></div>
+ <button id="awakenHeroBtn" class="btn awakenBtn" style="width:100%;margin-top:8px" ${!eligible||aw>=AWAKEN_MAX||save.gold<cost.gold||save.awakeningStones<cost.stones?"disabled":""}>${aw>=AWAKEN_MAX?"DESPERTAR MÁXIMO":"Despertar para Nv."+(aw+1)}</button>`;
+ const btn=$("#awakenHeroBtn");if(btn)btn.onclick=()=>awakenHero(h.id);
+}
+function awakenHero(id){
+ const aw=save.awakening[id]||0;if(!awakeningEligible(id)||aw>=AWAKEN_MAX)return;
+ const c=awakeningCost(id);if(save.gold<c.gold||save.awakeningStones<c.stones)return toast("Recursos de Despertar insuficientes");
+ save.gold-=c.gold;save.awakeningStones-=c.stones;save.awakening[id]=aw+1;persist();renderAwakening();renderHeroes();
+ rewardFloat("🌟 "+hero(id).name+" • Despertar "+(aw+1),"diamond");AudioEngine.sfx("reward");haptic([25,30,45]);
+}
+
+const AudioEngine={
+ muted:!!save.audioMuted,unlocked:false,bgm:null,bgmKey:null,cache:{},
+ get(key,loop=false){
+  if(!AUDIO_ASSETS[key])return null;
+  if(!this.cache[key]){const a=new Audio(AUDIO_ASSETS[key]);a.preload="none";a.loop=loop;a.volume=loop?.28:.45;this.cache[key]=a}
+  return this.cache[key];
+ },
+ unlock(){this.unlocked=true;this.updateButton()},
+ stopBgm(){if(this.bgm){try{this.bgm.pause();this.bgm.currentTime=0}catch(e){}}this.bgm=null;this.bgmKey=null},
+ scene(screenId){
+  const key=screenId==="battleScreen"?"battle":"menu";if(this.bgmKey===key)return;
+  this.stopBgm();this.bgmKey=key;if(this.muted||!this.unlocked)return;
+  const a=this.get(key,true);if(a){this.bgm=a;a.play().catch(()=>{})}
+ },
+ fallbackTone(freq=440,dur=.045,vol=.018){
+  if(this.muted||!this.unlocked)return;
+  try{uiAudio=uiAudio||new (window.AudioContext||window.webkitAudioContext)();const o=uiAudio.createOscillator(),g=uiAudio.createGain();o.frequency.value=freq;g.gain.value=vol;o.connect(g);g.connect(uiAudio.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,uiAudio.currentTime+dur);o.stop(uiAudio.currentTime+dur)}catch(e){}
+ },
+ sfx(key){
+  if(this.muted||!this.unlocked)return;
+  const a=this.get(key,false);if(a){try{a.currentTime=0;a.play().catch(()=>this.fallbackTone(key==="impact"?180:key==="ultimateReady"?720:key==="ultimate"?260:520,key==="ultimate"?.14:.045))}catch(e){this.fallbackTone(520)}}else this.fallbackTone(520);
+ },
+ toggle(){this.muted=!this.muted;save.audioMuted=this.muted;persist();if(this.muted)this.stopBgm();else this.scene($("#battleScreen")?.classList.contains("active")?"battleScreen":"homeScreen");this.updateButton();toast(this.muted?"🔇 Áudio desativado":"🔊 Áudio ativado")},
+ updateButton(){const b=$("#muteBtn");if(b){b.textContent=this.muted?"🔇":"🔊";b.classList.toggle("muted",this.muted)}}
+};
+
+function storyLineAvatar(id){const h=hero(id);return h?h.emoji:id==="vorak"?"🐉":"✨"}
+function playCutscene(lines,key,onDone){
+ if(key&&save.storySeen[key]){onDone();return}
+ storyState={lines,index:0,key,onDone,typing:false,timer:null,full:""};$("#storyModal").classList.add("show");showStoryLine();
+}
+function showStoryLine(){
+ const st=storyState;if(!st)return;const line=st.lines[st.index];if(!line){finishStory();return}
+ clearInterval(st.timer);st.full=line.text;st.typing=true;$("#storyAvatar").textContent=storyLineAvatar(line.hero);$("#storySpeaker").textContent=line.speaker;$("#storyText").textContent="";
+ let i=0;st.timer=setInterval(()=>{i++;$("#storyText").textContent=st.full.slice(0,i);if(i>=st.full.length){clearInterval(st.timer);st.typing=false}},22);
+}
+function nextStory(){
+ const st=storyState;if(!st)return;
+ if(st.typing){clearInterval(st.timer);$("#storyText").textContent=st.full;st.typing=false;return}
+ st.index++;if(st.index>=st.lines.length)finishStory();else showStoryLine();
+}
+function finishStory(){
+ const st=storyState;if(!st)return;clearInterval(st.timer);if(st.key){save.storySeen[st.key]=true;persist()}
+ $("#storyModal").classList.remove("show");storyState=null;const cb=st.onDone;setTimeout(()=>cb&&cb(),120);
+}
+function skipStory(){finishStory()}
+function campaignCutscene(stg,cb){if(stg.id===5)playCutscene(CUTSCENES.stage5,"campaign-stage-1-5",cb);else cb()}
+function worldBossCutscene(cb){playCutscene(CUTSCENES.worldBoss,"worldboss-"+todayKey(),cb)}
 
 let toastTimer=null;
 function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2200)}
@@ -494,22 +629,22 @@ function renderCampaign(){
 
 /* FORMAÇÃO */
 function renderFormation(){
- const s=stage(),info=$("#formationStageInfo");
- info.innerHTML=`<div><b>🗺️ Fase ${s.code} • ${s.name}</b><br><span>Inimigos Nv.${s.enemyLevel} • ${s.power}</span></div><div class="badge">×${s.scale.toFixed(2)}</div>`;
+ const stg=stage(),info=$("#formationStageInfo");
+ info.innerHTML=`<div><b>🗺️ Fase ${stg.code} • ${stg.name}</b><br><span>Inimigos Nv.${stg.enemyLevel} • ${stg.power}</span></div><div class="badge">×${stg.scale.toFixed(2)}</div>`;
  const board=$("#formationBoard");board.innerHTML="";
  SLOTS.forEach(slot=>{
   const h=formation[slot.id]?hero(formation[slot.id]):null,e=document.createElement("button");
   e.className="slot "+slot.line+(activeSlot===slot.id?" selected":"")+(h?" filled":"");e.dataset.slot=slot.id;
-  e.innerHTML=h?`<span class="emoji">${h.emoji}</span><b>${h.name}</b><em>Nv.${save.heroLevels[h.id]} • ${slot.label}</em>`:`<span class="emoji">＋</span><b>${slot.label}</b><em>${slot.line==="front"?"Front-line":"Back-line"}</em>`;
+  e.innerHTML=h?`<span class="emoji">${h.emoji}</span><b>${h.name}</b><em>Nv.${save.heroLevels[h.id]} • ${affinityOf(h.id).factionName}</em>`:`<span class="emoji">＋</span><b>${slot.label}</b><em>${slot.line==="front"?"Front-line":"Back-line"}</em>`;
   e.onclick=()=>{activeSlot=slot.id;renderFormation()};board.appendChild(e);
  });
  const roster=$("#roster");roster.innerHTML="";
  HEROES.filter(h=>save.owned[h.id]).forEach(h=>{
-  const st=heroStats(h),e=document.createElement("button");e.className="rosterCard"+(used().includes(h.id)?" used":"");
-  e.innerHTML=`<div class="rosterHead"><span class="avatar">${h.emoji}</span><div><b>${h.name}</b><div class="meta">Nv.${st.level} • ${h.role} • SPD ${st.sp}</div></div></div><div class="rosterStats"><span>HP ${st.hp}</span><span>ATQ ${Math.max(st.pa,st.ma)}</span><span>DEF ${Math.max(st.pd,st.md)}</span></div>`;
+  const st=heroStats(h),a=affinityOf(h.id),e=document.createElement("button");e.className="rosterCard"+(used().includes(h.id)?" used":"");
+  e.innerHTML=`<div class="rosterHead"><span class="avatar">${h.emoji}</span><div><b>${h.name}</b><div class="meta">Nv.${st.level} • ${h.role} • SPD ${st.sp}</div><span class="factionTag ${a.faction}">${a.icon} ${a.factionName} • ${a.element}</span></div></div><div class="rosterStats"><span>HP ${st.hp}</span><span>ATQ ${Math.max(st.pa,st.ma)}</span><span>DEF ${Math.max(st.pd,st.md)}</span></div>`;
   e.onclick=()=>{Object.keys(formation).forEach(k=>{if(formation[k]===h.id)formation[k]=null});formation[activeSlot]=h.id;const i=SLOTS.findIndex(x=>x.id===activeSlot);activeSlot=SLOTS[Math.min(i+1,4)].id;persist();renderFormation()};roster.appendChild(e);
  });
- $("#selectedCount").textContent=used().length;$("#startBattle").disabled=used().length!==5;
+ $("#selectedCount").textContent=used().length;$("#startBattle").disabled=used().length!==5;renderSynergyPanel();
 }
 
 /* HERÓIS / EQUIPAMENTOS */
@@ -520,7 +655,7 @@ function renderHeroes(){
  HEROES.forEach(h=>{
   const own=save.owned[h.id],st=heroStats(h),e=document.createElement("button");
   e.className="heroManageCard"+(selectedHero===h.id?" selected":"")+(!own?" locked":"");
-  e.innerHTML=`<div class="heroManageTop"><span class="heroManageEmoji">${own?h.emoji:"❔"}</span><div><div class="heroManageName">${h.name}</div><div class="heroManageMeta">${h.role} • ${own?"Nv."+st.level:"Não obtido"}</div></div></div><div class="heroManageBars"><span>HP ${own?st.hp:"—"}</span><span>ATQ ${own?Math.max(st.pa,st.ma):"—"}</span></div><div class="heroOwnership">${own?starString(st.stars)+" • 🧩 "+(save.shards[h.id]||0):"🔒 Invoque no Portal"}</div>`;
+  e.innerHTML=`<div class="heroManageTop"><span class="heroManageEmoji">${own?h.emoji:"❔"}</span><div><div class="heroManageName">${h.name}</div><div class="heroManageMeta">${h.role} • ${own?"Nv."+st.level:"Não obtido"} • ${affinityOf(h.id).element}</div></div></div><div class="heroManageBars"><span>HP ${own?st.hp:"—"}</span><span>ATQ ${own?Math.max(st.pa,st.ma):"—"}</span></div><div class="heroOwnership">${own?starString(st.stars)+" • 🧩 "+(save.shards[h.id]||0):"🔒 Invoque no Portal"}</div>`;
   e.onclick=()=>{selectedHero=h.id;renderHeroes()};grid.appendChild(e);
  });
  const h=hero(selectedHero),own=save.owned[h.id],st=heroStats(h),cost=levelCost(h.id),max=st.level>=20;
@@ -536,12 +671,12 @@ function renderHeroes(){
  const inv=Object.entries(save.gearInventory).filter(([,q])=>q>0).map(([gid,q])=>({g:GEAR[gid],q})).filter(x=>x.g);
  const invHtml=inv.length?inv.map(({g,q})=>`<div class="gearRow"><div class="gearIcon">${g.icon}</div><div><b class="${rarityClass(g.rarity)}">${g.name} ×${q}</b><small>${SLOT_NAMES[g.slot]} • ${bonusText(g)}</small></div><button class="btn equipBtn" data-gear="${g.id}">Equipar</button></div>`).join(""):'<div class="small">Nenhum equipamento no inventário. Vença fases ou visite a Loja.</div>';
  const stars=st.stars,starCost=stars<5?STAR_COST[stars]:0,have=save.shards[h.id]||0,starPct=stars>=5?100:Math.min(100,have/starCost*100);
- $("#heroDetail").innerHTML=`<div class="heroDetailHeader"><div class="heroDetailAvatar">${h.emoji}</div><div class="heroDetailTitle"><h2>${h.name}</h2><p>${h.role} • ${h.line==="front"?"Front-line":"Back-line"} • ${h.type==="magic"?"Mágico":"Físico"}</p><div class="starLine">${starString(stars)}</div></div></div>
+ $("#heroDetail").innerHTML=`<div class="heroDetailHeader"><div class="heroDetailAvatar">${h.emoji}</div><div class="heroDetailTitle"><h2>${h.name}</h2><p>${h.role} • ${h.line==="front"?"Front-line":"Back-line"} • ${h.type==="magic"?"Mágico":"Físico"}</p><div class="heroAffinityLine"><span class="factionTag ${affinityOf(h.id).faction}">${affinityOf(h.id).icon} ${affinityOf(h.id).factionName}</span><span class="factionTag">${affinityOf(h.id).element}</span></div><div class="starLine">${starString(stars)}</div><div class="awakenMini">🌟 Despertar ${save.awakening[h.id]||0}/${AWAKEN_MAX}</div></div></div>
  <div class="heroStatGrid"><div class="heroStat"><span>HP Máximo</span><b>${st.hp}</b></div><div class="heroStat"><span>Velocidade</span><b>${st.sp}</b></div><div class="heroStat"><span>ATQ Físico</span><b>${st.pa}</b></div><div class="heroStat"><span>ATQ Mágico</span><b>${st.ma}</b></div><div class="heroStat"><span>DEF Física</span><b>${st.pd}</b></div><div class="heroStat"><span>DEF Mágica</span><b>${st.md}</b></div></div>
  <div class="starPanel"><div class="starPanelTop"><b>⭐ Evolução de Estrelas</b><span>${stars}/5</span></div><div class="starProgress"><i style="width:${starPct}%"></i></div><button id="starUpBtn" class="btn gold" ${stars>=5||have<starCost?"disabled":""}>${stars>=5?"5★ MÁXIMO":"Evoluir para "+(stars+1)+"★ • 🧩 "+starCost}</button><div class="starBonus">${stars>=5?"Atributos base no multiplicador máximo ×2,00":"Próximo multiplicador: ×"+STAR_MULT[stars+1].toFixed(2)} • Fragmentos: ${have}</div></div>
- <div class="levelPanel"><div class="levelProgress"><b>Nível ${st.level}${max?" • MÁXIMO":""}</b><span>🪙 ${save.gold}</span></div><button id="levelUpBtn" class="btn primary levelUpBtn" ${max||save.gold<cost?"disabled":""}>${max?"Nível máximo":"⬆ Subir de Nível • 🪙 "+cost}</button><button id="usePotionBtn" class="btn ghost levelUpBtn" style="margin-top:6px" ${max||save.potions<1?"disabled":""}>🧪 Usar Poção de Treino (${save.potions})</button><div class="shardLine">Ultimate: <b>${h.ult.name}</b></div></div>
+ <button id="heroAwakenShortcut" class="btn awakenBtn" style="width:100%;margin-top:9px">🌟 Talentos e Despertar</button><div class="levelPanel"><div class="levelProgress"><b>Nível ${st.level}${max?" • MÁXIMO":""}</b><span>🪙 ${save.gold}</span></div><button id="levelUpBtn" class="btn primary levelUpBtn" ${max||save.gold<cost?"disabled":""}>${max?"Nível máximo":"⬆ Subir de Nível • 🪙 "+cost}</button><button id="usePotionBtn" class="btn ghost levelUpBtn" style="margin-top:6px" ${max||save.potions<1?"disabled":""}>🧪 Usar Poção de Treino (${save.potions})</button><div class="shardLine">Ultimate: <b>${h.ult.name}</b></div></div>
  <div class="equipPanel"><h3>Equipamentos</h3><div class="equipGrid">${equipHtml}</div><div class="inventoryTitle">Inventário de equipamentos</div><div class="gearInventory">${invHtml}</div></div>`;
- $("#starUpBtn").onclick=()=>starUp(h.id);$("#levelUpBtn").onclick=()=>levelUp(h.id);$("#usePotionBtn").onclick=()=>usePotion(h.id);
+ $("#starUpBtn").onclick=()=>starUp(h.id);$("#heroAwakenShortcut").onclick=()=>{selectedAwakeningHero=h.id;renderAwakening();show("awakeningScreen")};$("#levelUpBtn").onclick=()=>levelUp(h.id);$("#usePotionBtn").onclick=()=>usePotion(h.id);
  $$(".unequipBtn").forEach(b=>b.onclick=()=>unequip(h.id,b.dataset.slot));
  $$(".equipBtn").forEach(b=>b.onclick=()=>equip(h.id,b.dataset.gear));
 }
