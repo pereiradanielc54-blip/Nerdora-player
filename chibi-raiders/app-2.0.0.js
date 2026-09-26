@@ -505,21 +505,16 @@ function upgradeGuild(key){
 
 /* feedback sonoro e visual */
 let uiAudio=null;
-function uiClickSound(){
- try{
-  uiAudio=uiAudio||new (window.AudioContext||window.webkitAudioContext)();
-  const o=uiAudio.createOscillator(),g=uiAudio.createGain();
-  o.type="sine";o.frequency.setValueAtTime(520,uiAudio.currentTime);o.frequency.exponentialRampToValueAtTime(360,uiAudio.currentTime+.035);
-  g.gain.setValueAtTime(.022,uiAudio.currentTime);g.gain.exponentialRampToValueAtTime(.0001,uiAudio.currentTime+.04);
-  o.connect(g);g.connect(uiAudio.destination);o.start();o.stop(uiAudio.currentTime+.045);
- }catch(e){}
-}
+function uiClickSound(){AudioEngine.sfx("click")}
 document.addEventListener("pointerdown",e=>{
+ if(!AudioEngine.unlocked){
+  AudioEngine.unlock();
+  const current=$(".screen.active")?.id||"homeScreen";AudioEngine.scene(current);
+ }
  const b=e.target.closest("button");if(!b||b.disabled)return;
  b.classList.remove("tapFx");void b.offsetWidth;b.classList.add("tapFx");setTimeout(()=>b.classList.remove("tapFx"),220);
- uiClickSound();try{navigator.vibrate&&navigator.vibrate(7)}catch(err){}
+ uiClickSound();haptic(7);
 });
-
 
 function starString(n){n=clamp(n||1,1,5);return "★".repeat(n)+"☆".repeat(5-n)}
 function starUp(heroId){
@@ -936,26 +931,26 @@ function finishBattle(win,ctx){
  if(ctx.mode==="boss"){
   const boss=battle.e[0],damage=Math.round(ctx.damage||0),rw=bossRewardFor(damage);
   save.worldBossRemainingHp=Math.max(0,Math.round(boss.hp));save.worldBossLast=damage;save.worldBossBest=Math.max(save.worldBossBest||0,damage);save.worldBossTotal=(save.worldBossTotal||0)+damage;
-  save.gold+=rw.gold;save.diamonds+=rw.diamonds;save.guildContribution+=rw.contribution;
+  save.gold+=rw.gold;save.diamonds+=rw.diamonds;save.guildContribution+=rw.contribution;save.awakeningStones+=(rw.stones||0);
   if(save.worldBossRemainingHp<=0){save.diamonds+=250;rw.bonus=250}
   persist();renderWorldBoss();
   $("#resultBadge").textContent=save.worldBossRemainingHp<=0?"🐲":"🐉";$("#resultTitle").textContent=save.worldBossRemainingHp<=0?"Chefe Derrotado!":"Raid Concluída";
   $("#resultStage").textContent="Vorak • Dano "+damage.toLocaleString("pt-BR");
   $("#resultText").textContent="Sua pontuação diária foi registrada no ranking. Quanto maior o dano, melhores as recompensas.";
-  $("#resultRewards").innerHTML=`<span class="reward">💥 Dano<strong>${damage.toLocaleString("pt-BR")}</strong></span><span class="reward">🪙 Ouro<strong>+${rw.gold}</strong></span><span class="reward">💎 Diamantes<strong>+${rw.diamonds}</strong></span><span class="reward">🤝 Contribuição<strong>+${rw.contribution}</strong></span>${rw.bonus?'<span class="reward">🐲 Abate<strong>💎 +250</strong></span>':""}`;
-  rewardBurst([{text:"💥 "+damage.toLocaleString("pt-BR")+" dano",kind:"diamond"},{text:"🪙 +"+rw.gold,kind:"gold"},{text:"💎 +"+(rw.diamonds+(rw.bonus||0)),kind:"diamond"}]);
+  $("#resultRewards").innerHTML=`<span class="reward">💥 Dano<strong>${damage.toLocaleString("pt-BR")}</strong></span><span class="reward">🪙 Ouro<strong>+${rw.gold}</strong></span><span class="reward">💎 Diamantes<strong>+${rw.diamonds}</strong></span><span class="reward">🤝 Contribuição<strong>+${rw.contribution}</strong></span>${rw.stones?`<span class="reward">🌟 Pedras<strong>+${rw.stones}</strong></span>`:""}${rw.bonus?'<span class="reward">🐲 Abate<strong>💎 +250</strong></span>':""}`;
+  rewardBurst([{text:"💥 "+damage.toLocaleString("pt-BR")+" dano",kind:"diamond"},{text:"🪙 +"+rw.gold,kind:"gold"},{text:"💎 +"+(rw.diamonds+(rw.bonus||0)),kind:"diamond"},{text:rw.stones?"🌟 +"+rw.stones+" Pedras":"",kind:"crystal"}].filter(x=>x.text));
   next.style.display="none";retry.style.display="none";$("#resultMenuBtn").textContent="Voltar ao Chefe Épico";$("#resultModal").classList.add("show");return;
  }
  if(ctx.mode==="tower"){
   const fl=ctx.floor,firstClear=fl>save.towerBest;
   $("#resultStage").textContent="Torre do Abismo • Andar "+fl;$("#resultMenuBtn").textContent="Voltar à Torre";
   if(win){
-   let rw={gold:0,diamonds:0,crystals:0,contribution:0};
-   if(firstClear){rw=towerReward(fl);save.gold+=rw.gold;save.diamonds+=rw.diamonds;save.abyssCrystals+=rw.crystals;save.guildContribution+=rw.contribution;save.towerBest=Math.max(save.towerBest,fl);save.towerFloor=Math.min(TOWER_MAX,fl+1);persist()}
+   let rw={gold:0,diamonds:0,crystals:0,contribution:0,stones:0};
+   if(firstClear){rw=towerReward(fl);save.gold+=rw.gold;save.diamonds+=rw.diamonds;save.abyssCrystals+=rw.crystals;save.guildContribution+=rw.contribution;save.awakeningStones+=(rw.stones||0);save.towerBest=Math.max(save.towerBest,fl);save.towerFloor=Math.min(TOWER_MAX,fl+1);persist()}
    $("#resultTitle").textContent=fl===TOWER_MAX&&firstClear?"Topo Conquistado!":"Andar Concluído!";
    $("#resultText").textContent=firstClear?"Recompensa de primeira conclusão recebida.":"Este andar já havia sido concluído; nenhuma recompensa rara adicional foi concedida.";
-   $("#resultRewards").innerHTML=firstClear?`<span class="reward">🔷 Cristais<strong>+${rw.crystals}</strong></span><span class="reward">🪙 Ouro<strong>+${rw.gold}</strong></span><span class="reward">💎 Diamantes<strong>+${rw.diamonds}</strong></span><span class="reward">🤝 Contribuição<strong>+${rw.contribution}</strong></span>`:'<span class="reward">Repetição<strong>Sem prêmio raro</strong></span>';
-   if(firstClear)rewardBurst([{text:"🔷 +"+rw.crystals+" Cristais",kind:"crystal"},{text:"🪙 +"+rw.gold,kind:"gold"},{text:"💎 +"+rw.diamonds,kind:"diamond"}]);
+   $("#resultRewards").innerHTML=firstClear?`<span class="reward">🔷 Cristais<strong>+${rw.crystals}</strong></span><span class="reward">🪙 Ouro<strong>+${rw.gold}</strong></span><span class="reward">💎 Diamantes<strong>+${rw.diamonds}</strong></span><span class="reward">🤝 Contribuição<strong>+${rw.contribution}</strong></span>${rw.stones?`<span class="reward">🌟 Pedras<strong>+${rw.stones}</strong></span>`:""}`:'<span class="reward">Repetição<strong>Sem prêmio raro</strong></span>';
+   if(firstClear)rewardBurst([{text:"🔷 +"+rw.crystals+" Cristais",kind:"crystal"},{text:"🪙 +"+rw.gold,kind:"gold"},{text:"💎 +"+rw.diamonds,kind:"diamond"},{text:rw.stones?"🌟 +"+rw.stones+" Pedras":"",kind:"crystal"}].filter(x=>x.text));
    next.textContent=fl<TOWER_MAX?"Próximo andar →":"Topo alcançado";next.style.display=fl<TOWER_MAX?"":"none";retry.style.display="none";
   }else{
    $("#resultText").textContent="A Torre fica mais forte a cada piso. Evolua estrelas, equipamentos e Guilda para continuar.";
@@ -1025,6 +1020,10 @@ $("#goGuild").onclick=()=>{renderGuild();show("guildScreen")};$("#guildBack").on
 $("#missionsGuildBtn").onclick=()=>{renderGuild();show("guildScreen")};
 $("#goWorldBoss").onclick=()=>{renderWorldBoss();show("worldBossScreen")};$("#worldBossBack").onclick=()=>show("homeScreen");$("#startWorldBoss").onclick=startWorldBossBattle;
 $("#goTower").onclick=()=>{renderTower();show("towerScreen")};$("#towerBack").onclick=()=>show("homeScreen");$("#startTower").onclick=startTowerBattle;
+$("#goAfk").onclick=()=>{startAfkTicker();show("afkScreen")};$("#afkBack").onclick=()=>show("homeScreen");$("#claimAfkBtn").onclick=()=>claimAfk(false);
+$("#goAwakening").onclick=()=>{renderAwakening();show("awakeningScreen")};$("#awakeningBack").onclick=()=>show("homeScreen");
+$("#muteBtn").onclick=()=>AudioEngine.toggle();
+$("#storyNext").onclick=nextStory;$("#storySkip").onclick=skipStory;const storyBoxEl=$("#storyBox");if(storyBoxEl)storyBoxEl.onclick=e=>{if(!e.target.closest("button"))nextStory()};
 $("#dailyTab").onclick=()=>renderMissions("daily");$("#achievementTab").onclick=()=>renderMissions("achievements");
 $("#startBattle").onclick=startBattle;$("#quickBattle").onclick=quick;$("#summonOne").onclick=()=>summon(1);$("#summonTen").onclick=()=>summon(10);
 $("#battleBack").onclick=()=>{if(battle)battle.ended=true;try{screen.orientation?.unlock?.()}catch{}if(lastBattleMode==="arena"){renderArena();show("arenaScreen")}else if(lastBattleMode==="boss"){renderWorldBoss();show("worldBossScreen")}else if(lastBattleMode==="tower"){renderTower();show("towerScreen")}else{renderCampaign();show("campaignScreen")}};
@@ -1052,5 +1051,5 @@ if("serviceWorker"in navigator){addEventListener("load",()=>{navigator.serviceWo
 setTimeout(()=>hideSplash(0),3500);
 $("#installAppBtn").onclick=install;$("#splashInstallBtn").onclick=install;$("#checkUpdateBtn").onclick=async()=>{const has=await checkUpdate(true);if(has)updateNow()};$("#splashUpdateBtn").onclick=updateNow;
 
-resetDailyMissions();dailyArenaReset();dailyWorldBossReset();renderResources();renderCampaign();renderFormation();renderHeroes();renderPortal();renderShop();renderMissions("daily");renderGuild();renderWorldBoss();renderTower();updateMissionIndicators();
+resetDailyMissions();dailyArenaReset();dailyWorldBossReset();renderResources();renderCampaign();renderFormation();renderHeroes();renderPortal();renderShop();renderMissions("daily");renderGuild();renderWorldBoss();renderTower();renderAwakening();renderAfk();AudioEngine.updateButton();updateMissionIndicators();startAfkTicker();processOfflineRewards();
 })();
