@@ -1,7 +1,7 @@
 {
-  "version": "5.0.0",
-  "entry": "./index-5.0.0.html",
-  "serviceWorker": "./sw-5.0.0.js",
-  "build": "2026-09-26-v5.0.0-ui-routing-hero-detail",
-  "notes": "Reconexão completa do roteamento de UI, correção do Screen Manager, tela dedicada de herói com arte, atributos, nível, estrelas, despertar e 4 slots de equipamento, configurações de áudio e modal de vitória rolável reforçado."
+  "version": "5.0.1",
+  "entry": "./index-5.0.1.html",
+  "serviceWorker": "./sw-5.0.1.js",
+  "build": "2026-09-26-v5.0.1-button-hotfix",
+  "notes": "Hotfix de interação: roteador central de botões em fase de captura, reconexão de botões estáticos e dinâmicos, proteção contra overlays bloqueando cliques e manutenção da tela individual de heróis."
 }
