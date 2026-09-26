@@ -1,0 +1,3 @@
+/* Nerdora Chibi Raiders — Herói #34: Senhor dos Pesadelos */
+window.NERDORA_HERO_SOURCE=window.NERDORA_HERO_SOURCE||{};
+window.NERDORA_HERO_SOURCE["senhor_pesadelos"]={"number":34,"id":"senhor_pesadelos","name":"Senhor dos Pesadelos","rarity":"SR","color":"#FFA500","colorName":"Laranja","img":"","atlasPage":2,"atlasCol":3,"atlasRow":2,"emoji":"🌙","class":"Mago","position":"back","style":"ranged","type":"magic","finalBase":true,"ultimateFinal":true,"hp":1850,"pa":120,"ma":460,"pd":190,"md":175,"speed":115,"cr":0.2,"dg":0.1,"ult":{"name":"Visão Onírica Sombria","kind":"aoeMagic","ratio":1.3,"effect":"slow"}};
