@@ -1,7 +1,7 @@
 {
-  "version": "4.1.0",
-  "entry": "./index-4.1.0.html",
-  "serviceWorker": "./sw-4.1.0.js",
-  "build": "2026-09-26-v4.1.0-identity-update",
-  "notes": "Identity Update: artes oficiais dos 20 heróis em todos os cards, loading oficial, Lobby Nerdora City com formação e destaques, atalhos Campanha/Heróis/Portal, Portal com Seraphina ilustrada, iniciativa com retratos, VFX de batalha reforçados e PWA atualizado."
+  "version": "4.5.0",
+  "entry": "./index-4.5.0.html",
+  "serviceWorker": "./sw-4.5.0.js",
+  "build": "2026-09-26-v4.5.0-uiux-overhaul",
+  "notes": "UI/UX Overhaul: modal de vitória rolável e com ações acessíveis, Lobby reorganizado em Grid sem sobreposições, glassmorphism, transições de telas, feedback tátil/visual de clique e hierarquia de z-index refinada."
 }
