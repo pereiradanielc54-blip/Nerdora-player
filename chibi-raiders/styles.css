@@ -441,3 +441,92 @@ body{display:flex;justify-content:center;padding:10px}
     display:grid;
   }
 }
+
+
+/* =========================================================
+   v0.9 — CAMPANHA / PROGRESSÃO / HERÓIS
+   ========================================================= */
+.resourceBar{
+  display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap;
+  padding:7px 10px;background:#0e1421;border-bottom:1px solid #242f47
+}
+.resourceBar span{
+  padding:5px 8px;border-radius:999px;background:#171f31;border:1px solid #33405e;
+  font-size:9px;color:#cfd6e6
+}
+.resourceBar b{color:#fff}
+.campaignHeader{padding:14px;margin-bottom:10px}
+.campaignHeader h2{margin:3px 0 5px;font-size:19px}
+.campaignHeader p{margin:0;color:#aab4c9;font-size:10px;line-height:1.45}
+.stageGrid{display:grid;grid-template-columns:1fr;gap:8px}
+.stageCard{
+  width:100%;border:1px solid #34415f;background:linear-gradient(135deg,#171f31,#111725);
+  border-radius:16px;padding:12px;text-align:left;cursor:pointer;display:grid;grid-template-columns:58px 1fr auto;
+  gap:10px;align-items:center;transition:.18s transform,.18s border-color,.18s opacity
+}
+.stageCard:active{transform:scale(.99)}
+.stageCard.locked{opacity:.43;cursor:not-allowed;filter:grayscale(.65)}
+.stageCard.selected{border-color:#9c7cff;box-shadow:0 0 0 1px #7659d8 inset}
+.stageNode{
+  width:54px;height:54px;border-radius:18px;display:grid;place-items:center;
+  background:linear-gradient(145deg,#5d46c9,#9f73ff);font-size:13px;font-weight:1000
+}
+.stageCard.locked .stageNode{background:#2b3245}
+.stageInfo b{display:block;font-size:12px}.stageInfo small{display:block;color:#96a2ba;font-size:8px;margin-top:3px;line-height:1.35}
+.stagePower{text-align:right}.stagePower strong{display:block;font-size:11px;color:#ffd66a}.stagePower span{font-size:7px;color:#97a3bb}
+.formationStageInfo{padding:10px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.formationStageInfo b{font-size:12px}.formationStageInfo span{font-size:8px;color:#aeb7c9}
+
+/* Gestão de heróis */
+.heroesPage{display:grid;grid-template-columns:1fr;gap:10px}
+.heroManageGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.heroManageCard{
+  border:1px solid #34405b;background:#151c2b;border-radius:15px;padding:9px;text-align:left;cursor:pointer;
+  transition:.18s border-color,.18s transform
+}
+.heroManageCard.selected{border-color:#a17dff;box-shadow:0 0 0 1px rgba(161,125,255,.35) inset}
+.heroManageCard:active{transform:scale(.985)}
+.heroManageTop{display:flex;align-items:center;gap:7px}.heroManageEmoji{font-size:30px}
+.heroManageName{font-size:10px;font-weight:1000}.heroManageMeta{font-size:7px;color:#98a3bb;margin-top:2px}
+.heroManageBars{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:7px}
+.heroManageBars span{font-size:7px;padding:4px;border-radius:7px;background:#0f1521;color:#b9c2d6;text-align:center}
+.heroDetail{padding:14px}
+.heroDetailHeader{display:flex;align-items:center;gap:11px}
+.heroDetailAvatar{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;font-size:38px;background:#202942;border:1px solid #465778}
+.heroDetailTitle h2{margin:0;font-size:19px}.heroDetailTitle p{margin:3px 0 0;color:#a4aec3;font-size:9px}
+.heroStatGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:12px}
+.heroStat{
+  padding:8px;border-radius:10px;background:#0f1521;border:1px solid #2f3b57;
+  display:flex;justify-content:space-between;gap:8px;font-size:8px
+}
+.heroStat b{font-size:9px}
+.levelPanel{margin-top:10px;padding:10px;border-radius:12px;background:#171f30;border:1px solid #35435f}
+.levelProgress{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:7px}
+.levelProgress b{font-size:12px}.levelProgress span{font-size:8px;color:#a7b1c4}
+.levelUpBtn{width:100%}
+.levelGain{font-size:7px;color:#7fe5a4;margin-top:6px;text-align:center}
+.shardLine{font-size:8px;color:#b4bfd2;text-align:center;margin-top:7px}
+
+/* Resultados */
+.resultCard{max-width:390px}
+.resultBadge{
+  width:72px;height:72px;border-radius:50%;margin:-8px auto 8px;display:grid;place-items:center;
+  font-size:38px;background:linear-gradient(145deg,#3a2d16,#80601d);border:1px solid #d6ad4c
+}
+.resultStage{font-size:10px;color:#c8d0df;font-weight:900;margin-bottom:8px}
+.resultActions{display:grid;gap:7px;margin-top:12px}
+.rewards{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.reward{font-size:9px;text-align:center;padding:9px}
+.reward strong{display:block;font-size:11px;color:#fff;margin-top:2px}
+
+/* Pequenos indicadores de nível na batalha */
+.ccLevel{
+  font-size:6px;color:#ffe28a;font-weight:900;margin-left:auto
+}
+
+@media(min-width:760px){
+  .heroesPage{grid-template-columns:1.05fr .95fr;align-items:start}
+  .heroManageGrid{grid-template-columns:repeat(2,1fr)}
+  .heroDetail{position:sticky;top:68px}
+  .stageGrid{grid-template-columns:repeat(2,1fr)}
+}
