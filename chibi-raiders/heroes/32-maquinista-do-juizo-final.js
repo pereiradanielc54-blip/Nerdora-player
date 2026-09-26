@@ -1,0 +1,3 @@
+/* Nerdora Chibi Raiders — Herói #32: Maquinista do Juízo Final */
+window.NERDORA_HERO_SOURCE=window.NERDORA_HERO_SOURCE||{};
+window.NERDORA_HERO_SOURCE["maquinista_juizo_final"]={"number":32,"id":"maquinista_juizo_final","name":"Maquinista do Juízo Final","rarity":"EP","color":"#8A2BE2","colorName":"Roxo","img":"","atlasPage":2,"atlasCol":1,"atlasRow":2,"emoji":"🔆","class":"Atirador","position":"back","style":"ranged","type":"physical","finalBase":true,"ultimateFinal":true,"hp":1650,"pa":325,"ma":90,"pd":150,"md":140,"speed":102,"cr":0.16,"dg":0.08,"ult":{"name":"Canhão de Plasma Portátil","kind":"aoe","ratio":0.95,"effect":"pierce"}};
