@@ -1,0 +1,3 @@
+/* Nerdora Chibi Raiders — Herói #36: Mestre das Marionetes */
+window.NERDORA_HERO_SOURCE=window.NERDORA_HERO_SOURCE||{};
+window.NERDORA_HERO_SOURCE["mestre_marionetes"]={"number":36,"id":"mestre_marionetes","name":"Mestre das Marionetes","rarity":"SR","color":"#FFA500","colorName":"Laranja","img":"","atlasPage":2,"atlasCol":0,"atlasRow":3,"emoji":"🎭","class":"Mago","position":"back","style":"ranged","type":"magic","finalBase":true,"ultimateFinal":true,"hp":1800,"pa":130,"ma":470,"pd":185,"md":172,"speed":122,"cr":0.22,"dg":0.06,"ult":{"name":"Dança dos Fios Ocultos","kind":"aoeMagic","ratio":1.38,"effect":"slow"}};
