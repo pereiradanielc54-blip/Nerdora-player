@@ -1,0 +1,3 @@
+/* Nerdora Chibi Raiders — Herói #40: Rainha do Espelho Dimensional */
+window.NERDORA_HERO_SOURCE=window.NERDORA_HERO_SOURCE||{};
+window.NERDORA_HERO_SOURCE["rainha_espelho_dimensional"]={"number":40,"id":"rainha_espelho_dimensional","name":"Rainha do Espelho Dimensional","rarity":"SSR","color":"#FF0000","colorName":"Vermelho","img":"","atlasPage":2,"atlasCol":4,"atlasRow":3,"emoji":"🪞","class":"Maga Mítica","position":"back","style":"ranged","type":"magic","finalBase":true,"ultimateFinal":true,"hp":3500,"pa":200,"ma":740,"pd":420,"md":390,"speed":155,"cr":0.26,"dg":0.18,"ult":{"name":"Labirinto de Vidro Quebrado","kind":"aoeMagic","ratio":2.4,"effect":"slow"}};
