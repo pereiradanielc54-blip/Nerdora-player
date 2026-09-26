@@ -1,0 +1,3 @@
+/* Nerdora Chibi Raiders — Herói #29: Cavaleiro da Peste */
+window.NERDORA_HERO_SOURCE=window.NERDORA_HERO_SOURCE||{};
+window.NERDORA_HERO_SOURCE["cavaleiro_peste"]={"number":29,"id":"cavaleiro_peste","name":"Cavaleiro da Peste","rarity":"EP","color":"#8A2BE2","colorName":"Roxo","img":"","atlasPage":2,"atlasCol":3,"atlasRow":1,"emoji":"☣️","class":"Tanque","position":"front","style":"melee","type":"physical","finalBase":true,"ultimateFinal":true,"hp":2500,"pa":260,"ma":70,"pd":290,"md":270,"speed":76,"cr":0.06,"dg":0.03,"ult":{"name":"Miasma Tóxico","kind":"aoe","ratio":0.78,"effect":"bleed"}};
