@@ -1284,6 +1284,21 @@ function finishBattle(win,ctx){
   }
   renderTower();$("#resultModal").classList.add("show");return;
  }
+ if(ctx.mode==="guildWar"){
+  const c=ctx.castle||{name:"Castelo inimigo",elite:false};
+  $("#resultStage").textContent="Guerra de Guildas • "+c.name;$("#resultMenuBtn").textContent="Voltar à Guilda";
+  if(win){
+   const points=c.elite?180:120,contribution=c.elite?130:85,diamonds=c.elite?55:30;
+   save.guildWarPoints=(save.guildWarPoints||0)+points;save.guildContribution+=contribution;save.diamonds+=diamonds;persist();
+   $("#resultTitle").textContent="Castelo Conquistado!";$("#resultText").textContent="Sua guilda avançou no mapa de guerra simulado.";
+   $("#resultRewards").innerHTML='<span class="reward">🏅 Pontos de Guerra<strong>+'+points+'</strong></span><span class="reward">🤝 Contribuição<strong>+'+contribution+'</strong></span><span class="reward">💎 Diamantes<strong>+'+diamonds+'</strong></span>';
+   rewardBurst([{text:"🏅 +"+points+" Guerra",kind:"exp"},{text:"🤝 +"+contribution,kind:"gold"},{text:"💎 +"+diamonds,kind:"diamond"}]);
+  }else{
+   save.guildContribution+=15;persist();$("#resultText").textContent="A defesa inimiga resistiu. Você recebeu contribuição de participação.";
+   $("#resultRewards").innerHTML='<span class="reward">🤝 Participação<strong>+15</strong></span>';
+  }
+  renderGuild();next.style.display="none";retry.style.display="none";$("#resultModal").classList.add("show");return;
+ }
  if(ctx.mode==="arena"){
   const o=ctx.opponent;$("#resultStage").textContent="Arena • "+o.name;
   if(win){const gain=20+Math.max(0,Math.round((o.rating-save.arenaRating)/25));save.arenaRating+=gain;save.arenaCoins+=25;save.arenaDailyPoints+=gain;save.guildContribution+=20;save.dailyCounters.arenaWins=(save.dailyCounters.arenaWins||0)+1;save.lifetime.arenaWins=(save.lifetime.arenaWins||0)+1;persist();$("#resultText").textContent="Vitória na Arena! Ranking, Moedas da Arena e contribuição recebidos.";$("#resultRewards").innerHTML=`<span class="reward">🏆 Rating<strong>+${gain}</strong></span><span class="reward">🏟️ Moedas<strong>+25</strong></span><span class="reward">🤝 Contribuição<strong>+20</strong></span>`;rewardBurst([{text:"🏟️ +25",kind:"gold"},{text:"🏆 +"+gain,kind:"exp"}])}
