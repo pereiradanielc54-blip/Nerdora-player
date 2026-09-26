@@ -160,26 +160,26 @@ const ACHIEVEMENTS=[
 
 
 const HERO_AFFINITY={
- seraphina:{faction:"aurora",factionName:"Aurora",element:"Luz",icon:"☀️"},
- valquiria:{faction:"aurora",factionName:"Aurora",element:"Água",icon:"❄️"},
+ guarda:{faction:"aurora",factionName:"Aurora",element:"Terra",icon:"🛡️"},
+ acolito:{faction:"aurora",factionName:"Aurora",element:"Luz",icon:"✨"},
+ batedor:{faction:"aurora",factionName:"Aurora",element:"Vento",icon:"🍃"},
  terra:{faction:"aurora",factionName:"Aurora",element:"Terra",icon:"🌿"},
- anao:{faction:"aurora",factionName:"Aurora",element:"Fogo",icon:"🔥"},
- fada:{faction:"aurora",factionName:"Aurora",element:"Luz",icon:"✨"},
  espinho:{faction:"eclipse",factionName:"Eclipse",element:"Fogo",icon:"🔥"},
- quebra:{faction:"eclipse",factionName:"Eclipse",element:"Terra",icon:"🪨"},
  umbra:{faction:"eclipse",factionName:"Eclipse",element:"Trevas",icon:"🌑"},
- crepusculo:{faction:"eclipse",factionName:"Eclipse",element:"Trevas",icon:"🌘"},
+ anao:{faction:"aurora",factionName:"Aurora",element:"Fogo",icon:"💣"},
+ aguas:{faction:"aurora",factionName:"Aurora",element:"Água",icon:"💧"},
+ quebra:{faction:"eclipse",factionName:"Eclipse",element:"Terra",icon:"🪨"},
  relampago:{faction:"eclipse",factionName:"Eclipse",element:"Raio",icon:"⚡"},
- musgo:{faction:"aurora",factionName:"Aurora",element:"Terra",icon:"🌱"},
- brisa:{faction:"aurora",factionName:"Aurora",element:"Vento",icon:"🍃"},
- rubi:{faction:"eclipse",factionName:"Eclipse",element:"Fogo",icon:"🏹"},
- monge:{faction:"aurora",factionName:"Aurora",element:"Terra",icon:"🪨"},
- corsaria:{faction:"aurora",factionName:"Aurora",element:"Água",icon:"🌊"},
- bruxo:{faction:"eclipse",factionName:"Eclipse",element:"Fogo",icon:"🔥"},
- solaria:{faction:"aurora",factionName:"Aurora",element:"Luz",icon:"☀️"},
- oraculo:{faction:"eclipse",factionName:"Eclipse",element:"Trevas",icon:"🌌"},
- nyxara:{faction:"eclipse",factionName:"Eclipse",element:"Fogo",icon:"👑"},
- aetherion:{faction:"aurora",factionName:"Aurora",element:"Luz",icon:"🐲"}
+ fada:{faction:"aurora",factionName:"Aurora",element:"Natureza",icon:"🧚"},
+ valquiria:{faction:"aurora",factionName:"Aurora",element:"Gelo",icon:"❄️"},
+ barbanegra:{faction:"eclipse",factionName:"Eclipse",element:"Água",icon:"🏴‍☠️"},
+ crepusculo:{faction:"eclipse",factionName:"Eclipse",element:"Trevas",icon:"🌘"},
+ seraphina:{faction:"aurora",factionName:"Aurora",element:"Luz",icon:"☀️"},
+ ignis:{faction:"eclipse",factionName:"Eclipse",element:"Fogo",icon:"🔥"},
+ aegis:{faction:"aurora",factionName:"Aurora",element:"Luz",icon:"🛡️"},
+ lyra:{faction:"eclipse",factionName:"Eclipse",element:"Espírito",icon:"🌙"},
+ drako:{faction:"eclipse",factionName:"Eclipse",element:"Fogo",icon:"🐉"},
+ morgana:{faction:"eclipse",factionName:"Eclipse",element:"Trevas",icon:"🕳️"}
 };
 
 const SYNERGY_RULES={
@@ -193,16 +193,26 @@ const AWAKEN_COSTS={
  0:{gold:2500,stones:3},1:{gold:4200,stones:5},2:{gold:6500,stones:8},3:{gold:9000,stones:12},4:{gold:13000,stones:18}
 };
 const AWAKEN_EFFECTS={
- seraphina:["Ultimate +8% potência","Aurora Celestial concede +10% ATQ à equipa","Bónus de ATQ sobe para +13%","Cura + escudo ganham potência adicional","Bónus de ATQ sobe para +18%"],
- quebra:["Ultimate +8% potência","Demolição Total atordoa 1 alvo","Atordoa até 2 inimigos","Quebra de DEF é ampliada","Atordoamento dura 2 ações no alvo principal"],
+ guarda:["Ultimate +8% potência","Ultimate +16% acumulado","Ultimate +24% acumulado","Ultimate +32% acumulado","Ultimate +40% acumulado"],
+ acolito:["Ultimate +8% potência","Cura recebe +16% acumulado","Cura recebe +24% acumulado","Cura recebe +32% acumulado","Cura recebe +40% acumulado"],
+ batedor:["Ultimate +8% potência","Ultimate +16% acumulado","Ultimate +24% acumulado","Ultimate +32% acumulado","Ultimate +40% acumulado"],
+ terra:["Ultimate +8% potência","Fortaleza Viva cura 5% HP da equipa","Escudo da equipa é reforçado","Cura 8% HP","Escudo e cura atingem potência máxima"],
  espinho:["Ultimate +8% potência","Sangramento dura +1 rodada","Sangramento causa mais pressão","Ultimate ganha +12% crítico","Sangramento dura +2 rodadas"],
  umbra:["Ultimate +8% potência","Execução melhora contra alvos feridos","Limite de execução sobe para 45% HP","Recupera 25 Rage após Ultimate","Limite de execução sobe para 55% HP"],
- crepusculo:["Ultimate +8% potência","Noite Sem Fim drena 10 Rage","Lentidão é ampliada","Drena 20 Rage","Aplica lentidão reforçada em todos"],
- valquiria:["Ultimate +8% potência","Congela até 3 inimigos","Chance de congelamento reforçada","Ganha escudo próprio após Ultimate","Congela todos os inimigos vivos"],
- relampago:["Ultimate +8% potência","Mil Cortes ganha +1 golpe","Ganha +2 golpes no total","Recupera 20 Rage após Ultimate","Ganha +3 golpes no total"],
- terra:["Ultimate +8% potência","Fortaleza Viva cura 5% HP da equipa","Escudo da equipa é reforçado","Cura 8% HP","Escudo e cura atingem potência máxima"],
  anao:["Ultimate +8% potência","Bombardeio aplica Quebra de DEF","Quebra aumenta para 25%","Ganha +10% crítico na Ultimate","Quebra de DEF atinge 35%"],
- fada:["Ultimate +8% potência","Concede +15 Rage à equipa","Haste é reforçada","Concede +25 Rage","Haste + Rage atingem potência máxima"]
+ aguas:["Ultimate +8% potência","Ultimate +16% acumulado","Ultimate +24% acumulado","Ultimate +32% acumulado","Ultimate +40% acumulado"],
+ quebra:["Ultimate +8% potência","Demolição Total atordoa 1 alvo","Atordoa até 2 inimigos","Quebra de DEF é ampliada","Atordoamento dura 2 ações no alvo principal"],
+ relampago:["Ultimate +8% potência","Mil Cortes ganha +1 golpe","Ganha +2 golpes no total","Recupera 20 Rage após Ultimate","Ganha +3 golpes no total"],
+ fada:["Ultimate +8% potência","Concede +15 Rage à equipa","Haste é reforçada","Concede +25 Rage","Haste + Rage atingem potência máxima"],
+ valquiria:["Ultimate +8% potência","Congela até 3 inimigos","Chance de congelamento reforçada","Ganha escudo próprio após Ultimate","Congela todos os inimigos vivos"],
+ barbanegra:["Ultimate +8% potência","Ultimate +16% acumulado","Ultimate +24% acumulado","Ultimate +32% acumulado","Ultimate +40% acumulado"],
+ crepusculo:["Ultimate +8% potência","Noite Sem Fim drena 10 Rage","Lentidão é ampliada","Drena 20 Rage","Aplica lentidão reforçada em todos"],
+ seraphina:["Ultimate +8% potência","Aurora Celestial concede +10% ATQ à equipa","Bónus de ATQ sobe para +13%","Cura + escudo ganham potência adicional","Bónus de ATQ sobe para +18%"],
+ ignis:["Ultimate +8% potência","Ultimate +16% acumulado","Ultimate +24% acumulado","Ultimate +32% acumulado","Ultimate +40% acumulado"],
+ aegis:["Ultimate +8% potência","Ultimate +16% acumulado","Ultimate +24% acumulado","Ultimate +32% acumulado","Ultimate +40% acumulado"],
+ lyra:["Ultimate +8% potência","Ultimate +16% acumulado","Ultimate +24% acumulado","Ultimate +32% acumulado","Ultimate +40% acumulado"],
+ drako:["Ultimate +8% potência","Ultimate +16% acumulado","Ultimate +24% acumulado","Ultimate +32% acumulado","Ultimate +40% acumulado"],
+ morgana:["Ultimate +8% potência","Ultimate +16% acumulado","Ultimate +24% acumulado","Ultimate +32% acumulado","Ultimate +40% acumulado"]
 };
 
 const AFK_CAP_MS=12*60*60*1000;
@@ -277,7 +287,7 @@ function blankEquipment(){return{weapon:null,armor:null,helmet:null,accessory:nu
 function defaultSave(){
  const heroLevels={},shards={},owned={},equipment={},stars={},awakening={};
  HEROES.forEach(h=>{heroLevels[h.id]=1;shards[h.id]=0;owned[h.id]=false;equipment[h.id]=blankEquipment();stars[h.id]=1;awakening[h.id]=0});
- ["quebra","valquiria","seraphina","umbra","crepusculo"].forEach(id=>owned[id]=true);
+ ["guarda","acolito","batedor","terra","aguas"].forEach(id=>owned[id]=true);
  return{
   gold:1500,diamonds:1200,scrolls:3,accountExp:0,essence:0,arenaCoins:0,arenaRating:1000,
   arenaDate:todayKey(),arenaAttempts:5,arenaDailyPoints:0,arenaDailyMax:5,
@@ -292,21 +302,32 @@ function defaultSave(){
   petsOwned:{drakko:true,fenix:false},petLevels:{drakko:1,fenix:1},petFeed:{drakko:0,fenix:0},activePet:"drakko",
   limitedEventEnd:Date.now()+7*24*60*60*1000,lastAfkClaim:Date.now(),audioMuted:false,storySeen:{},chatCollapsed:false,
   unlockedStage:1,selectedStage:1,heroLevels,shards,owned,equipment,stars,awakening,gearInventory:{},potions:0,
-  formation:{F1:"quebra",F2:"valquiria",B1:"seraphina",B2:"umbra",B3:"crepusculo"}
+  formation:{F1:"guarda",F2:"terra",B1:"acolito",B2:"batedor",B3:"aguas"}
  };
 }
 function normalizeSave(s){
  const d=defaultSave(),out={...d,...s};
- out.heroLevels={...d.heroLevels,...(s.heroLevels||{})};
- out.shards={...d.shards,...(s.shards||{})};
- out.owned={...d.owned,...(s.owned||{})};
- out.stars={...d.stars,...(s.stars||{})};
- out.awakening={...d.awakening,...(s.awakening||{})};
+ const legacyMap={musgo:"guarda",brisa:"acolito",rubi:"batedor",monge:"terra",corsaria:"aguas",bruxo:"ignis",solaria:"aegis",oraculo:"lyra",nyxara:"morgana",aetherion:"drako"};
+ const legacyLevels={...(s.heroLevels||{})},legacyShards={...(s.shards||{})},legacyOwned={...(s.owned||{})},legacyStars={...(s.stars||{})},legacyAwakening={...(s.awakening||{})};
+ Object.entries(legacyMap).forEach(([oldId,newId])=>{
+  if(legacyLevels[oldId]!=null)legacyLevels[newId]=Math.max(legacyLevels[newId]||1,legacyLevels[oldId]);
+  if(legacyShards[oldId]!=null)legacyShards[newId]=(legacyShards[newId]||0)+legacyShards[oldId];
+  if(legacyOwned[oldId])legacyOwned[newId]=true;
+  if(legacyStars[oldId]!=null)legacyStars[newId]=Math.max(legacyStars[newId]||1,legacyStars[oldId]);
+  if(legacyAwakening[oldId]!=null)legacyAwakening[newId]=Math.max(legacyAwakening[newId]||0,legacyAwakening[oldId]);
+ });
+ out.heroLevels={...d.heroLevels,...legacyLevels};
+ out.shards={...d.shards,...legacyShards};
+ out.owned={...d.owned,...legacyOwned};
+ out.stars={...d.stars,...legacyStars};
+ out.awakening={...d.awakening,...legacyAwakening};
  out.storySeen={...(s.storySeen||{})};
  out.gearInventory={...(s.gearInventory||{})};
  out.equipment={};
  HEROES.forEach(h=>out.equipment[h.id]={...blankEquipment(),...((s.equipment||{})[h.id]||{})});
  out.formation={...d.formation,...(s.formation||{})};
+ Object.keys(out.formation).forEach(slot=>{const mapped=legacyMap[out.formation[slot]];if(mapped)out.formation[slot]=mapped;if(out.formation[slot]&&!hero(out.formation[slot]))out.formation[slot]=d.formation[slot]});
+
  out.dailyCounters={...d.dailyCounters,...(s.dailyCounters||{})};
  out.dailyClaimed={...(s.dailyClaimed||{})};
  out.lifetime={...d.lifetime,...(s.lifetime||{})};
