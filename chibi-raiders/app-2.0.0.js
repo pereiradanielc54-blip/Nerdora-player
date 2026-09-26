@@ -554,25 +554,27 @@ function renderWorldBoss(){
  $("#startWorldBoss").textContent=remaining<=0?"✅ Chefe derrotado hoje":save.worldBossAttempts<1?"Sem tentativas hoje":"🐉 Iniciar Raid";
  $("#worldBossRanking").innerHTML=worldBossRanking().map((r,i)=>`<div class="raidRankRow"><div class="pos">#${i+1}</div><div><b>${r.you?"⭐ ":""}${r.name}</b><small>${r.you?"Sua melhor tentativa":"Guilda rival"}</small></div><div class="damage">${r.damage.toLocaleString("pt-BR")}</div></div>`).join("");
 }
+function beginWorldBossBattle(){
+ save.worldBossAttempts--;persist();
+ const boss=new Unit(BOSS_HERO,"enemy",SLOTS[0],{level:50,scale:1});
+ boss.maxHp=WORLD_BOSS_MAX_HP;boss.hp=save.worldBossRemainingHp;boss.id="enemy_vorak_F1";
+ lastBattleMode="boss";landscape();battle=new Battle(playerTeam(),[boss],{mode:"boss",code:"Raid",name:BOSS_HERO.name,damage:0});
+ show("battleScreen");$("#battleStageName").textContent="RAID • VORAK";$("#battleLog").innerHTML="";
+ battle.log("🐉 Vorak desperta com "+boss.hp.toLocaleString("pt-BR")+" HP restante.");renderBattle();battle.loop();
+}
 function startWorldBossBattle(){
  dailyWorldBossReset();
  if(used().length!==5)return toast("Monte uma formação com 5 heróis");
  if(save.worldBossAttempts<1)return toast("Sem tentativas de Raid hoje");
  if(save.worldBossRemainingHp<=0)return toast("Vorak já foi derrotado hoje");
- save.worldBossAttempts--;persist();
- const boss=new Unit(BOSS_HERO,"enemy",SLOTS[0],{level:50,scale:1});
- boss.maxHp=WORLD_BOSS_MAX_HP;boss.hp=save.worldBossRemainingHp;boss.id="enemy_vorak_F1";
- lastBattleMode="boss";landscape();
- battle=new Battle(playerTeam(),[boss],{mode:"boss",code:"Raid",name:BOSS_HERO.name,damage:0});
- show("battleScreen");$("#battleStageName").textContent="RAID • VORAK";$("#battleLog").innerHTML="";
- battle.log("🐉 Vorak desperta com "+boss.hp.toLocaleString("pt-BR")+" HP restante.");renderBattle();battle.loop();
+ worldBossCutscene(beginWorldBossBattle);
 }
 function bossRewardFor(damage){
- if(damage>=50000)return{gold:3200,diamonds:160,contribution:120};
- if(damage>=25000)return{gold:2200,diamonds:110,contribution:90};
- if(damage>=12000)return{gold:1500,diamonds:75,contribution:65};
- if(damage>=5000)return{gold:950,diamonds:45,contribution:45};
- return{gold:550,diamonds:25,contribution:25};
+ if(damage>=50000)return{gold:3200,diamonds:160,contribution:120,stones:3};
+ if(damage>=25000)return{gold:2200,diamonds:110,contribution:90,stones:2};
+ if(damage>=12000)return{gold:1500,diamonds:75,contribution:65,stones:1};
+ if(damage>=5000)return{gold:950,diamonds:45,contribution:45,stones:1};
+ return{gold:550,diamonds:25,contribution:25,stones:0};
 }
 function towerScale(floor){return .65+floor*.032}
 function towerReward(floor){
@@ -580,7 +582,8 @@ function towerReward(floor){
   gold:350+floor*90,
   diamonds:15+Math.floor(floor/5)*20,
   crystals:3+Math.ceil(floor*.7)+(floor%5===0?10:0),
-  contribution:8+Math.ceil(floor/3)
+  contribution:8+Math.ceil(floor/3),
+  stones:floor%5===0?1+Math.floor(floor/20):0
  };
 }
 function towerEnemyTeam(floor){
@@ -762,61 +765,140 @@ function buyShop(id){
 class Unit{
  constructor(h,team,slot,opt={}){
   const enemy=team==="enemy",lv=opt.level||1,scale=opt.scale||1,st=enemy?{hp:Math.round(h.hp*scale),pa:Math.round(h.pa*scale),ma:Math.round(h.ma*scale),pd:Math.round(h.pd*scale),md:Math.round(h.md*scale),sp:Math.round(h.sp*(.94+scale*.06)),cr:h.cr*.65,dg:h.dg*.60}:heroStats(h);
-  Object.assign(this,{h,team,slot,level:enemy?lv:st.level,id:team+"_"+h.id+"_"+slot.id,name:h.name,emoji:h.emoji,role:h.role,style:h.style,type:h.type,maxHp:st.hp,pa:st.pa,ma:st.ma,basePd:st.pd,baseMd:st.md,baseSp:st.sp,cr:st.cr,dg:st.dg,hp:st.hp,rage:0,dead:false,shield:0,bleed:0,freeze:0,slow:0,haste:0,broken:0,queued:false});
+  Object.assign(this,{
+   h,team,slot,level:enemy?lv:st.level,id:team+"_"+h.id+"_"+slot.id,name:h.name,emoji:h.emoji,role:h.role,style:h.style,type:h.type,
+   maxHp:st.hp,pa:st.pa,ma:st.ma,basePd:st.pd,baseMd:st.md,baseSp:st.sp,cr:st.cr,dg:st.dg,hp:st.hp,rage:0,dead:false,
+   shield:0,bleed:0,freeze:0,stun:0,slow:0,haste:0,broken:0,queued:false,readyAlerted:false,
+   atkBuff:0,atkBuffRounds:0,critImmunity:0,awakening:enemy?0:(save.awakening[h.id]||0)
+  });
  }
- get line(){return this.slot.line}get sp(){return Math.max(1,Math.round(this.baseSp*(1-this.slow+this.haste)))}get pd(){return Math.max(0,Math.round(this.basePd*(this.line==="front"?1.15:1)*(1-this.broken)))}get md(){return Math.max(0,Math.round(this.baseMd*(this.line==="front"?1.10:1)))}gain(v){if(!this.dead)this.rage=clamp(this.rage+v,0,100)}
+ get line(){return this.slot.line}
+ get sp(){return Math.max(1,Math.round(this.baseSp*(1-this.slow+this.haste)))}
+ get pd(){return Math.max(0,Math.round(this.basePd*(this.line==="front"?1.15:1)*(1-this.broken)))}
+ get md(){return Math.max(0,Math.round(this.baseMd*(this.line==="front"?1.10:1)))}
+ gain(v){if(!this.dead)this.rage=clamp(this.rage+v,0,100)}
 }
 class Battle{
- constructor(p,e,context){this.p=p;this.e=e;this.context=context;this.round=0;this.q=[];this.i=0;this.current=null;this.target=null;this.speed=1;this.paused=false;this.mode="manual";this.ended=false;this.logN=0}
+ constructor(p,e,context){this.p=p;this.e=e;this.context=context;this.synergy=p.synergy||null;this.round=0;this.q=[];this.i=0;this.current=null;this.target=null;this.speed=1;this.paused=false;this.mode="manual";this.ended=false;this.logN=0;this.synergyLogged=false}
  living(a){return a.filter(x=>!x.dead)}enemies(u){return u.team==="player"?this.e:this.p}allies(u){return u.team==="player"?this.p:this.e}
  log(t,c=""){const x=document.createElement("div");x.className=c;x.textContent=String(++this.logN).padStart(2,"0")+" • "+t;$("#battleLog").appendChild(x);$("#battleLog").scrollTop=$("#battleLog").scrollHeight}
  async delay(ms=1750){let left=ms/this.speed,last=performance.now();while(left>0&&!this.ended){await new Promise(r=>setTimeout(r,50));if(this.paused){last=performance.now();continue}const n=performance.now();left-=n-last;last=n}}
- roundStart(){this.round++;[...this.p,...this.e].forEach(u=>{if(u.dead)return;if(u.bleed){u.bleed--;const d=Math.round(u.maxHp*.03);u.hp=Math.max(0,u.hp-d);this.log("🩸 "+u.name+" sofreu "+d+" de sangramento.");if(!u.hp)this.kill(u,null)}u.slow=Math.max(0,u.slow-.06);u.haste=Math.max(0,u.haste-.06);u.broken=Math.max(0,u.broken-.08);u.shield=Math.max(0,u.shield-.08)});this.q=[...this.living(this.p),...this.living(this.e)].sort((a,b)=>b.sp-a.sp||a.name.localeCompare(b.name));this.i=0;this.log("🔄 Rodada "+this.round+": iniciativa recalculada por Speed.","round");renderBattle()}
+ roundStart(){
+  this.round++;
+  [...this.p,...this.e].forEach(u=>{
+   if(u.dead)return;
+   if(u.bleed){u.bleed--;const d=Math.round(u.maxHp*.03);u.hp=Math.max(0,u.hp-d);this.log("🩸 "+u.name+" sofreu "+d+" de sangramento.");if(!u.hp)this.kill(u,null)}
+   if(u.atkBuffRounds>0){u.atkBuffRounds--;if(u.atkBuffRounds<=0)u.atkBuff=0}
+   u.slow=Math.max(0,u.slow-.06);u.haste=Math.max(0,u.haste-.06);u.broken=Math.max(0,u.broken-.08);u.shield=Math.max(0,u.shield-.08)
+  });
+  this.q=[...this.living(this.p),...this.living(this.e)].sort((a,b)=>b.sp-a.sp||a.name.localeCompare(b.name));this.i=0;
+  this.log("🔄 Rodada "+this.round+": iniciativa recalculada por Speed.","round");renderBattle();
+ }
  valid(u){const a=this.living(this.enemies(u));if(u.style==="melee"){const f=a.filter(x=>x.line==="front");if(f.length)return f}return a}
  targetFor(u){const a=this.valid(u);if(!a.length)return null;let total=a.reduce((sum,x)=>sum+(x.line==="front"?1.8:.65),0),r=Math.random()*total;for(const x of a){r-=x.line==="front"?1.8:.65;if(r<=0)return x}return a[0]}
  weak(a){return this.living(a).sort((x,y)=>x.hp/x.maxHp-y.hp/y.maxHp)[0]}
  damage(a,t,type,ratio,opt={}){
   if(!t||t.dead)return;
-  if(!opt.noDodge&&Math.random()<t.dg){this.log("💨 "+t.name+" esquivou.","dodge");float(t,"ESQUIVA!","dodge",-8);fxCard(t,"dodgeFx");haptic(8);return}
-  const atk=type==="magic"?a.ma:a.pa,def=opt.pierce?0:(type==="magic"?t.md:t.pd),mit=def/(def+600);
+  if(!opt.noDodge&&Math.random()<t.dg){this.log("💨 "+t.name+" esquivou.","dodge");renderBattle();requestAnimationFrame(()=>{float(t,"ESQUIVA!","dodge",-8);fxCard(t,"dodgeFx")});AudioEngine.fallbackTone(760,.05,.02);haptic(8);return}
+  const rawAtk=type==="magic"?a.ma:a.pa,atk=rawAtk*(1+(a.atkBuff||0)),def=opt.pierce?0:(type==="magic"?t.md:t.pd),mit=def/(def+600);
   let n=atk*ratio*(.94+Math.random()*.12)*(1-mit);if(t.shield)n*=1-t.shield;
-  const crit=Math.random()<a.cr;if(crit)n*=1.5;n=Math.max(1,Math.round(n));
-  const before=t.hp,actual=Math.min(before,n);
-  t.hp=Math.max(0,t.hp-n);a.gain(25);t.gain(15);
+  let crit=Math.random()<a.cr;
+  if(crit&&t.critImmunity>0){t.critImmunity--;crit=false;this.log("☀️ Aura protegeu "+t.name+" do primeiro crítico.","ultimate");renderBattle();requestAnimationFrame(()=>float(t,"CRÍTICO ANULADO","critText",-18))}
+  if(crit)n*=1.5;n=Math.max(1,Math.round(n));
+  const before=t.hp,actual=Math.min(before,n);t.hp=Math.max(0,t.hp-n);a.gain(25);t.gain(15);
   if(this.context.mode==="boss"&&a.team==="player"&&t.h.id==="vorak")this.context.damage=(this.context.damage||0)+actual;
   this.log((opt.ult?"💥 ULTIMATE • ":"")+(crit?"💢 CRÍTICO • ":"")+a.name+" causou "+n+" em "+t.name+".",opt.ult?"ultimate":crit?"crit":"");
   if(!t.hp)this.kill(t,a);renderBattle();
   requestAnimationFrame(()=>{float(t,"-"+n,opt.ult?"ult":"damage",10);if(crit)float(t,"CRÍTICO!","critText",-18);fxCard(t,(crit||opt.ult||n>t.maxHp*.22)?"hitHard":"hitLight")});
-  if(crit||opt.ult)haptic(crit?[18,22,30]:[12,18,12]);
+  AudioEngine.sfx("impact");if(crit||opt.ult)haptic(crit?[18,22,30]:[12,18,12]);
  }
  kill(t,k){if(t.dead)return;t.dead=true;t.hp=0;if(k)k.gain(25);this.log("☠️ "+t.name+" foi derrotado.","death")}
  heal(a,t,r){if(!t||t.dead)return;const n=Math.min(t.maxHp-t.hp,Math.round(Math.max(a.ma,a.pa*.55)*r));t.hp+=n;this.log("💚 "+a.name+" curou "+t.name+" em "+n+" HP.");renderBattle();requestAnimationFrame(()=>float(t,"+"+n,"heal"))}
  async basic(u){const t=this.targetFor(u);if(!t)return;this.target=t;this.log("⚔️ "+u.name+" ataca "+t.name+".");renderBattle();await this.delay(650);this.damage(u,t,u.type,1)}
  async ult(u){
-  if(u.rage<100||u.dead)return;u.rage=0;u.queued=false;const z=u.h.ult;
-  banner(u.emoji+" "+z.name+"!");this.log("━━━━━━━━ 💥 ULTIMATE • "+u.name+" usa "+z.name+"! ━━━━━━━━","ultimate");
-  renderBattle();requestAnimationFrame(()=>{fxCard(u,"ultimateCast");fxUltimateScreen();haptic([20,25,45])});await this.delay(900);
-  if(z.kind==="heal"){this.living(this.allies(u)).forEach(t=>this.heal(u,t,z.ratio));if(z.effect==="shield")this.living(this.allies(u)).forEach(t=>t.shield=Math.max(t.shield,.32))}
-  else if(z.kind==="single"){const t=this.weak(this.enemies(u));let r=z.ratio;if(z.effect==="execute"&&t&&t.hp/t.maxHp<.35)r*=1.35;this.damage(u,t,u.type,r,{ult:true,noDodge:true})}
-  else if(z.kind==="multi"){for(let i=0;i<(z.hits||5);i++){const t=this.weak(this.enemies(u));if(!t)break;this.damage(u,t,u.type,z.ratio,{ult:true,noDodge:true});await this.delay(220)}}
-  else{const typ=z.kind==="aoeMagic"?"magic":u.type;for(const t of [...this.living(this.enemies(u))]){this.damage(u,t,typ,z.ratio,{ult:true,noDodge:true,pierce:z.effect==="pierce"});await this.delay(220)}}
-  if(z.effect==="bleed")this.living(this.enemies(u)).forEach(t=>t.bleed=3);if(z.effect==="break")this.living(this.enemies(u)).forEach(t=>t.broken=.30);
-  if(z.effect==="slow")this.living(this.enemies(u)).forEach(t=>t.slow=.22);if(z.effect==="freeze")this.living(this.enemies(u)).slice(0,2).forEach(t=>t.freeze=1);
-  if(z.effect==="shield")this.living(this.allies(u)).forEach(t=>t.shield=Math.max(t.shield,.42));if(z.effect==="haste")this.living(this.allies(u)).forEach(t=>t.haste=.20);renderBattle();
+  if(u.rage<100||u.dead)return;
+  u.rage=0;u.readyAlerted=false;u.queued=false;
+  const z=u.h.ult,aw=u.awakening||0,ratio=z.ratio*(1+aw*.08);
+  banner(u.emoji+" "+z.name+"!");this.log("━━━━━━━━ 💥 ULTIMATE • "+u.name+" usa "+z.name+(aw?" • Despertar "+aw:"")+"! ━━━━━━━━","ultimate");
+  AudioEngine.sfx("ultimate");renderBattle();requestAnimationFrame(()=>{fxCard(u,"ultimateCast");fxUltimateScreen();haptic([20,25,45])});await this.delay(900);
+
+  if(z.kind==="heal"){
+   this.living(this.allies(u)).forEach(t=>this.heal(u,t,ratio));
+   if(z.effect==="shield")this.living(this.allies(u)).forEach(t=>t.shield=Math.max(t.shield,.32+aw*.025));
+  }else if(z.kind==="single"){
+   const t=this.weak(this.enemies(u));let r=ratio;
+   if(z.effect==="execute"&&t){const threshold=.35+(aw>=2?.10:0)+(aw>=5?.10:0);if(t.hp/t.maxHp<threshold)r*=1.35}
+   this.damage(u,t,u.type,r,{ult:true,noDodge:true});
+  }else if(z.kind==="multi"){
+   const extra=(aw>=1?1:0)+(aw>=3?1:0)+(aw>=5?1:0);
+   for(let i=0;i<(z.hits||5)+extra;i++){const t=this.weak(this.enemies(u));if(!t)break;this.damage(u,t,u.type,ratio,{ult:true,noDodge:true});await this.delay(220)}
+  }else{
+   const typ=z.kind==="aoeMagic"?"magic":u.type;
+   for(const t of [...this.living(this.enemies(u))]){this.damage(u,t,typ,ratio,{ult:true,noDodge:true,pierce:z.effect==="pierce"});await this.delay(220)}
+  }
+
+  if(z.effect==="bleed")this.living(this.enemies(u)).forEach(t=>t.bleed=Math.max(t.bleed,3+(u.h.id==="espinho"&&aw>=1?1:0)+(u.h.id==="espinho"&&aw>=5?1:0)));
+  if(z.effect==="break")this.living(this.enemies(u)).forEach(t=>t.broken=Math.max(t.broken,.30));
+  if(z.effect==="slow")this.living(this.enemies(u)).forEach(t=>t.slow=Math.max(t.slow,.22+(u.h.id==="crepusculo"&&aw>=2?.08:0)));
+  if(z.effect==="freeze"){const count=u.h.id==="valquiria"&&aw>=5?99:u.h.id==="valquiria"&&aw>=1?3:2;this.living(this.enemies(u)).slice(0,count).forEach(t=>t.freeze=1)}
+  if(z.effect==="shield")this.living(this.allies(u)).forEach(t=>t.shield=Math.max(t.shield,.42+aw*.025));
+  if(z.effect==="haste")this.living(this.allies(u)).forEach(t=>t.haste=Math.max(t.haste,.20+aw*.025));
+
+  if(aw>0&&u.h.id==="seraphina"){
+   const boost=.10+(aw>=3?.03:0)+(aw>=5?.05:0);this.living(this.allies(u)).forEach(t=>{t.atkBuff=Math.max(t.atkBuff,boost);t.atkBuffRounds=2});this.log("☀️ Despertar: equipa recebe +"+Math.round(boost*100)+"% ATQ.","ultimate");
+  }
+  if(aw>0&&u.h.id==="quebra"){
+   const targets=this.living(this.enemies(u)).slice(0,aw>=2?2:1);targets.forEach((t,i)=>t.stun=Math.max(t.stun,aw>=5&&i===0?2:1));this.log("🔨 Despertar: impacto causa Atordoamento.","ultimate");
+  }
+  if(aw>0&&u.h.id==="crepusculo"){const drain=aw>=3?20:10;this.living(this.enemies(u)).forEach(t=>t.rage=Math.max(0,t.rage-drain));this.log("🌘 Despertar: "+drain+" Rage drenada dos inimigos.","ultimate")}
+  if(aw>=3&&u.h.id==="relampago")u.gain(20);
+  if(aw>0&&u.h.id==="terra"){
+   const pct=aw>=4?.08:.05;this.living(this.allies(u)).forEach(t=>{const n=Math.round(t.maxHp*pct);t.hp=Math.min(t.maxHp,t.hp+n)});this.log("🌿 Despertar: Fortaleza restaura "+Math.round(pct*100)+"% HP.","ultimate");
+  }
+  if(aw>0&&u.h.id==="anao"){const br=aw>=5?.35:aw>=2?.25:.18;this.living(this.enemies(u)).forEach(t=>t.broken=Math.max(t.broken,br));this.log("💣 Despertar: armaduras inimigas foram quebradas.","ultimate")}
+  if(aw>0&&u.h.id==="fada"){const rg=aw>=4?25:15;this.living(this.allies(u)).forEach(t=>t.gain(rg));this.log("🧚 Despertar: aliados recebem +"+rg+" Rage.","ultimate")}
+  renderBattle();
  }
  check(){const p=this.living(this.p).length,e=this.living(this.e).length;if(p&&e)return false;if(this.ended)return true;this.ended=true;setTimeout(()=>finishBattle(!!p,this.context),250);return true}
- async loop(){this.roundStart();while(!this.ended){if(this.paused){await this.delay(100);continue}if(this.check())break;if(this.mode==="auto"){const r=this.living(this.p).find(x=>x.rage>=100);if(r){await this.ult(r);await this.delay(1750);continue}}if(this.i>=this.q.length){this.roundStart();await this.delay(1000);continue}const u=this.q[this.i++];if(u.dead)continue;this.current=u;this.target=null;$("#actionLabel").textContent="Vez de "+u.name;renderBattle();if(u.freeze){u.freeze--;this.log("❄️ "+u.name+" está congelado e perde a ação.");await this.delay(1750)}else if(u.team==="enemy"&&u.rage>=100)await this.ult(u);else if(u.team==="player"&&this.mode==="manual"&&u.queued&&u.rage>=100)await this.ult(u);else await this.basic(u);this.current=null;this.target=null;renderBattle();if(this.check())break;await this.delay(1750)}}
+ async loop(){
+  if(this.synergy?.active&&!this.synergyLogged){this.synergyLogged=true;this.log("✨ Aura "+this.synergy.name+" ativa: "+this.synergy.label+".","ultimate")}
+  this.roundStart();
+  while(!this.ended){
+   if(this.paused){await this.delay(100);continue}
+   if(this.check())break;
+   if(this.mode==="auto"){const r=this.living(this.p).find(x=>x.rage>=100);if(r){await this.ult(r);await this.delay(1750);continue}}
+   if(this.i>=this.q.length){this.roundStart();await this.delay(1000);continue}
+   const u=this.q[this.i++];if(u.dead)continue;this.current=u;this.target=null;$("#actionLabel").textContent="Vez de "+u.name;renderBattle();
+   if(u.stun){u.stun--;this.log("💫 "+u.name+" está atordoado e perde a ação.");await this.delay(1750)}
+   else if(u.freeze){u.freeze--;this.log("❄️ "+u.name+" está congelado e perde a ação.");await this.delay(1750)}
+   else if(u.team==="enemy"&&u.rage>=100)await this.ult(u);
+   else if(u.team==="player"&&this.mode==="manual"&&u.queued&&u.rage>=100)await this.ult(u);
+   else await this.basic(u);
+   this.current=null;this.target=null;renderBattle();if(this.check())break;await this.delay(1750);
+  }
+ }
 }
 
-function playerTeam(){return SLOTS.map(slot=>new Unit(hero(formation[slot.id]),"player",slot))}
+function playerTeam(){
+ const units=SLOTS.map(slot=>new Unit(hero(formation[slot.id]),"player",slot));
+ return applySynergy(units,computeSynergy(used()));
+}
 function campaignEnemyFormation(stg){const comps=[["terra","espinho","crepusculo","anao","fada"],["quebra","valquiria","umbra","crepusculo","seraphina"],["terra","relampago","espinho","anao","fada"],["quebra","valquiria","relampago","crepusculo","umbra"],["terra","quebra","valquiria","crepusculo","relampago"]];const ids=comps[stg.id-1]||comps[0];return Object.fromEntries(SLOTS.map((slot,i)=>[slot.id,ids[i]]))}
 function campaignEnemyTeam(stg){const form=campaignEnemyFormation(stg);return SLOTS.map(slot=>new Unit(hero(form[slot.id]),"enemy",slot,{level:stg.enemyLevel,scale:stg.scale}))}
 async function landscape(){try{await screen.orientation?.lock?.("landscape")}catch{}}
-function startBattle(){if(used().length!==5)return;const stg=stage();lastBattleMode="campaign";landscape();battle=new Battle(playerTeam(),campaignEnemyTeam(stg),{mode:"campaign",...stg});show("battleScreen");$("#battleStageName").textContent="FASE "+stg.code;$("#battleLog").innerHTML="";battle.log("⚔️ Fase "+stg.code+" iniciada • Inimigos Nv."+stg.enemyLevel+".");renderBattle();battle.loop()}
+function beginCampaignBattle(stg){
+ lastBattleMode="campaign";landscape();battle=new Battle(playerTeam(),campaignEnemyTeam(stg),{mode:"campaign",...stg});
+ show("battleScreen");$("#battleStageName").textContent="FASE "+stg.code;$("#battleLog").innerHTML="";
+ battle.log("⚔️ Fase "+stg.code+" iniciada • Inimigos Nv."+stg.enemyLevel+".");renderBattle();battle.loop();
+}
+function startBattle(){
+ if(used().length!==5)return;
+ const stg=stage();campaignCutscene(stg,()=>beginCampaignBattle(stg));
+}
 function quick(){if(used().length!==5){renderFormation();show("formationScreen");return}startBattle()}
 function pos(u){if(u.h.id==="vorak")return"right:18%;top:27%;";const p=POS[u.slot.id];return u.team==="player"?"left:"+p.x+"%;top:"+p.y+"%;":"right:"+p.x+"%;top:"+p.y+"%;"}
 function card(u){
- const hp=clamp(u.hp/u.maxHp*100,0,100),r=clamp(u.rage,0,100),ready=r>=100&&!u.dead,st=(u.shield?"🛡️":"")+(u.bleed?"🩸":"")+(u.freeze?"❄️":"")+(u.slow?"🐌":"")+(u.broken?"🔨":"");
+ const hp=clamp(u.hp/u.maxHp*100,0,100),r=clamp(u.rage,0,100),ready=r>=100&&!u.dead,st=(u.shield?"🛡️":"")+(u.bleed?"🩸":"")+(u.freeze?"❄️":"")+(u.stun?"💫":"")+(u.atkBuff?"⚔️":"")+(u.slow?"🐌":"")+(u.broken?"🔨":"");
  const bossCls=u.h.id==="vorak"?" worldBossCard":"";
  return `<div class="combatCard ${u.team}${bossCls}${battle.current===u?" active":""}${battle.target===u?" targeted":""}${u.dead?" dead":""}" data-card="${u.id}" style="${pos(u)}"><div class="ccTop"><span class="lineTag ${u.line}">${u.h.id==="vorak"?"WORLD BOSS":u.line==="front"?"FRONT-LINE":"BACK-LINE"}</span><span class="ccLevel">Nv.${u.level}</span><span class="statusIcons">${st}</span></div><div class="ccHero"><div class="ccAvatar">${u.emoji}</div><div class="ccIdentity"><div class="ccName">${u.name}</div><div class="ccRole">${u.role} • SPD ${u.sp}</div></div></div><div class="barMeta"><span>HP</span><b>${Math.ceil(u.hp).toLocaleString("pt-BR")}/${u.maxHp.toLocaleString("pt-BR")}</b></div><div class="bar hp"><i style="width:${hp}%"></i></div><div class="barMeta"><span>RAGE</span><b>${Math.floor(r)}/100</b></div><div class="bar rage"><i style="width:${r}%"></i></div>${u.team==="player"?`<button class="ultBtn ${ready?"ready":""}${u.queued?" queued":""}" data-uid="${u.id}" ${(!ready||battle.mode==="auto"||u.dead)?"disabled":""}>${battle.mode==="auto"?"AUTO":u.queued?"ULTIMATE ARMADA":"ULTIMATE"}</button>`:`<div class="enemyAuto">${ready?"💥 ULTIMATE PRONTA":"ULTIMATE AUTO"}</div>`}</div>`;
 }
@@ -824,11 +906,11 @@ function renderBattle(){
  if(!battle)return;
  ["playerArea","enemyArea"].forEach(id=>$("#"+id).querySelectorAll(".combatCard").forEach(x=>x.remove()));
  battle.e.forEach(u=>$("#enemyArea").insertAdjacentHTML("beforeend",card(u)));battle.p.forEach(u=>$("#playerArea").insertAdjacentHTML("beforeend",card(u)));
- $$(".ultBtn[data-uid]").forEach(b=>b.onclick=()=>{const u=battle.p.find(x=>x.id===b.dataset.uid);if(u&&u.rage>=100){u.queued=!u.queued;battle.log((u.queued?"⏳ ":"↩️ ")+u.name+(u.queued?": Ultimate armada.":": Ultimate cancelada."),"ultimate");renderBattle()}});
+ $(".ultBtn[data-uid]").forEach(b=>b.onclick=()=>{const u=battle.p.find(x=>x.id===b.dataset.uid);if(u&&u.rage>=100){u.queued=!u.queued;battle.log((u.queued?"⏳ ":"↩️ ")+u.name+(u.queued?": Ultimate armada.":": Ultimate cancelada."),"ultimate");renderBattle()}}); battle.p.forEach(u=>{if(u.rage>=100&&!u.dead&&!u.readyAlerted){u.readyAlerted=true;AudioEngine.sfx("ultimateReady");haptic(10)}if(u.rage<100)u.readyAlerted=false});
  $("#roundLabel").textContent="Rodada "+(battle.round||1);$("#modeBtn").textContent="ULT: "+battle.mode.toUpperCase();$("#modeBtn").classList.toggle("active",battle.mode==="auto");
  $("#speed1").classList.toggle("active",battle.speed===1);$("#speed2").classList.toggle("active",battle.speed===2);$("#pauseBtn").classList.toggle("active",battle.paused);
  $("#pauseBtn").textContent=battle.paused?"▶ CONTINUAR":"Ⅱ PAUSA";$("#battleState").textContent=battle.paused?"PAUSADO":battle.ended?"FINALIZADO":"EM BATALHA";
- $("#turnOrder").innerHTML=battle.q.map((u,i)=>`<span class="turnChip${i<battle.i?" done":""}${battle.current===u?" current":""}">${u.emoji} ${u.name.split(" ")[0]} <b>${u.sp}</b></span>`).join("");
+ $("#turnOrder").innerHTML=battle.q.map((u,i)=>`<span class="turnChip${i<battle.i?" done":""}${battle.current===u?" current":""}">${u.emoji} ${u.name.split(" ")[0]} <b>${u.sp}</b></span>`).join(""); const aura=$("#teamAuraLabel");if(aura)aura.textContent=battle.synergy?.active?("✨ "+battle.synergy.name+" "+battle.synergy.count+"/5"):"SEM AURA";
  const bossMode=battle.context.mode==="boss",hud=$("#bossRaidHud");hud.classList.toggle("show",bossMode);
  if(bossMode){
   const b=battle.e[0],pct=clamp(b.hp/b.maxHp*100,0,100);
