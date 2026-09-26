@@ -336,7 +336,7 @@ function backToLobby(){
  showScreen("lobby");
 }
 function renderResources(){
- $("[data-res]").forEach(e=>{const k=e.dataset.res;if(k==="accountLevel")e.textContent=accountLevel();else e.textContent=save[k]??0});
+ $$("[data-res]").forEach(e=>{const k=e.dataset.res;if(k==="accountLevel")e.textContent=accountLevel();else e.textContent=save[k]??0});
  const v=vipLevel();if($("#vipTopLevel"))$("#vipTopLevel").textContent=v;if($("#portalVipLevel"))$("#portalVipLevel").textContent=v;
 }
 
@@ -429,7 +429,7 @@ function renderBattlePass(){
    <div class="passReward ${fc?"claimed":""} ${open?"":"locked"}"><div><b>GRÁTIS • ${free.label}</b><small>Quantidade: ${free.qty}</small></div><button class="btn claimPassBtn" data-tier="${t}" data-premium="0" ${!open||fc?"disabled":""}>${fc?"✓":"Resgatar"}</button></div>
    <div class="passReward premium ${pc?"claimed":""} ${open&&save.battlePassPremium?"":"locked"}"><div><b>PREMIUM • ${prem.label}</b><small>Quantidade: ${prem.qty}</small></div><button class="btn claimPassBtn" data-tier="${t}" data-premium="1" ${!open||pc||!save.battlePassPremium?"disabled":""}>${pc?"✓":"Resgatar"}</button></div></div>`;
  }).join("");
- $(".claimPassBtn").forEach(b=>b.addEventListener("click",()=>claimPassReward(b.dataset.tier,b.dataset.premium==="1")));
+ $$(".claimPassBtn").forEach(b=>b.addEventListener("click",()=>claimPassReward(b.dataset.tier,b.dataset.premium==="1")));
 }
 function petById(id){return PETS.find(p=>p.id===id)||PETS[0]}
 function petAuraData(id=save.activePet){
@@ -464,7 +464,7 @@ function renderPets(){
  const grid=$("#petGrid"),detail=$("#petDetail");if(!grid||!detail)return;
  if(!PETS.some(p=>p.id===selectedPet))selectedPet=save.activePet||PETS[0].id;
  grid.innerHTML=PETS.map(p=>{const own=!!save.petsOwned[p.id],lv=save.petLevels[p.id]||1;return `<button class="petCard ${selectedPet===p.id?"selected":""} ${own?"":"locked"}" data-pet="${p.id}"><div class="petAvatar">${p.emoji}</div><div><b>${p.name}</b><small>${p.role} • ${own?"Nv."+lv:"Bloqueado"}</small></div>${save.activePet===p.id?'<span class="petActive">ATIVO</span>':""}</button>`}).join("");
- $(".petCard").forEach(b=>b.addEventListener("click",()=>{selectedPet=b.dataset.pet;renderPets()}));
+ $$(".petCard").forEach(b=>b.addEventListener("click",()=>{selectedPet=b.dataset.pet;renderPets()}));
  const p=petById(selectedPet),own=!!save.petsOwned[p.id],lv=save.petLevels[p.id]||1,aura=petAuraData(p.id),feed=save.petFeed[p.id]||0,need=petFeedNeed(p.id);
  const auraText=p.id==="drakko"?("+"+Math.round((aura?.def||.15)*100)+"% DEF Global"):("+"+Math.round((aura?.atk||.10)*100)+"% ATQ Global");
  detail.innerHTML=`<div class="petDetailHead"><div class="big">${p.emoji}</div><div><h2>${p.name}</h2><p>${p.role} • Nv.${lv}/10</p></div></div><p>${p.desc}</p>
@@ -755,8 +755,8 @@ function renderMissions(tab="daily"){
   const p=achievementProgress(a),done=p>=a.target,claimed=!!save.achievementClaimed[a.id],pct=Math.min(100,p/a.target*100);
   return `<div class="missionCard ${done?"complete":""} ${claimed?"claimed":""}"><div class="missionTop"><div><b>${a.icon} ${a.title}</b><span>${a.desc}</span></div><div class="missionReward">${rewardText(a.reward)}</div></div><div class="missionBar"><i style="width:${pct}%"></i></div><div class="missionBottom"><span>${Math.min(p,a.target)}/${a.target}</span><button class="btn claimAchievementBtn" data-id="${a.id}" ${!done||claimed?"disabled":""}>${claimed?"Obtida":"Resgatar"}</button></div></div>`;
  }).join("");
- $(".claimMissionBtn").forEach(b=>b.onclick=()=>claimDaily(b.dataset.id));
- $(".claimAchievementBtn").forEach(b=>b.onclick=()=>claimAchievement(b.dataset.id));
+ $$(".claimMissionBtn").forEach(b=>b.onclick=()=>claimDaily(b.dataset.id));
+ $$(".claimAchievementBtn").forEach(b=>b.onclick=()=>claimAchievement(b.dataset.id));
  updateMissionIndicators();renderResources();
 }
 function claimDaily(id){
@@ -1227,7 +1227,7 @@ function renderBattle(){
  if(!battle)return;
  ["playerArea","enemyArea"].forEach(id=>$("#"+id).querySelectorAll(".combatCard").forEach(x=>x.remove()));
  battle.e.forEach(u=>$("#enemyArea").insertAdjacentHTML("beforeend",card(u)));battle.p.forEach(u=>$("#playerArea").insertAdjacentHTML("beforeend",card(u)));
- $(".ultBtn[data-uid]").forEach(b=>b.onclick=()=>{const u=battle.p.find(x=>x.id===b.dataset.uid);if(u&&u.rage>=100){u.queued=!u.queued;battle.log((u.queued?"⏳ ":"↩️ ")+u.name+(u.queued?": Ultimate armada.":": Ultimate cancelada."),"ultimate");renderBattle()}}); battle.p.forEach(u=>{if(u.rage>=100&&!u.dead&&!u.readyAlerted){u.readyAlerted=true;AudioEngine.sfx("ultimateReady");haptic(10)}if(u.rage<100)u.readyAlerted=false});
+ $$(".ultBtn[data-uid]").forEach(b=>b.onclick=()=>{const u=battle.p.find(x=>x.id===b.dataset.uid);if(u&&u.rage>=100){u.queued=!u.queued;battle.log((u.queued?"⏳ ":"↩️ ")+u.name+(u.queued?": Ultimate armada.":": Ultimate cancelada."),"ultimate");renderBattle()}}); battle.p.forEach(u=>{if(u.rage>=100&&!u.dead&&!u.readyAlerted){u.readyAlerted=true;AudioEngine.sfx("ultimateReady");haptic(10)}if(u.rage<100)u.readyAlerted=false});
  $("#roundLabel").textContent="Rodada "+(battle.round||1);$("#modeBtn").textContent="ULT: "+battle.mode.toUpperCase();$("#modeBtn").classList.toggle("active",battle.mode==="auto");
  $("#speed1").classList.toggle("active",battle.speed===1);$("#speed2").classList.toggle("active",battle.speed===2);$("#pauseBtn").classList.toggle("active",battle.paused);
  $("#pauseBtn").textContent=battle.paused?"▶ CONTINUAR":"Ⅱ PAUSA";$("#battleState").textContent=battle.paused?"PAUSADO":battle.ended?"FINALIZADO":"EM BATALHA";
