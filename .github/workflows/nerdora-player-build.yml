@@ -1431,6 +1431,8 @@ jobs:
           echo "=== SAMPLE_MEDIA_BEGIN ==="
           cat extracted_project/app/src/main/java/com/nerdora/player/data/SampleMedia.kt
           echo "=== SAMPLE_MEDIA_END ==="
+          echo "Encerrando captura de diagnóstico."
+          exit 1
 
       - name: Encontrar projeto Android
         id: android
