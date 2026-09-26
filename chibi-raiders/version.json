@@ -1,5 +1,5 @@
 {
-  "version": "0.8.0",
-  "build": "2026-09-25-v0.8-horizontal",
-  "notes": "Batalha lateral horizontal, pacing lento, estágio 1 acessível e PWA instalável."
+  "version": "0.9.0",
+  "build": "2026-09-25-v0.9-progression",
+  "notes": "Campanha 1-1 a 1-5, recompensas, evolução dos 10 heróis, Ouro/EXP/Essência, fases desbloqueáveis e persistência local."
 }
