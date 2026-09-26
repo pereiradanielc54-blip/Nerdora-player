@@ -1,7 +1,7 @@
 {
-  "version": "1.2.0",
-  "entry": "./index-1.2.0.html",
-  "serviceWorker": "./sw-1.2.0.js",
-  "build": "2026-09-26-v1.2.0-endgame",
-  "notes": "World Boss diário com ranking de dano, Star-Up de 1 a 5 estrelas, Torre do Abismo com 50 andares, Cristais Abissais, transições de tela e recompensas flutuantes."
+  "version": "2.0.0",
+  "entry": "./index-2.0.0.html",
+  "serviceWorker": "./sw-2.0.0.js",
+  "build": "2026-09-26-v2.0.0-massive-update",
+  "notes": "Atualização Massiva: Auras de Fação, progressão AFK, Despertar e talentos de Ultimate, motor de áudio com BGM/SFX, cutscenes Visual Novel e integração completa com o endgame existente."
 }
