@@ -1393,8 +1393,17 @@ function renderBattle(){
  }
 }
 function float(u,t,c,offset=0){const e=document.querySelector('[data-card="'+u.id+'"]');if(!e)return;const a=$("#arena").getBoundingClientRect(),r=e.getBoundingClientRect(),d=document.createElement("div");d.className="floatText "+c;d.textContent=t;d.style.left=(r.left-a.left+r.width/2)+"px";d.style.top=(r.top-a.top+20+offset)+"px";$("#arena").appendChild(d);setTimeout(()=>d.remove(),1000)}
-function fxCard(u,cls){const e=document.querySelector('[data-card="'+u.id+'"]');if(!e)return;e.classList.remove(cls);void e.offsetWidth;e.classList.add(cls);setTimeout(()=>e.classList.remove(cls),720)}
-function fxUltimateScreen(){const a=$("#arena");if(!a)return;a.classList.remove("ultScreenFlash");void a.offsetWidth;a.classList.add("ultScreenFlash");setTimeout(()=>a.classList.remove("ultScreenFlash"),700)}
+function fxCard(u,cls){
+ const e=document.querySelector('[data-card="'+u.id+'"]');if(!e)return;
+ e.classList.remove(cls);void e.offsetWidth;e.classList.add(cls);
+ if(cls==="hitHard"){const a=$("#arena");if(a){a.classList.remove("impactPulse");void a.offsetWidth;a.classList.add("impactPulse");setTimeout(()=>a.classList.remove("impactPulse"),460)}}
+ setTimeout(()=>e.classList.remove(cls),720);
+}
+function fxUltimateScreen(){
+ const a=$("#arena");if(!a)return;
+ a.classList.remove("ultScreenFlash","impactPulse");void a.offsetWidth;a.classList.add("ultScreenFlash","impactPulse");
+ setTimeout(()=>a.classList.remove("ultScreenFlash","impactPulse"),720);
+}
 function petSkillFx(){const e=$("#battlePet");if(!e)return;e.classList.remove("skill");void e.offsetWidth;e.classList.add("skill");setTimeout(()=>e.classList.remove("skill"),760)}
 function banner(t){const b=$("#ultBanner");b.textContent=t;b.classList.remove("show");void b.offsetWidth;b.classList.add("show")}
 
