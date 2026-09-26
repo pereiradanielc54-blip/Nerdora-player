@@ -668,7 +668,7 @@ body{display:flex;justify-content:center;padding:10px}
 
 /* Barra inferior fixa estilo mobile */
 .bottomNav{
- position:absolute;left:8px;right:8px;bottom:8px;height:62px;z-index:120;
+ position:fixed;left:50%;right:auto;bottom:8px;height:62px;z-index:120;width:min(448px,calc(100% - 12px));transform:translateX(-50%);
  display:grid;grid-template-columns:repeat(6,1fr);gap:4px;
  padding:5px;border-radius:18px;background:rgba(9,13,22,.96);
  border:1px solid #34415f;box-shadow:0 10px 30px rgba(0,0,0,.36);
@@ -788,6 +788,6 @@ button.tapFx{animation:tapPulse .20s ease}
 @media(max-width:720px){
  body{padding:0}
  #game{border-radius:0;min-height:100vh}
- .bottomNav{left:5px;right:5px;bottom:max(5px,env(safe-area-inset-bottom))}
+ .bottomNav{left:50%;right:auto;width:calc(100% - 10px);bottom:max(5px,env(safe-area-inset-bottom));transform:translateX(-50%)}
  .screen{padding-bottom:82px}
 }
