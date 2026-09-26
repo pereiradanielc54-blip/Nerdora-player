@@ -1,4 +1,4 @@
-const CACHE_NAME="nerdora-chibi-raiders-v4.0.0";
+const CACHE_NAME="nerdora-chibi-raiders-v4.0.0-official-roster-r2";
 const FALLBACK="./index-4.0.0.html";
 const CORE=[
  "./index-4.0.0.html","./styles-4.0.0.css","./app-4.0.0.js",
