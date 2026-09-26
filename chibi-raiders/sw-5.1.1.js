@@ -1,4 +1,4 @@
-const CACHE_NAME="nerdora-chibi-raiders-v5.1.1-navigation-recovery";
+const CACHE_NAME="nerdora-chibi-raiders-v5.1.1-nav-boss-hotfix";
 const FALLBACK="./index-5.1.1.html";
 const CORE=[
  "./index-5.1.1.html",
@@ -44,21 +44,14 @@ self.addEventListener("message",e=>{if(e.data&&e.data.type==="SKIP_WAITING")self
 self.addEventListener("fetch",e=>{
  if(e.request.method!=="GET")return;
  const u=new URL(e.request.url);
- if(u.pathname.endsWith("/version.json")){
-  e.respondWith(fetch(e.request,{cache:"no-store"}).catch(()=>caches.match("./version.json")));return;
- }
+ if(u.pathname.endsWith("/version.json")){e.respondWith(fetch(e.request,{cache:"no-store"}).catch(()=>caches.match("./version.json")));return}
  if(e.request.mode==="navigate"){
   const stable=u.pathname.endsWith("/index.html")||u.pathname.endsWith("/chibi-raiders/");
   if(stable){e.respondWith(caches.match(FALLBACK).then(c=>c||fetch(FALLBACK,{cache:"no-store"})));return}
-  e.respondWith(fetch(e.request,{cache:"no-store"}).then(r=>{
-   const x=r.clone();caches.open(CACHE_NAME).then(c=>c.put(e.request,x));return r
-  }).catch(()=>caches.match(e.request).then(x=>x||caches.match(FALLBACK))));return;
+  e.respondWith(fetch(e.request,{cache:"no-store"}).then(r=>{const x=r.clone();caches.open(CACHE_NAME).then(c=>c.put(e.request,x));return r}).catch(()=>caches.match(e.request).then(x=>x||caches.match(FALLBACK))));return;
  }
  e.respondWith(caches.match(e.request).then(cached=>{
-  const net=fetch(e.request,{cache:"no-store"}).then(r=>{
-   if(r&&r.ok){const x=r.clone();caches.open(CACHE_NAME).then(c=>c.put(e.request,x))}
-   return r;
-  }).catch(()=>cached);
+  const net=fetch(e.request,{cache:"no-store"}).then(r=>{if(r&&r.ok){const x=r.clone();caches.open(CACHE_NAME).then(c=>c.put(e.request,x))}return r}).catch(()=>cached);
   return cached||net;
  }));
 });
