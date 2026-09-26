@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.19 Reorganização Funcional
+name: Nerdora Player - Build v0.9.20 Operações Reais de Arquivos
 
 on:
   workflow_dispatch:
@@ -1730,6 +1730,31 @@ jobs:
           grep -q 'root.put("files"' extracted_project/app/src/main/java/com/nerdora/player/NerdoraBackup.kt
           echo "v0.9.19: reorganização funcional aplicada."
 
+      - name: Aplicar Operações Reais de Arquivos v0.9.20
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp .github/overlays/v0.9.20/HomeScreen.kt extracted_project/app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
+          cp .github/overlays/v0.9.20/NerdoraPlayerApp.kt extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          cp .github/overlays/v0.9.20/LibraryStore.kt extracted_project/app/src/main/java/com/nerdora/player/LibraryStore.kt
+          cp .github/overlays/v0.9.20/RealFileOperations.kt extracted_project/app/src/main/java/com/nerdora/player/RealFileOperations.kt
+          cp .github/overlays/v0.9.20/PrivateVaultStore.kt extracted_project/app/src/main/java/com/nerdora/player/PrivateVaultStore.kt
+          cp .github/overlays/v0.9.20/PrivateVaultScreen.kt extracted_project/app/src/main/java/com/nerdora/player/ui/PrivateVaultScreen.kt
+          cp .github/overlays/v0.9.20/file_paths.xml extracted_project/app/src/main/res/xml/file_paths.xml
+          python3 .github/overlays/v0.9.20/apply.py
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 80/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.20"/' extracted_project/app/build.gradle.kts
+
+          grep -q 'versionName = "0.9.20"' extracted_project/app/build.gradle.kts
+          grep -q 'PrivateVaultStore.hideFile' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'RealFileOperations.renameReal' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'RealFileOperations.deletePermanently' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'PrivateVaultStore.hideMedia' extracted_project/app/src/main/java/com/nerdora/player/ui/MediaViewerScreen.kt
+          ! grep -q 'LibraryStore.setHidden(context, current.id, true)' extracted_project/app/src/main/java/com/nerdora/player/ui/MediaViewerScreen.kt
+          grep -q '<files-path name="private_files"' extracted_project/app/src/main/res/xml/file_paths.xml
+          echo "v0.9.20: operações reais de arquivos aplicadas."
       - name: Encontrar projeto Android
         id: android
         shell: bash
@@ -1803,7 +1828,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.19"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.20"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -1845,7 +1870,16 @@ jobs:
           grep -q 'AppScreen.CENTRAL' app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
           grep -q 'GlobalSearchScreen' app/src/main/java/com/nerdora/player/ui/GlobalSearchScreen.kt
           grep -q 'Lixeira de arquivos' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
-          echo "Nerdora Player v0.9.19 validado."
+          test -f app/src/main/java/com/nerdora/player/RealFileOperations.kt
+          test -f app/src/main/java/com/nerdora/player/PrivateVaultStore.kt
+          test -f app/src/main/java/com/nerdora/player/ui/PrivateVaultScreen.kt
+          grep -q 'RealFileOperations.renameReal' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'RealFileOperations.deletePermanently' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'PrivateVaultStore.hideFile' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'PrivateVaultStore.hideMedia' app/src/main/java/com/nerdora/player/ui/MediaViewerScreen.kt
+          grep -q 'Cofre privado' app/src/main/java/com/nerdora/player/ui/PrivateVaultScreen.kt
+          grep -q '<files-path name="private_files"' app/src/main/res/xml/file_paths.xml
+          echo "Nerdora Player v0.9.20 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -1894,7 +1928,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.19 assinada
+      - name: Publicar Release pública v0.9.20 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -1903,8 +1937,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Reorganização Funcional"
-          NOTES="Nerdora Player v0.9.19: reorganiza as funções repetidas detectadas na auditoria. O N central agora abre a Central Nerdora; a barra inferior passa a ter cinco destinos únicos; Downloads abre a pasta real; Home abre filtros e pastas específicos; Pastas foi incorporado à Biblioteca; a busca do topo passa a ser global; favoritos e recentes de mídia/arquivos usam uma fonte única com migração automática; o backup inclui metadados da lixeira física; e a antiga lixeira lógica passa a se chamar Itens removidos da Biblioteca, separada da Lixeira de arquivos. Mantém players e leitores DOCX/XLSX."
+          TITLE="Nerdora Player v${VERSION} — Operações Reais de Arquivos"
+          NOTES="Nerdora Player v0.9.20: ativa operações reais no armazenamento. Renomear altera o nome físico do arquivo e atualiza o índice de mídia; Excluir definitivamente remove o arquivo do celular; Ocultar move arquivos e pastas para o Cofre privado interno do Nerdora, fora do armazenamento compartilhado e invisível aos gerenciadores comuns sem root. O Cofre é protegido pela autenticação já usada no app, permite abrir, restaurar e excluir definitivamente e oferece migração dos ocultos antigos. Mantém a Lixeira de arquivos como opção recuperável separada."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
