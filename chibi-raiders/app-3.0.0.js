@@ -895,7 +895,13 @@ function startTowerBattle(){
 }
 
 function dailyArenaReset(){
- if(save.arenaDate!==todayKey()){save.arenaDate=todayKey();save.arenaAttempts=5;save.arenaDailyPoints=0;persist()}
+ const max=arenaMaxAttempts();
+ if(save.arenaDate!==todayKey()){
+  save.arenaDate=todayKey();save.arenaAttempts=max;save.arenaDailyPoints=0;save.arenaDailyMax=max;persist();return;
+ }
+ const oldMax=Number(save.arenaDailyMax)||5;
+ if(max>oldMax){save.arenaAttempts+=max-oldMax;save.arenaDailyMax=max;persist()}
+ else if(!save.arenaDailyMax)save.arenaDailyMax=max;
 }
 function arenaTier(){
  const r=save.arenaRating;
@@ -1014,7 +1020,7 @@ function generateArenaOpponents(){
 }
 function renderArena(){
  dailyArenaReset();if(!arenaOpponents.length)generateArenaOpponents();
- const [tier,cls]=arenaTier();$("#arenaTierBadge").textContent=tier;$("#arenaTierBadge").className="badge "+cls;$("#arenaRankTitle").textContent=tier+" • Hoje +"+save.arenaDailyPoints;$("#arenaAttempts").textContent=save.arenaAttempts;
+ const [tier,cls]=arenaTier();$("#arenaTierBadge").textContent=tier;$("#arenaTierBadge").className="badge "+cls;$("#arenaRankTitle").textContent=tier+" • Hoje +"+save.arenaDailyPoints;$("#arenaAttempts").textContent=save.arenaAttempts;if($("#arenaMaxAttempts"))$("#arenaMaxAttempts").textContent=arenaMaxAttempts();
  $("#arenaOpponents").innerHTML=arenaOpponents.map(o=>`<div class="opponentCard"><div class="opponentTop"><div class="opponentName"><b>${o.name}</b><span>Formação IA • Nv. médio ${o.level}</span></div><div class="opponentRating"><b>🏆 ${o.rating}</b><span>Rating</span></div></div><div class="opponentTeam">${o.heroes.map(id=>`<span class="opponentUnit">${hero(id).emoji}</span>`).join("")}</div><button class="btn arenaBtn duelBtn" data-id="${o.id}" ${save.arenaAttempts<1?"disabled":""}>⚔️ Desafiar</button></div>`).join("");
  $$(".duelBtn").forEach(b=>b.onclick=()=>startArenaBattle(arenaOpponents.find(o=>o.id===b.dataset.id)));
  renderResources();
