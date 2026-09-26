@@ -1109,10 +1109,10 @@ button.tapFx{animation:tapPulse .20s ease}
   </div>
   <div class="section">
    <div class="heroTitle card">
-    <div class="small">NERDORA CHIBI RAIDERS • PRIMEIRA GRANDE VERSÃO</div>
-    <h1>Heróis. Equipamentos.<br>Portal. Arena.</h1>
-    <p>Avance na campanha, invoque heróis, equipe-os, desenvolva a equipa e desafie formações da Arena.</p>
-    <div class="pills"><span class="pill">Gacha</span><span class="pill">Equipamentos</span><span class="pill">Arena</span><span class="pill">Loja</span><span class="pill">Save local</span></div>
+    <div class="small">NERDORA CHIBI RAIDERS • v2.0.0 MASSIVE UPDATE</div>
+    <h1>Sinergia. Despertar.<br>Um mundo que evolui.</h1>
+    <p>Monte auras de fação, recolha espólios AFK, desperte Ultimates, enfrente o endgame e acompanhe a história de Nerdora.</p>
+    <div class="pills"><span class="pill">Sinergias</span><span class="pill">AFK</span><span class="pill">Despertar</span><span class="pill">World Boss</span><span class="pill">Torre</span><span class="pill">História</span></div>
    </div>
    <div class="homeActions card" style="margin-top:10px">
     <button id="goCampaign" class="btn primary">🗺️ Campanha</button>
@@ -1714,7 +1714,7 @@ const AudioEngine={
  muted:!!save.audioMuted,unlocked:false,bgm:null,bgmKey:null,cache:{},
  get(key,loop=false){
   if(!AUDIO_ASSETS[key])return null;
-  if(!this.cache[key]){const a=new Audio(AUDIO_ASSETS[key]);a.preload="none";a.loop=loop;a.volume=loop?.28:.45;this.cache[key]=a}
+  if(!this.cache[key]){const a=new Audio(AUDIO_ASSETS[key]);a.preload="none";a.loop=loop;a.volume=loop ? .28 : .45;this.cache[key]=a}
   return this.cache[key];
  },
  unlock(){this.unlocked=true;this.updateButton()},
