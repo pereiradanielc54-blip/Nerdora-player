@@ -1,0 +1,3 @@
+/* Nerdora Chibi Raiders — Herói #25: Gladiador das Areias */
+window.NERDORA_HERO_SOURCE=window.NERDORA_HERO_SOURCE||{};
+window.NERDORA_HERO_SOURCE["gladiador_areias"]={"number":25,"id":"gladiador_areias","name":"Gladiador das Areias","rarity":"R","color":"#007BFF","colorName":"Azul","img":"","atlasPage":2,"atlasCol":4,"atlasRow":0,"emoji":"⚔️","class":"Guerreiro","position":"front","style":"melee","type":"physical","finalBase":true,"ultimateFinal":true,"hp":1500,"pa":220,"ma":60,"pd":138,"md":125,"speed":95,"cr":0.14,"dg":0.06,"ult":{"name":"Lâmina do Coliseu","kind":"aoe","ratio":0.72,"effect":"break"}};
