@@ -759,7 +759,9 @@ function renderMissions(tab="daily"){
 function claimDaily(id){
  const m=DAILY_MISSIONS.find(x=>x.id===id);if(!m||save.dailyClaimed[id]||(save.dailyCounters[m.key]||0)<m.target)return;
  save.dailyClaimed[id]=true;save.gold+=m.reward.gold||0;save.diamonds+=m.reward.diamonds||0;save.guildContribution+=m.reward.contribution||0;
- persist();rewardBurst([{text:"🪙 +"+(m.reward.gold||0),kind:"gold"},{text:"💎 +"+(m.reward.diamonds||0),kind:"diamond"}]);renderMissions("daily");toast("🎯 Missão resgatada!");
+ addVipPoints(120,"Missão diária");const bp=addBattlePassXp(60,"Missão diária");
+ persist();rewardBurst([{text:"🪙 +"+(m.reward.gold||0),kind:"gold"},{text:"💎 +"+(m.reward.diamonds||0),kind:"diamond"},{text:"👑 +120 VIP",kind:"gold"},{text:"🎫 +"+bp+" XP",kind:"exp"}]);
+ renderMissions("daily");renderVip();renderBattlePass();dailyArenaReset();toast("🎯 Missão resgatada!");
 }
 function claimAchievement(id){
  const a=ACHIEVEMENTS.find(x=>x.id===id);if(!a||save.achievementClaimed[id]||achievementProgress(a)<a.target)return;
