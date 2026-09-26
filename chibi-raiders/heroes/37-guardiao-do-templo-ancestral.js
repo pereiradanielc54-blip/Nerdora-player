@@ -1,0 +1,3 @@
+/* Nerdora Chibi Raiders — Herói #37: Guardião do Templo Ancestral */
+window.NERDORA_HERO_SOURCE=window.NERDORA_HERO_SOURCE||{};
+window.NERDORA_HERO_SOURCE["guardiao_templo_ancestral"]={"number":37,"id":"guardiao_templo_ancestral","name":"Guardião do Templo Ancestral","rarity":"SR","color":"#FFA500","colorName":"Laranja","img":"","atlasPage":2,"atlasCol":1,"atlasRow":3,"emoji":"🗿","class":"Tanque","position":"front","style":"melee","type":"physical","finalBase":true,"ultimateFinal":true,"hp":3300,"pa":340,"ma":92,"pd":380,"md":360,"speed":85,"cr":0.07,"dg":0.04,"ult":{"name":"Muralha Ancestral","kind":"aoe","ratio":0.95,"effect":"shield"}};
