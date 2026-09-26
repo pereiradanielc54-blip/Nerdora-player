@@ -1,7 +1,7 @@
 {
-  "version": "3.0.0",
-  "entry": "./index-3.0.0.html",
-  "serviceWorker": "./sw-3.0.0.js",
-  "build": "2026-09-26-v3.0.0-live-ops",
-  "notes": "Live Ops: VIP 1-10 com bônus reais, Passe de Batalha grátis/premium, banner limitado da Seraphina com taxa dobrada, Mascotes com aura e habilidade automática, Guerra de Guildas simulada e Chat Global simulado."
+  "version": "4.0.0",
+  "entry": "./index-4.0.0.html",
+  "serviceWorker": "./sw-4.0.0.js",
+  "build": "2026-09-26-v4.0.0-rarity-expansion",
+  "notes": "20 heróis com raridades C/R/EP/SR/SSR, atributos e Ultimates escalados por raridade, gacha ponderado 50/30/14/5/1, visual de raridade e flash especial SR/SSR."
 }
