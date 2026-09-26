@@ -202,7 +202,7 @@ function defaultSave(){
   vipPoints:0,diamondsSpent:0,
   battlePassXp:0,battlePassPremium:false,battlePassFreeClaimed:{},battlePassPremiumClaimed:{},
   petsOwned:{drakko:true,fenix:false},petLevels:{drakko:1,fenix:1},petFeed:{drakko:0,fenix:0},activePet:"drakko",
-  lastAfkClaim:Date.now(),audioMuted:false,storySeen:{},chatCollapsed:false,
+  limitedEventEnd:Date.now()+7*24*60*60*1000,lastAfkClaim:Date.now(),audioMuted:false,storySeen:{},chatCollapsed:false,
   unlockedStage:1,selectedStage:1,heroLevels,shards,owned,equipment,stars,awakening,gearInventory:{},potions:0,
   formation:{F1:"quebra",F2:"valquiria",B1:"seraphina",B2:"umbra",B3:"crepusculo"}
  };
@@ -234,7 +234,7 @@ function normalizeSave(s){
  out.lastAfkClaim=Number(out.lastAfkClaim)||Date.now();
  out.awakeningStones=Number(out.awakeningStones)||0;
  out.vipPoints=Math.max(0,Number(out.vipPoints)||0);
- out.diamondsSpent=Math.max(0,Number(out.diamondsSpent)||0);
+ out.diamondsSpent=Math.max(0,Number(out.diamondsSpent)||0);out.limitedEventEnd=Number(out.limitedEventEnd)||Date.now()+7*24*60*60*1000;
  out.battlePassXp=Math.max(0,Number(out.battlePassXp)||0);
  out.guildWarAttempts=clamp(Number(out.guildWarAttempts)||0,0,3);
  out.guildWarPoints=Math.max(0,Number(out.guildWarPoints)||0);
@@ -1055,12 +1055,12 @@ function renderShop(){
 }
 function buyShop(id){
  const x=SHOP.find(a=>a.id===id);if(!x||save[x.currency]<x.price)return toast("Saldo insuficiente");
- save[x.currency]-=x.price;
+ if(x.currency==="diamonds"){if(!spendDiamonds(x.price,"Loja"))return toast("Saldo insuficiente")}else save[x.currency]-=x.price;
  if(x.type==="potion")save.potions+=(x.qty||1);
  if(x.type==="gear")addGear(x.gear,1);
  if(x.type==="shard")save.shards[x.hero]=(save.shards[x.hero]||0)+(x.qty||1);
  if(x.type==="scroll")save.scrolls+=(x.qty||1);
- persist();renderShop();renderHeroes();toast("🛒 Compra realizada: "+x.name);
+ persist();renderShop();renderHeroes();renderVip();toast("🛒 Compra realizada: "+x.name);
 }
 
 /* COMBATE */
