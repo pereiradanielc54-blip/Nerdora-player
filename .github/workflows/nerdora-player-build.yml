@@ -1839,7 +1839,7 @@ jobs:
           test ! -e app/src/main/assets/xlsx_renderer/luckysheet
           test -s app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
           grep -q 'Sua central de mídia e arquivos' app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
-          grep -q 'AppScreen.DOWNLOADS' app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          ! grep -q 'AppScreen.DOWNLOADS' app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
           grep -q 'nerdoraPress' app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
           grep -q 'nerdoraNavPress' app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
           grep -q 'AppScreen.CENTRAL' app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
