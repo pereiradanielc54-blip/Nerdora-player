@@ -1463,15 +1463,14 @@ jobs:
                     )'''
               app = app[:start] + replacement + app[end:]
 
-          callback_marker = '''                    onOpenPrivate = ::openPrivate,
-                    onOpenLink = { showOpenUrl = true }'''
-          callback_replacement = '''                    onOpenPrivate = ::openPrivate,
-                    onOpenFiles = { navigateTo(AppScreen.FILES) },
+          if "onOpenDownloads = { navigateTo(AppScreen.DOWNLOADS) }" not in app:
+              link_marker = '                    onOpenLink = { showOpenUrl = true }'
+              assert link_marker in app, "Callback onOpenLink da Home não encontrado"
+              extra_callbacks = '''                    onOpenFiles = { navigateTo(AppScreen.FILES) },
                     onOpenDownloads = { navigateTo(AppScreen.DOWNLOADS) },
                     onOpenSettings = { navigateTo(AppScreen.SETTINGS) },
-                    onOpenLink = { showOpenUrl = true }'''
-          assert callback_marker in app or "onOpenDownloads = { navigateTo(AppScreen.DOWNLOADS) }" in app, "Callbacks da Home não encontrados"
-          app = app.replace(callback_marker, callback_replacement, 1)
+'''
+              app = app.replace(link_marker, extra_callbacks + link_marker, 1)
 
           files_marker = "                AppScreen.FILES -> FilesScreen("
           files_replacement = "                AppScreen.FILES, AppScreen.DOWNLOADS -> FilesScreen("
