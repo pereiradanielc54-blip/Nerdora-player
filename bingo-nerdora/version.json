@@ -1,5 +1,5 @@
 {
-  "version": "39",
+  "version": "40",
   "updated": "2026-09-25",
-  "notes": "Adds 1, 3 and 5-card rooms with circular swipe carousel, independent marks and any-card Bingo validation. Backup preserved at bingo-nerdora-v38-backup."
+  "notes": "Host is shown only as Anfitrião. Graceful and fallback host handoff keep rooms and active rounds alive when the current Anfitrião leaves. v39 backup preserved."
 }
