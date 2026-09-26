@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.14 ExcelJS Viewer
+name: Nerdora Player - Build v0.9.17 Home Oficial
 
 on:
   workflow_dispatch:
@@ -1416,23 +1416,83 @@ jobs:
           grep -q 'DocumentKind.DOCX -> HighFidelityDocxViewer' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           echo "v0.9.16: Excel Viewer migrado para FortuneSheet 1.0.4 + FortuneExcel 2.3.3; Word preservado."
 
-      - name: Diagnóstico temporário da Home
+      - name: Aplicar Home Oficial v0.9.17
         shell: bash
         run: |
-          echo "=== HOME_SCREEN_BEGIN ==="
-          cat extracted_project/app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
-          echo "=== HOME_SCREEN_END ==="
-          echo "=== THEME_BEGIN ==="
-          cat extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraTheme.kt
-          echo "=== THEME_END ==="
-          echo "=== MEDIA_COMPONENTS_BEGIN ==="
-          cat extracted_project/app/src/main/java/com/nerdora/player/ui/MediaComponents.kt
-          echo "=== MEDIA_COMPONENTS_END ==="
-          echo "=== SAMPLE_MEDIA_BEGIN ==="
-          cat extracted_project/app/src/main/java/com/nerdora/player/data/SampleMedia.kt
-          echo "=== SAMPLE_MEDIA_END ==="
-          echo "Encerrando captura de diagnóstico."
-          exit 1
+          set -euo pipefail
+
+          cp .github/overlays/v0.9.17/HomeScreen.kt             extracted_project/app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
+          cp .github/overlays/v0.9.17/NerdoraOfficialBottomBar.kt             extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          app_path = Path("extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt")
+          app = app_path.read_text(encoding="utf-8")
+
+          old_enum = "private enum class AppScreen { HOME, LIBRARY, FILES, FOLDERS, PLAYLISTS, SETTINGS, ACCOUNT, HIDDEN, TRASH, DIAGNOSTICS }"
+          new_enum = "private enum class AppScreen { HOME, LIBRARY, DOWNLOADS, FILES, FOLDERS, PLAYLISTS, SETTINGS, ACCOUNT, HIDDEN, TRASH, DIAGNOSTICS }"
+          assert old_enum in app or new_enum in app, "Enum AppScreen não encontrado"
+          app = app.replace(old_enum, new_enum, 1)
+
+          nav_marker = "                    NavigationBar {"
+          if nav_marker in app:
+              start = app.index(nav_marker)
+              brace_start = app.index("{", start)
+              depth = 0
+              end = None
+              for i in range(brace_start, len(app)):
+                  if app[i] == "{":
+                      depth += 1
+                  elif app[i] == "}":
+                      depth -= 1
+                      if depth == 0:
+                          end = i + 1
+                          break
+              assert end is not None, "Fim do NavigationBar não encontrado"
+              replacement = '''                    NerdoraOfficialBottomBar(
+                        selectedRoute = screen.name,
+                        onRoute = { route ->
+                            val target = runCatching { AppScreen.valueOf(route) }.getOrDefault(AppScreen.HOME)
+                            navigateTo(target)
+                            if (target == AppScreen.LIBRARY) {
+                                libraryOverride = null
+                                libraryFavoritesOnly = false
+                            }
+                        }
+                    )'''
+              app = app[:start] + replacement + app[end:]
+
+          callback_marker = '''                    onOpenPrivate = ::openPrivate,
+                    onOpenLink = { showOpenUrl = true }'''
+          callback_replacement = '''                    onOpenPrivate = ::openPrivate,
+                    onOpenFiles = { navigateTo(AppScreen.FILES) },
+                    onOpenDownloads = { navigateTo(AppScreen.DOWNLOADS) },
+                    onOpenSettings = { navigateTo(AppScreen.SETTINGS) },
+                    onOpenLink = { showOpenUrl = true }'''
+          assert callback_marker in app or "onOpenDownloads = { navigateTo(AppScreen.DOWNLOADS) }" in app, "Callbacks da Home não encontrados"
+          app = app.replace(callback_marker, callback_replacement, 1)
+
+          files_marker = "                AppScreen.FILES -> FilesScreen("
+          files_replacement = "                AppScreen.FILES, AppScreen.DOWNLOADS -> FilesScreen("
+          assert files_marker in app or files_replacement in app, "Rota FilesScreen não encontrada"
+          app = app.replace(files_marker, files_replacement, 1)
+
+          app_path.write_text(app, encoding="utf-8")
+          PY
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 77/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.17"/' extracted_project/app/build.gradle.kts
+
+          grep -q 'versionName = "0.9.17"' extracted_project/app/build.gradle.kts
+          grep -q 'Sua central de mídia e arquivos' extracted_project/app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
+          grep -q 'Categorias de arquivos' extracted_project/app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
+          grep -q 'Acesso rápido' extracted_project/app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
+          grep -q 'Reproduzidos recentemente' extracted_project/app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
+          grep -q 'NerdoraOfficialBottomBar' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          grep -q 'AppScreen.DOWNLOADS' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          test -s extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
+          echo "v0.9.17: Home oficial Nerdora Player aplicada sobre a v0.9.16."
 
       - name: Encontrar projeto Android
         id: android
@@ -1507,7 +1567,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.16"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.17"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -1541,7 +1601,10 @@ jobs:
           test ! -e app/src/main/assets/xlsx_renderer/exceljs.min.js
           test ! -e app/src/main/assets/xlsx_renderer/luckyexcel.umd.js
           test ! -e app/src/main/assets/xlsx_renderer/luckysheet
-          echo "Nerdora Player v0.9.16 validado."
+          test -s app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
+          grep -q 'Sua central de mídia e arquivos' app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
+          grep -q 'AppScreen.DOWNLOADS' app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          echo "Nerdora Player v0.9.17 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -1590,7 +1653,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.16 assinada
+      - name: Publicar Release pública v0.9.17 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -1599,8 +1662,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Excel Viewer com FortuneSheet"
-          NOTES="Nerdora Player v0.9.16: abandona o renderer próprio/Office Kit para Excel e passa a usar FortuneSheet 1.0.4 com FortuneExcel 2.3.3, ambos MIT. O arquivo XLSX é importado por um conversor mantido recentemente e exibido pelo renderer completo do FortuneSheet, com adaptação mobile, estilos, bordas, mesclas, formatos e fórmulas. O Nerdora usa modo somente leitura, esconde barra de ferramentas, barra de fórmulas, cabeçalhos de linhas/colunas e linhas de grade, mantendo as abas de navegação. O build valida 3 abas, A1, H20 e a mesclagem A1:H2. O leitor Word permanece inalterado."
+          TITLE="Nerdora Player v${VERSION} — Home Oficial"
+          NOTES="Nerdora Player v0.9.17: estabelece a nova Home oficial inspirada no layout aprovado: identidade neon roxa, cartão de armazenamento real, quatro ações principais, grade de categorias com contagens do aparelho, acesso rápido às pastas, reproduzidos recentemente e nova navegação inferior com o N do Nerdora em destaque. Mantém todos os recursos anteriores da v0.9.16, incluindo o visualizador Excel com FortuneSheet, leitura de Word, cache de arquivos, conta e atualização interna."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
