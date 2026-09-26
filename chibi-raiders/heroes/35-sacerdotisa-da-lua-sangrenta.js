@@ -1,0 +1,3 @@
+/* Nerdora Chibi Raiders — Herói #35: Sacerdotisa da Lua Sangrenta */
+window.NERDORA_HERO_SOURCE=window.NERDORA_HERO_SOURCE||{};
+window.NERDORA_HERO_SOURCE["sacerdotisa_lua_sangrenta"]={"number":35,"id":"sacerdotisa_lua_sangrenta","name":"Sacerdotisa da Lua Sangrenta","rarity":"SR","color":"#FFA500","colorName":"Laranja","img":"","atlasPage":2,"atlasCol":4,"atlasRow":2,"emoji":"🌕","class":"Suporte","position":"back","style":"ranged","type":"magic","finalBase":true,"ultimateFinal":true,"hp":1950,"pa":110,"ma":420,"pd":210,"md":198,"speed":118,"cr":0.12,"dg":0.12,"ult":{"name":"Eclipse Curativo","kind":"heal","ratio":2,"effect":"shield"}};
