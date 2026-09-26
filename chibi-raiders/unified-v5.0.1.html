@@ -2866,6 +2866,19 @@ button:disabled,.btn:disabled{transform:none!important}
 .screen.active{pointer-events:auto!important}
 button{touch-action:manipulation;user-select:none}
 
+
+/* Bottom nav não pode cobrir os atalhos do Lobby nem controles da batalha. */
+.bottomNav{grid-template-columns:repeat(5,1fr)!important}
+#game.lobby-mode .bottomNav,
+#game.battle-mode .bottomNav{
+ display:none!important;
+ pointer-events:none!important;
+}
+#game:not(.lobby-mode):not(.battle-mode) .bottomNav{
+ display:grid!important;
+ pointer-events:auto!important;
+}
+
 </style>
 </head>
 <body>
