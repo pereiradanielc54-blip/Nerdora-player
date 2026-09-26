@@ -1107,7 +1107,6 @@ function bindLobbyRoutes(){
  };
  Object.entries(routes).forEach(([id,route])=>bindClick(id,()=>showScreen(route)));
  bindClick("quickBattle",()=>quick());
- $$(".bottomNav button[data-nav]").forEach(b=>b.addEventListener("click",()=>openNav(b.dataset.nav)));
 }
 function bindBackToLobby(){
  ["campaignBack","heroesBack","portalBack","arenaBack","shopBack","missionsBack","guildBack","worldBossBack","towerBack","afkBack","awakeningBack","formationBack"]
