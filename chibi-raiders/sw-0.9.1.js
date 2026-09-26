@@ -11,6 +11,12 @@ self.addEventListener("fetch",e=>{
   e.respondWith(fetch(e.request,{cache:"no-store"}).catch(()=>caches.match("./version.json")));return;
  }
  if(e.request.mode==="navigate"){
+  const path=u.pathname;
+  const stableEntry=path.endsWith("/index.html")||path.endsWith("/chibi-raiders/");
+  if(stableEntry){
+   e.respondWith(caches.match(FALLBACK).then(cached=>cached||fetch(FALLBACK,{cache:"no-store"})));
+   return;
+  }
   e.respondWith(fetch(e.request,{cache:"no-store"}).then(r=>{
    const copy=r.clone();caches.open(CACHE_NAME).then(c=>c.put(e.request,copy));return r;
   }).catch(()=>caches.match(e.request).then(x=>x||caches.match(FALLBACK))));return;
