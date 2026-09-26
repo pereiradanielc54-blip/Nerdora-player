@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d111c">
+<title>Nerdora Chibi Raiders v2.0.0</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/webp" href="./icon-192.webp">
+<link rel="apple-touch-icon" href="./icon-192.webp">
+<link rel="stylesheet" href="./styles-2.0.0.css">
+</head>
+<body>
+<div id="updateSplash" class="updateSplash">
+ <div class="updateCard">
+  <img class="updateGameIcon" src="./icon-512.webp" alt="Nerdora Chibi Raiders">
+  <div class="brand">NERDORA <span>CHIBI RAIDERS</span></div>
+  <div id="updateStatus" class="updateStatus">Verificando versão e atualizações…</div>
+  <div class="installRow">
+   <button id="splashInstallBtn" class="btn primary" style="display:none">📲 Instalar</button>
+   <button id="splashUpdateBtn" class="btn gold" style="display:none">⬆ Atualizar agora</button>
+  </div>
+  <div class="small" style="margin-top:10px">Versão local: 1.1.0</div>
+ </div>
+</div>
+
+<div id="game">
+ <section id="homeScreen" class="screen active">
+  <div class="topbar"><div class="brand">NERDORA <span>CHIBI RAIDERS</span></div><div class="topActions"><button id="muteBtn" class="iconBtn" aria-label="Som">🔊</button><div class="badge">v2.0.0</div></div></div>
+  <div class="resourceBar">
+   <span>🪙 <b data-res="gold">0</b></span><span>💎 <b data-res="diamonds">0</b></span>
+   <span>📜 <b data-res="scrolls">0</b></span><span>🏟️ <b data-res="arenaCoins">0</b></span>
+   <span>⭐ Nv.<b data-res="accountLevel">1</b></span><span>🔷 <b data-res="abyssCrystals">0</b></span><span>🌟 <b data-res="awakeningStones">0</b></span>
+  </div>
+  <div class="section">
+   <div class="heroTitle card">
+    <div class="small">NERDORA CHIBI RAIDERS • PRIMEIRA GRANDE VERSÃO</div>
+    <h1>Heróis. Equipamentos.<br>Portal. Arena.</h1>
+    <p>Avance na campanha, invoque heróis, equipe-os, desenvolva a equipa e desafie formações da Arena.</p>
+    <div class="pills"><span class="pill">Gacha</span><span class="pill">Equipamentos</span><span class="pill">Arena</span><span class="pill">Loja</span><span class="pill">Save local</span></div>
+   </div>
+   <div class="homeActions card" style="margin-top:10px">
+    <button id="goCampaign" class="btn primary">🗺️ Campanha</button>
+    <button id="goFormation" class="btn">⚔️ Formação</button>
+    <button id="goHeroes" class="btn">🧙 Heróis e Equipamentos</button>
+    <button id="goPortal" class="btn portalBtn">🔮 Invocação / Portal</button>
+    <button id="goArena" class="btn arenaBtn">🏟️ Arena</button>
+    <button id="goShop" class="btn gold">🛒 Loja</button>
+    <button id="goMissions" class="btn">🎯 Missões e Conquistas</button>
+    <button id="goGuild" class="btn">🛡️ Guilda / Facção</button>
+    <button id="goWorldBoss" class="btn raidBtn">🐉 Chefe Épico / Raid</button>
+    <button id="goTower" class="btn abyssBtn">🗼 Torre do Abismo</button>
+    <button id="goAfk" class="btn idleBtn">📦 Baú de Espólios AFK</button>
+    <button id="goAwakening" class="btn awakenBtn">🌟 Talentos e Despertar</button>
+    <button id="quickBattle" class="btn ghost">⚡ Jogar fase selecionada</button>
+    <button id="installAppBtn" class="btn ghost" style="display:none">📲 Instalar aplicativo</button>
+    <button id="checkUpdateBtn" class="btn ghost">🔄 Verificar atualização</button>
+    <div id="homeUpdateNotice" class="updateNotice"></div>
+   </div>
+  </div>
+ </section>
+
+ <section id="campaignScreen" class="screen">
+  <div class="topbar"><button id="campaignBack" class="btn ghost">←</button><div class="brand">CAMPANHA</div><div class="badge">Capítulo 1</div></div>
+  <div class="resourceBar"><span>🪙 <b data-res="gold">0</b></span><span>⭐ EXP <b data-res="accountExp">0</b></span><span>✨ <b data-res="essence">0</b></span></div>
+  <div class="section">
+   <div class="campaignHeader card"><div class="small">MAPA</div><h2>Vale das Primeiras Chamas</h2><p>Fase 1-1 é introdutória. Fases avançadas aumentam força e melhoram a qualidade dos equipamentos que podem cair.</p></div>
+   <div id="stageGrid" class="stageGrid"></div>
+  </div>
+ </section>
+
+ <section id="heroesScreen" class="screen">
+  <div class="topbar"><button id="heroesBack" class="btn ghost">←</button><div class="brand">HERÓIS</div><div class="badge">🪙 <span data-res="gold">0</span></div></div>
+  <div class="section heroesPage">
+   <div id="heroManageGrid" class="heroManageGrid"></div>
+   <div id="heroDetail" class="heroDetail card"></div>
+  </div>
+ </section>
+
+ <section id="portalScreen" class="screen">
+  <div class="topbar"><button id="portalBack" class="btn ghost">←</button><div class="brand">PORTAL DE INVOCAÇÃO</div><div class="badge">🔮</div></div>
+  <div class="resourceBar"><span>💎 <b data-res="diamonds">0</b></span><span>📜 <b data-res="scrolls">0</b></span></div>
+  <div class="section">
+   <div class="portalHero card">
+    <div class="portalOrb">🔮</div>
+    <div class="small">PORTAL NERDORA</div><h2>Invoque novos aliados</h2>
+    <p>Herói novo entra para sua coleção. Repetidos viram automaticamente <b>20 Fragmentos</b> do herói.</p>
+    <div class="summonRates"><span>SSR • 10 heróis</span><span>Duplicata • +20 🧩</span></div>
+    <div class="summonButtons">
+     <button id="summonOne" class="btn primary">Invocar ×1<br><small>📜1 ou 💎200</small></button>
+     <button id="summonTen" class="btn gold">Invocar ×10<br><small>💎1.800</small></button>
+    </div>
+   </div>
+   <div id="summonResults" class="summonResults"></div>
+  </div>
+ </section>
+
+ <section id="arenaScreen" class="screen">
+  <div class="topbar"><button id="arenaBack" class="btn ghost">←</button><div class="brand">ARENA</div><div class="badge" id="arenaTierBadge">Bronze</div></div>
+  <div class="resourceBar"><span>🏆 <b data-res="arenaRating">0</b></span><span>🏟️ <b data-res="arenaCoins">0</b></span><span>⚔️ <b id="arenaAttempts">0</b>/5</span></div>
+  <div class="section">
+   <div class="arenaHeader card">
+    <div><div class="small">PVP ASSÍNCRONO • PROTÓTIPO LOCAL</div><h2 id="arenaRankTitle">Bronze III</h2><p>Escolha uma formação rival. O adversário será controlado pela IA usando uma formação salva/simulada.</p></div>
+    <button id="refreshArena" class="btn ghost">↻ Renovar rivais</button>
+   </div>
+   <div id="arenaOpponents" class="arenaOpponents"></div>
+  </div>
+ </section>
+
+ <section id="shopScreen" class="screen">
+  <div class="topbar"><button id="shopBack" class="btn ghost">←</button><div class="brand">LOJA</div><div class="badge">Ofertas</div></div>
+  <div class="resourceBar"><span>🪙 <b data-res="gold">0</b></span><span>💎 <b data-res="diamonds">0</b></span><span>🏟️ <b data-res="arenaCoins">0</b></span></div>
+  <div class="section">
+   <div class="shopHeader card"><div class="small">MERCADO NERDORA</div><h2>Recursos e equipamentos</h2><p>Use moedas conquistadas no jogo. As ofertas podem ser compradas repetidamente neste protótipo.</p></div>
+   <div id="shopGrid" class="shopGrid"></div>
+  </div>
+ </section>
+
+ 
+ <section id="missionsScreen" class="screen">
+  <div class="topbar"><button id="missionsBack" class="btn ghost">←</button><div class="brand">MISSÕES</div><div class="badge" id="missionBadge">Diárias</div></div>
+  <div class="resourceBar"><span>🪙 <b data-res="gold">0</b></span><span>💎 <b data-res="diamonds">0</b></span><span>🤝 <b data-res="guildContribution">0</b></span></div>
+  <div class="section">
+   <div class="missionHeader card">
+    <div><div class="small">RETENÇÃO DIÁRIA</div><h2>Missões e Conquistas</h2><p>As missões diárias reiniciam a cada novo dia. Conquistas são permanentes e premiam marcos importantes.</p></div>
+    <button id="missionsGuildBtn" class="btn ghost">🛡️ Guilda</button>
+   </div>
+   <div class="tabRow"><button id="dailyTab" class="tabBtn active">🎯 Diárias</button><button id="achievementTab" class="tabBtn">🏆 Conquistas</button></div>
+   <div id="dailyMissions" class="missionList"></div>
+   <div id="achievementList" class="missionList" style="display:none"></div>
+  </div>
+ </section>
+
+ <section id="guildScreen" class="screen">
+  <div class="topbar"><button id="guildBack" class="btn ghost">←</button><div class="brand">GUILDA</div><div class="badge">🤝 <span data-res="guildContribution">0</span></div></div>
+  <div class="section">
+   <div id="guildPanel"></div>
+  </div>
+ </section>
+
+
+ <section id="worldBossScreen" class="screen">
+  <div class="topbar"><button id="worldBossBack" class="btn ghost">←</button><div class="brand">CHEFE ÉPICO</div><div class="badge" id="bossAttemptsBadge">3/3</div></div>
+  <div class="resourceBar"><span>🤝 <b data-res="guildContribution">0</b></span><span>💎 <b data-res="diamonds">0</b></span><span>🐉 Melhor <b data-res="worldBossBest">0</b></span></div>
+  <div class="section">
+   <div class="worldBossHero card">
+    <div class="bossArt">🐉</div>
+    <div class="small">RAID DIÁRIA • RENOVA À MEIA-NOITE LOCAL</div>
+    <h2>Vorak, Devorador do Vazio</h2>
+    <p>Sobreviva o máximo possível e cause dano antes da sua equipa cair. O HP do Chefe é massivo e cada tentativa alimenta o ranking diário.</p>
+    <div class="bossPreviewBar"><i id="bossPreviewFill"></i></div>
+    <div class="bossPreviewMeta"><span>HP Global diário</span><b id="bossPreviewHp">250.000 / 250.000</b></div>
+    <button id="startWorldBoss" class="btn raidBtn" style="width:100%">🐉 Iniciar Raid</button>
+   </div>
+   <div class="raidRanking card">
+    <div class="sectionTitle">🏆 Ranking Diário de Dano</div>
+    <div id="worldBossRanking"></div>
+   </div>
+  </div>
+ </section>
+
+ <section id="towerScreen" class="screen">
+  <div class="topbar"><button id="towerBack" class="btn ghost">←</button><div class="brand">TORRE DO ABISMO</div><div class="badge">Andar <span data-res="towerFloor">1</span></div></div>
+  <div class="resourceBar"><span>🔷 <b data-res="abyssCrystals">0</b></span><span>🪙 <b data-res="gold">0</b></span><span>💎 <b data-res="diamonds">0</b></span></div>
+  <div class="section">
+   <div class="towerHero card">
+    <div class="towerIcon">🗼</div>
+    <div><div class="small">DESAFIO PROGRESSIVO • 50 ANDARES</div><h2 id="towerTitle">Andar 1</h2><p id="towerDesc">Cada piso aumenta HP, ataque e defesa dos inimigos. Recompensas especiais são concedidas apenas na primeira conclusão de cada andar.</p></div>
+   </div>
+   <div id="towerMilestones" class="towerMilestones"></div>
+   <button id="startTower" class="btn abyssBtn" style="width:100%;margin-top:9px">⚔️ Desafiar andar atual</button>
+  </div>
+ </section>
+
+
+ <section id="afkScreen" class="screen">
+  <div class="topbar"><button id="afkBack" class="btn ghost">←</button><div class="brand">ESPÓLIOS AFK</div><div class="badge" id="afkTimerBadge">00:00:00</div></div>
+  <div class="resourceBar"><span>🪙 <b data-res="gold">0</b></span><span>⭐ EXP <b data-res="accountExp">0</b></span><span>✨ <b data-res="essence">0</b></span></div>
+  <div class="section">
+   <div class="idleChestCard card">
+    <div id="idleChest" class="idleChest">📦<i></i></div>
+    <div class="small">PROGRESSÃO IDLE • LIMITE DE 12 HORAS</div>
+    <h2>Baú de Espólios</h2>
+    <p>Enquanto estiver fora, a expedição Nerdora continua recolhendo recursos. O cálculo usa o horário real do dispositivo e fica salvo localmente.</p>
+    <div class="idleRewardGrid">
+     <div><span>🪙 Ouro</span><b id="afkGold">0</b></div>
+     <div><span>⭐ EXP da Conta</span><b id="afkExp">0</b></div>
+     <div><span>✨ Essência</span><b id="afkEssence">0</b></div>
+    </div>
+    <button id="claimAfkBtn" class="btn gold" style="width:100%">📦 Recolher espólios</button>
+    <div id="afkRateText" class="small idleRate"></div>
+   </div>
+  </div>
+ </section>
+
+ <section id="awakeningScreen" class="screen">
+  <div class="topbar"><button id="awakeningBack" class="btn ghost">←</button><div class="brand">DESPERTAR</div><div class="badge">🌟 <span data-res="awakeningStones">0</span></div></div>
+  <div class="resourceBar"><span>🪙 <b data-res="gold">0</b></span><span>🌟 Pedras <b data-res="awakeningStones">0</b></span></div>
+  <div class="section awakeningLayout">
+   <div id="awakeningHeroGrid" class="awakeningHeroGrid"></div>
+   <div id="awakeningDetail" class="awakeningDetail card"></div>
+  </div>
+ </section>
+
+ <section id="formationScreen" class="screen">
+  <div class="topbar"><button id="formationBack" class="btn ghost">←</button><div class="brand">FORMAÇÃO</div><div class="badge"><span id="selectedCount">0</span>/5</div></div>
+  <div class="section">
+   <div id="formationStageInfo" class="formationStageInfo card"></div>
+   <div id="synergyPanel" class="synergyPanel card"></div>
+   <div class="formationExplain card"><strong>🛡️ Front-line x Back-line</strong><div class="small">Somente heróis obtidos podem entrar na formação. Equipamentos e níveis são aplicados diretamente aos atributos de batalha.</div></div>
+   <div id="formationBoard" class="formationBoard"></div>
+   <div class="lineHeader">HERÓIS DISPONÍVEIS — toque num slot e depois num herói</div>
+   <div id="roster" class="roster"></div>
+   <button id="startBattle" class="btn primary" style="width:100%;margin-top:10px" disabled>Iniciar batalha</button>
+  </div>
+ </section>
+
+ <section id="battleScreen" class="screen">
+  <div class="topbar"><button id="battleBack" class="btn ghost">←</button><div class="brand" id="battleStageName">BATALHA</div><div id="battleState" class="badge">EM BATALHA</div></div>
+  <div class="battleShell"><div id="arena" class="arena">
+   <div class="battleHeader"><div class="group"><button id="speed1" class="controlBtn active">1×</button><button id="speed2" class="controlBtn">2×</button><button id="pauseBtn" class="controlBtn">Ⅱ PAUSA</button></div><div class="group"><div id="teamAuraLabel" class="stateLabel auraLabel">SEM AURA</div><button id="modeBtn" class="controlBtn">ULT: MANUAL</button><div id="roundLabel" class="stateLabel">Rodada 1</div></div></div>
+   <div class="teamLabel enemy"><span>INIMIGOS</span><span>FRONT ← → BACK</span></div>
+   <div id="enemyArea" class="formationArea enemy"><div class="lineBox back"></div><div class="lineBox front"></div></div>
+   <div id="turnPanel" class="orderPanel"><div class="orderTitle">INICIATIVA DESTA RODADA — SPEED</div><div id="turnOrder" class="turnOrder"></div></div>
+   <div class="teamLabel player"><span>SUA EQUIPA</span><span>BACK ← → FRONT</span></div>
+   <div id="playerArea" class="formationArea player"><div class="lineBox back"></div><div class="lineBox front"></div></div>
+   <div class="rotateHint"><div><strong>📱 Gire o celular</strong><span>A batalha foi desenhada para modo horizontal.</span></div></div>
+   <div id="ultBanner" class="ultBanner"></div>
+   <div id="bossRaidHud" class="bossRaidHud">
+    <div class="bossHudTop"><span>🐉 VORAK</span><b id="bossRaidDamage">DANO 0</b></div>
+    <div class="bossRaidBar"><i id="bossRaidBarFill"></i></div>
+    <div class="bossHudBottom"><span id="bossRaidHp">250.000 / 250.000</span><span id="bossRaidRound">Rodada 1</span></div>
+   </div>
+   <div class="logPanel"><div class="logHeader"><span>REGISTRO</span><span id="actionLabel" class="small">Preparando...</span></div><div id="battleLog" class="log"></div></div>
+  </div></div>
+ </section>
+ <nav id="bottomNav" class="bottomNav">
+  <button data-nav="campaign" aria-label="Campanha"><span>🗺️</span><small>Campanha</small></button>
+  <button data-nav="heroes" aria-label="Heróis"><span>🧙</span><small>Heróis</small></button>
+  <button data-nav="portal" aria-label="Invocação"><span>🔮</span><small>Portal</small></button>
+  <button data-nav="arena" aria-label="Arena"><span>🏟️</span><small>Arena</small></button>
+  <button data-nav="shop" aria-label="Loja"><span>🛒</span><small>Loja</small></button>
+  <button data-nav="missions" aria-label="Missões"><span>🎯</span><small>Missões</small><i id="missionNavDot"></i></button>
+ </nav>
+</div>
+
+
+<div id="storyModal" class="storyModal">
+ <div class="storyScene">
+  <div class="storyShade"></div>
+  <div id="storyAvatar" class="storyAvatar">👼</div>
+  <div class="storyBox">
+   <div id="storySpeaker" class="storySpeaker">Seraphina</div>
+   <div id="storyText" class="storyText"></div>
+   <div class="storyControls"><span id="storyHint">Toque para continuar</span><button id="storySkip" class="btn ghost">Pular</button><button id="storyNext" class="btn primary">Continuar ›</button></div>
+  </div>
+ </div>
+</div>
+
+<div id="resultModal" class="modal"><div class="modalCard resultCard">
+ <div id="resultBadge" class="resultBadge">🏆</div><h2 id="resultTitle">Vitória!</h2><div id="resultStage" class="resultStage"></div><div id="resultText" class="small"></div>
+ <div id="resultRewards" class="rewards"></div>
+ <div class="resultActions"><button id="nextStageBtn" class="btn primary">Próxima fase →</button><button id="retryBtn" class="btn gold">↻ Tentar novamente</button><button id="resultMenuBtn" class="btn ghost">Voltar ao menu</button></div>
+</div></div>
+
+<div id="rewardFloatLayer" class="rewardFloatLayer"></div>
+<div id="toast" class="toast"></div>
+<script src="./app-2.0.0.js"></script>
+</body>
+</html>
