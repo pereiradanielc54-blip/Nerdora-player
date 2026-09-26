@@ -1719,3 +1719,5 @@ body{
  .vipTopChip{padding:4px 6px}.passHeader{padding:9px}.passTier{grid-template-columns:38px 1fr 1fr}.passReward{padding:6px}
  .battlePet{left:22.5%}
 }
+
+.summonCard.featured{border-color:#e3b35f!important;box-shadow:0 0 18px rgba(227,179,95,.22)!important;background:linear-gradient(180deg,#2b2230,#171a27)!important}
