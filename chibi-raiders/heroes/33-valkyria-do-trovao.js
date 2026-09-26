@@ -1,0 +1,3 @@
+/* Nerdora Chibi Raiders — Herói #33: Valkyria do Trovão */
+window.NERDORA_HERO_SOURCE=window.NERDORA_HERO_SOURCE||{};
+window.NERDORA_HERO_SOURCE["valkyria_trovao"]={"number":33,"id":"valkyria_trovao","name":"Valkyria do Trovão","rarity":"EP","color":"#8A2BE2","colorName":"Roxo","img":"","atlasPage":2,"atlasCol":2,"atlasRow":2,"emoji":"🌩️","class":"Guerreira","position":"front","style":"melee","type":"physical","finalBase":true,"ultimateFinal":true,"hp":1880,"pa":315,"ma":88,"pd":175,"md":165,"speed":110,"cr":0.13,"dg":0.1,"ult":{"name":"Lança Relâmpago","kind":"aoeMagic","ratio":0.88,"effect":"freeze"}};
