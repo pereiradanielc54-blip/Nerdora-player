@@ -1469,7 +1469,7 @@ jobs:
               extra_callbacks = '''                    onOpenFiles = { navigateTo(AppScreen.FILES) },
                     onOpenDownloads = { navigateTo(AppScreen.DOWNLOADS) },
                     onOpenSettings = { navigateTo(AppScreen.SETTINGS) },
-'''
+              '''
               app = app.replace(link_marker, extra_callbacks + link_marker, 1)
 
           files_marker = "                AppScreen.FILES -> FilesScreen("
