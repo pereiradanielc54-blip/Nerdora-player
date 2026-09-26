@@ -515,7 +515,7 @@ function renderLobbyIdentity(){
    if(!h)return '<span class="lobbySquadEmpty">＋</span>';
    return '<button class="lobbySquadHero '+heroRarityClass(h)+'" style="'+heroRarityStyle(h)+'" data-hero="'+h.id+'" aria-label="'+h.name+'">'+heroPortrait(h,"lobbySquadPortrait")+'<i>'+h.rarity+'</i></button>';
   }).join("");
-  $$$(".lobbySquadHero[data-hero]").forEach(b=>b.addEventListener("click",()=>openHeroDetail(b.dataset.hero)));
+  $(".lobbySquadHero[data-hero]").forEach(b=>b.addEventListener("click",()=>openHeroDetail(b.dataset.hero)));
  }
  const spotlight=$("#lobbySpotlight");if(spotlight){
   const ids=["drako","morgana","seraphina"],heroes=ids.map(hero).filter(Boolean);
