@@ -28,28 +28,17 @@ jobs:
         run: |
           from pathlib import Path
           import re
-
           root=Path("chibi-raiders")
           html=(root/"index-5.1.1.html").read_text(encoding="utf-8")
           css=(root/"styles-5.1.1.css").read_text(encoding="utf-8")
           app=(root/"app-5.1.1.js").read_text(encoding="utf-8")
-
-          html=html.replace(
-              '<link rel="stylesheet" href="./styles-5.1.1.css">',
-              "<style>\n"+css+"\n</style>",
-          )
-
+          html=html.replace('<link rel="stylesheet" href="./styles-5.1.1.css">',"<style>\n"+css+"\n</style>")
           pattern=re.compile(r'<script src="\./heroes/([^"]+)"></script>')
-          def inline_hero(match):
-              code=(root/"heroes"/match.group(1)).read_text(encoding="utf-8")
+          def inline_hero(m):
+              code=(root/"heroes"/m.group(1)).read_text(encoding="utf-8")
               return "<script>\n"+code+"\n</script>"
           html=pattern.sub(inline_hero,html)
-
-          html=html.replace(
-              '<script src="./app-5.1.1.js"></script>',
-              "<script>\n"+app+"\n</script>",
-          )
-
+          html=html.replace('<script src="./app-5.1.1.js"></script>',"<script>\n"+app+"\n</script>")
           (root/"unified-v5.1.1.html").write_text(html,encoding="utf-8")
 
       - name: Commit generated unified file
