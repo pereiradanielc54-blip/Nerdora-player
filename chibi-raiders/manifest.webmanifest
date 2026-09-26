@@ -1,0 +1,19 @@
+{
+  "name": "Nerdora Chibi Raiders",
+  "short_name": "Chibi Raiders",
+  "description": "RPG mobile Gacha/Turn-based do universo Nerdora.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#080b12",
+  "theme_color": "#0d111c",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
