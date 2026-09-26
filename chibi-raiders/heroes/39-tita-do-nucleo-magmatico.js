@@ -1,0 +1,3 @@
+/* Nerdora Chibi Raiders — Herói #39: Titã do Núcleo Magmático */
+window.NERDORA_HERO_SOURCE=window.NERDORA_HERO_SOURCE||{};
+window.NERDORA_HERO_SOURCE["tita_nucleo_magmatico"]={"number":39,"id":"tita_nucleo_magmatico","name":"Titã do Núcleo Magmático","rarity":"SSR","color":"#FF0000","colorName":"Vermelho","img":"","atlasPage":2,"atlasCol":3,"atlasRow":3,"emoji":"🌋","class":"Guerreiro Mítico","position":"front","style":"melee","type":"physical","finalBase":true,"ultimateFinal":true,"hp":4600,"pa":670,"ma":185,"pd":500,"md":470,"speed":132,"cr":0.22,"dg":0.09,"ult":{"name":"Erupção do Núcleo","kind":"multi","ratio":1.5,"hits":4,"effect":"break"}};
