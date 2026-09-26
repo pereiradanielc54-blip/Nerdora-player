@@ -1737,7 +1737,7 @@ function bindStaticControls(){
 bindStaticControls();
 
 /* =========================================================
-   v5.0.1 — ROUTER CENTRAL DE BOTÕES
+   v5.1.0 — ROUTER CENTRAL DE BOTÕES
    Um único controlador em fase de captura impede que rerenders
    deixem botões novos sem event listener.
    ========================================================= */
