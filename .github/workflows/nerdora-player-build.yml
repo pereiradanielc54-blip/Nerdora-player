@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.17 Home Oficial
+name: Nerdora Player - Build v0.9.18 Polimento Visual
 
 on:
   workflow_dispatch:
@@ -1493,6 +1493,29 @@ jobs:
           test -s extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
           echo "v0.9.17: Home oficial Nerdora Player aplicada sobre a v0.9.16."
 
+      - name: Aplicar Polimento Visual v0.9.18
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp .github/overlays/v0.9.18/HomeScreen.kt \
+            extracted_project/app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
+          cp .github/overlays/v0.9.18/NerdoraOfficialBottomBar.kt \
+            extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 78/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.18"/' extracted_project/app/build.gradle.kts
+
+          grep -q 'versionName = "0.9.18"' extracted_project/app/build.gradle.kts
+          grep -q 'nerdoraPress' extracted_project/app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
+          grep -q 'shadowElevation = 5.dp' extracted_project/app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
+          grep -q 'glyph = "ZIP"' extracted_project/app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
+          grep -q 'glyph = "APK"' extracted_project/app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
+          grep -q 'width(188.dp)' extracted_project/app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
+          grep -q 'offset(y = (-9).dp)' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
+          grep -q 'width(18.dp)' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
+          echo "v0.9.18: primeiro pacote de polimento visual aplicado."
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
@@ -1566,7 +1589,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.17"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.18"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -1603,7 +1626,9 @@ jobs:
           test -s app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
           grep -q 'Sua central de mídia e arquivos' app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
           grep -q 'AppScreen.DOWNLOADS' app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
-          echo "Nerdora Player v0.9.17 validado."
+          grep -q 'nerdoraPress' app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
+          grep -q 'nerdoraNavPress' app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
+          echo "Nerdora Player v0.9.18 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -1652,7 +1677,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.17 assinada
+      - name: Publicar Release pública v0.9.18 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -1661,8 +1686,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Home Oficial"
-          NOTES="Nerdora Player v0.9.17: estabelece a nova Home oficial inspirada no layout aprovado: identidade neon roxa, cartão de armazenamento real, quatro ações principais, grade de categorias com contagens do aparelho, acesso rápido às pastas, reproduzidos recentemente e nova navegação inferior com o N do Nerdora em destaque. Mantém todos os recursos anteriores da v0.9.16, incluindo o visualizador Excel com FortuneSheet, leitura de Word, cache de arquivos, conta e atualização interna."
+          TITLE="Nerdora Player v${VERSION} — Polimento Visual"
+          NOTES="Nerdora Player v0.9.18: primeiro pacote de polimento visual da Home oficial. Adiciona feedback de toque com escala suave, profundidade e gradientes discretos nos cards, badges semânticos para ZIP/APK/Downloads, cards de recentes maiores, botão central N elevado com sombra e barra inferior refinada com indicador ativo. Mantém todas as funções da v0.9.17 e os leitores de documentos inalterados."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
