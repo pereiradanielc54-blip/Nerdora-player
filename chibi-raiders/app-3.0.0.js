@@ -990,23 +990,34 @@ function equip(heroId,gearId){
 function unequip(heroId,slot){const gid=save.equipment[heroId][slot];if(!gid)return;addGear(gid,1);save.equipment[heroId][slot]=null;persist();renderHeroes();renderFormation();toast("Equipamento removido")}
 
 /* PORTAL */
-function renderPortal(){renderResources()}
-function summon(count){
- let results=[];
- if(count===1){
-  if(save.scrolls>0)save.scrolls--;else if(save.diamonds>=200)save.diamonds-=200;else{return toast("Faltam Pergaminhos ou Diamantes")}
- }else{
-  if(save.diamonds<1800)return toast("Diamantes insuficientes");save.diamonds-=1800;
- }
- for(let i=0;i<count;i++){
-  const h=HEROES[Math.floor(Math.random()*HEROES.length)],isNew=!save.owned[h.id];
-  if(isNew)save.owned[h.id]=true;else save.shards[h.id]=(save.shards[h.id]||0)+20;
-  results.push({h,isNew});
- }
- trackEvent("summons",count);renderSummonResults(results);renderHeroes();renderFormation();renderMissions("daily");
+function renderPortal(){
+ renderResources();
+ const end=save.limitedEventEnd||(save.limitedEventEnd=Date.now()+7*24*60*60*1000);
+ const left=Math.max(0,end-Date.now()),d=Math.floor(left/86400000),h=Math.floor((left%86400000)/3600000);
+ if($("#eventDays"))$("#eventDays").textContent=d+"d "+h+"h";
+ if($("#portalVipLevel"))$("#portalVipLevel").textContent=vipLevel();
 }
+function rollBannerHero(type="standard"){
+ if(type!=="event")return HEROES[Math.floor(Math.random()*HEROES.length)];
+ const pool=[...HEROES,hero(LIMITED_HERO_ID)];
+ return pool[Math.floor(Math.random()*pool.length)];
+}
+function summonFromBanner(count,type="standard"){
+ const price=type==="event"?(count===1?250:2200):(count===1?200:1800);
+ if(type==="standard"&&count===1&&save.scrolls>0)save.scrolls--;
+ else if(!spendDiamonds(price,type==="event"?"Banner limitado":"Invocação padrão"))return toast("Diamantes insuficientes");
+ const results=[];
+ for(let n=0;n<count;n++){
+  const h=rollBannerHero(type),isNew=!save.owned[h.id];
+  if(isNew)save.owned[h.id]=true;else save.shards[h.id]=(save.shards[h.id]||0)+20;
+  results.push({h,isNew,featured:type==="event"&&h.id===LIMITED_HERO_ID});
+ }
+ trackEvent("summons",count);persist();renderSummonResults(results);renderHeroes();renderFormation();renderMissions("daily");renderPortal();renderVip();
+}
+function summon(count){summonFromBanner(count,"standard")}
 function renderSummonResults(results){
- $("#summonResults").innerHTML=results.map(({h,isNew})=>`<div class="summonCard ${isNew?"new":""}"><div class="bigEmoji">${h.emoji}</div><b>${h.name}</b><span>${h.role}</span><div class="newTag">${isNew?"NOVO HERÓI":"DUPLICATA • +20 🧩"}</div></div>`).join("");
+ const root=$("#summonResults");if(!root)return;
+ root.innerHTML=results.map(x=>'<div class="summonCard '+(x.isNew?'new':'')+' '+(x.featured?'featured':'')+'"><div class="bigEmoji">'+x.h.emoji+'</div><b>'+x.h.name+'</b><span>'+x.h.role+'</span><div class="newTag">'+(x.featured?'✨ DESTAQUE • ':'')+(x.isNew?'NOVO HERÓI':'DUPLICATA • +20 🧩')+'</div></div>').join("");
 }
 
 /* ARENA */
