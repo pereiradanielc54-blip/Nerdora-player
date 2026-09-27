@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-app-version="40">
+<html lang="pt-BR" data-app-version="41">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -10,22 +10,22 @@
 <meta name="apple-mobile-web-app-title" content="Bingo Nerdora">
 <title>Bingo Nerdora</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="assets/bingo-cover.webp?v=40" type="image/webp">
+<link rel="icon" href="assets/bingo-cover.webp?v=41" type="image/webp">
 <link rel="apple-touch-icon" href="icon.svg">
-<meta property="og:image" content="assets/bingo-cover.webp?v=40">
+<meta property="og:image" content="assets/bingo-cover.webp?v=41">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Fredoka:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=40">
+<link rel="stylesheet" href="style.css?v=41">
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 </head>
 <body>
 <div id="bootSplash" class="bootSplash" aria-live="polite" aria-label="Carregando Bingo Nerdora">
   <div class="bootGlow" aria-hidden="true"></div>
-  <div class="bootCoverFrame"><img src="assets/bingo-cover.webp?v=40" alt="Capa do Bingo Nerdora"></div>
+  <div class="bootCoverFrame"><img src="assets/bingo-cover.webp?v=41" alt="Capa do Bingo Nerdora"></div>
   <div class="bootBrand"><span>NERDORA GAMES</span><strong>Bingo Nerdora</strong><small id="bootStatus">Preparando o jogo...</small></div>
   <div class="bootProgress"><i id="bootProgressFill"></i></div>
-  <div class="bootVersion">v40 • iniciando jogo</div>
+  <div class="bootVersion">v41 • iniciando jogo</div>
 </div>
 <div class="nerdoraBg" aria-hidden="true"></div>
 <div class="themeAmbient" aria-hidden="true"><span></span><i></i></div>
@@ -54,6 +54,7 @@
       <div id="profileAvatar" class="profileAvatar">N</div>
       <div class="profileMiniInfo">
         <strong id="profileName">Jogador Nerdora</strong>
+        <small id="profileHandle" class="profileHandle hidden"></small>
         <span><b id="profileWins">0</b> vitórias • <b id="profileXp">0</b> XP • <b id="profileCoins">0</b> 🪙</span>
       </div>
       <select id="themeSelect" class="themeSelect" aria-label="Tema visual">
@@ -63,6 +64,11 @@
         <option value="midnight">Midnight</option>
       </select>
     </div>
+
+    <section id="nerdoraFriendsLobby" class="nerdoraFriendsPanel hidden">
+      <div class="nerdoraFriendsHead"><div><span>AMIGOS NERDORA</span><strong>Convide sua turma</strong></div><small>Perfil sincronizado com o app principal</small></div>
+      <div id="nerdoraFriendsLobbyList" class="nerdoraFriendsList"></div>
+    </section>
 
     <section class="themeStudio" aria-label="Escolher tema">
       <div class="themeStudioHead">
@@ -159,6 +165,10 @@
     <div id="code" class="code">------</div><div id="role" class="muted"></div>
     <button id="readyBtn" class="readyBtn hidden" type="button">✓ Estou pronto</button>
     <div class="actions small"><button id="copyCode">Copiar código</button><button id="copyLink">Copiar convite</button></div>
+    <section id="nerdoraFriendsRoom" class="nerdoraFriendsPanel roomFriends hidden">
+      <div class="nerdoraFriendsHead"><div><span>AMIGOS</span><strong>Convidar para esta sala</strong></div><small>via Nerdora</small></div>
+      <div id="nerdoraFriendsRoomList" class="nerdoraFriendsList compact"></div>
+    </section>
     <h3>Jogadores</h3><div id="players"></div>
     <div class="scoreSection"><h3>Placar da sessão</h3><div id="scoreboard" class="scoreboard"></div></div>
     <h3>Conexão</h3><div id="status" class="status">Preparando...</div>
@@ -334,7 +344,7 @@
         <div class="settingsSectionTitle"><span>ⓘ</span><div><strong>Sobre</strong><small>Informações desta versão</small></div></div>
         <div class="aboutCard">
           <div class="aboutLogo">N</div>
-          <div><strong>Bingo Nerdora</strong><span>Versão 40 • transferência automática de anfitrião</span></div>
+          <div><strong>Bingo Nerdora</strong><span>Versão 41 • integração com perfil e amigos Nerdora</span></div>
         </div>
         <p>Jogo de Bingo online do universo Nerdora, com salas P2P, temas completos, músicas temáticas, modos de vitória, placar e recursos sociais.</p>
         <div class="aboutFacts"><span>🔒 Preferências salvas localmente</span><span>👥 Multiplayer P2P</span><span>🎨 4 temas visuais</span></div>
@@ -368,7 +378,7 @@
     </div>
   </div>
 </div>
-<script src="app.js?v=40"></script>
-<script src="extras.js?v=40"></script>
+<script src="app.js?v=41"></script>
+<script src="extras.js?v=41"></script>
 </body>
 </html>
