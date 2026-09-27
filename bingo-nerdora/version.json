@@ -1,5 +1,5 @@
 {
-  "version": "40",
-  "updated": "2026-09-25",
-  "notes": "Host is shown only as Anfitrião. Graceful and fallback host handoff keep rooms and active rounds alive when the current Anfitrião leaves. v39 backup preserved."
+  "version": "41",
+  "updated": "2026-09-27",
+  "notes": "Adds Nerdora main-app bridge for profile name/photo, friends list and invite requests while keeping Bingo independently deployable."
 }
