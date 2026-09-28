@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#16082c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="./manifest.webmanifest">
+<title>Nerdora Chibi Raiders</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080511;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#fff}
+#gameFrame{position:fixed;inset:0;width:100%;height:100%;border:0;background:#080511;visibility:hidden;opacity:0;transition:opacity .35s}
+#gameFrame.on{visibility:visible;opacity:1}
+#splash{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:
+radial-gradient(circle at 50% 35%,#542b9b 0,rgba(45,20,82,.8) 20%,rgba(12,6,24,.98) 60%),
+linear-gradient(135deg,#130726,#05030b);overflow:hidden}
+#splash:before,#splash:after{content:"";position:absolute;width:48vw;height:48vw;border:1px solid #a974ff33;border-radius:50%;filter:blur(.2px);animation:spin 18s linear infinite}
+#splash:after{width:32vw;height:32vw;animation-direction:reverse;animation-duration:12s;border-color:#50c8ff33}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loadbox{position:relative;z-index:2;text-align:center;width:min(460px,84vw)}
+.crystal{width:72px;height:72px;margin:0 auto 18px;position:relative;filter:drop-shadow(0 0 22px #9b68ff)}
+.crystal:before{content:"";position:absolute;inset:5px 16px;background:linear-gradient(135deg,#d5c4ff,#8155e7 45%,#54c7ff);clip-path:polygon(50% 0,100% 38%,70% 100%,30% 100%,0 38%);animation:float 1.6s ease-in-out infinite alternate}
+@keyframes float{to{transform:translateY(-7px) scale(1.03)}}
+.logo{font-size:clamp(24px,4.5vw,44px);font-weight:1000;letter-spacing:.08em;text-shadow:0 3px 18px #000}
+.logo span{display:block;font-size:.35em;letter-spacing:.32em;color:#d5c6f8;margin-top:5px}
+.status{margin:24px 0 10px;font-weight:800;font-size:13px;color:#d7ceeb}
+.bar{height:8px;border-radius:99px;background:#ffffff12;border:1px solid #ffffff20;overflow:hidden}
+.bar i{display:block;width:12%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#8459e9,#50cfff,#d9b7ff);box-shadow:0 0 18px #8b6cff;transition:width .35s}
+.version{margin-top:9px;font-size:10px;color:#a89cbd}
+#enter{display:none;margin:20px auto 0;border:1px solid #d8baff88;background:linear-gradient(#744bc5,#3e2679);color:white;border-radius:14px;padding:12px 28px;font-weight:950;box-shadow:0 8px 28px #0008, inset 0 1px #fff5;cursor:pointer}
+#rotate{display:none;position:fixed;inset:0;z-index:40;background:#080511ee;place-items:center;text-align:center;padding:28px}
+#rotate .phone{font-size:58px;animation:turn 1.5s ease-in-out infinite alternate}
+@keyframes turn{to{transform:rotate(90deg)}}
+#rotate b{display:block;font-size:21px;margin:18px 0 7px}
+#rotate span{color:#bdb1d0;font-size:13px}
+@media(orientation:portrait){#rotate{display:grid}}
+</style>
+</head>
+<body>
+<iframe id="gameFrame" allow="fullscreen; autoplay"></iframe>
+<div id="splash">
+ <div class="loadbox">
+  <div class="crystal"></div>
+  <div class="logo">NERDORA<span>CHIBI RAIDERS</span></div>
+  <div class="status" id="status">Verificando a versão mais recente…</div>
+  <div class="bar"><i id="progress"></i></div>
+  <div class="version" id="versionLabel">Conectando ao Nerdora Update</div>
+  <button id="enter">ENTRAR NO JOGO</button>
+ </div>
+</div>
+<div id="rotate"><div><div class="phone">📱</div><b>Modo paisagem</b><span>Gire o celular para continuar. O jogo foi projetado para tela horizontal.</span></div></div>
+<script>
+const VERSION_URL="https://raw.githubusercontent.com/pereiradanielc54-blip/Nerdora-player/chibi-raiders-live/version.json";
+const GITHACK_BASE="https://raw.githack.com/pereiradanielc54-blip/Nerdora-player/chibi-raiders-live/";
+const frame=document.getElementById("gameFrame"), splash=document.getElementById("splash"), statusEl=document.getElementById("status"), progress=document.getElementById("progress"), versionLabel=document.getElementById("versionLabel"), enter=document.getElementById("enter");
+let manifest=null, ready=false, currentVersion="";
+function pct(n){progress.style.width=n+"%"}
+async function requestLandscape(){
+ try{if(document.documentElement.requestFullscreen&&!document.fullscreenElement) await document.documentElement.requestFullscreen({navigationUI:"hide"})}catch(_){}
+ try{if(screen.orientation&&screen.orientation.lock) await screen.orientation.lock("landscape")}catch(_){}
+}
+function canEnter(){return matchMedia("(orientation: landscape)").matches || innerWidth>innerHeight}
+function reveal(){
+ if(!ready||!canEnter()) return;
+ splash.style.display="none"; frame.classList.add("on");
+}
+async function loadLatest(force=false){
+ try{
+   pct(18); statusEl.textContent="Consultando atualização…";
+   const r=await fetch(VERSION_URL+"?t="+Date.now(),{cache:"no-store"});
+   if(!r.ok) throw new Error("version");
+   manifest=await r.json(); currentVersion=manifest.version||"";
+   const old=localStorage.getItem("nerdora_chibi_launcher_version");
+   if(old&&old!==currentVersion){statusEl.textContent="Nova versão "+currentVersion+" encontrada. Atualizando…";pct(45)}
+   else{statusEl.textContent="Carregando Nerdora City…";pct(45)}
+   versionLabel.textContent="Versão "+currentVersion+" • atualização automática ativa";
+   const src=GITHACK_BASE+manifest.entry;
+   frame.onload=()=>{pct(100);statusEl.textContent="Pronto para jogar";ready=true;enter.style.display="inline-block";localStorage.setItem("nerdora_chibi_launcher_version",currentVersion);if(canEnter()) setTimeout(()=>enter.focus(),150)};
+   frame.src=src;
+ }catch(e){
+   pct(100);statusEl.textContent="Não foi possível verificar a atualização.";
+   versionLabel.textContent="Verifique sua conexão e tente novamente.";
+   enter.textContent="TENTAR NOVAMENTE";enter.style.display="inline-block";
+ }
+}
+enter.addEventListener("click",async()=>{if(!ready){enter.style.display="none";pct(10);await loadLatest(true);return}await requestLandscape();setTimeout(reveal,120)});
+addEventListener("orientationchange",()=>setTimeout(reveal,250));
+addEventListener("resize",reveal);
+document.addEventListener("visibilitychange",async()=>{if(document.hidden||!manifest)return;try{const r=await fetch(VERSION_URL+"?t="+Date.now(),{cache:"no-store"});const v=await r.json();if(v.version&&v.version!==currentVersion){splash.style.display="grid";frame.classList.remove("on");ready=false;enter.style.display="none";pct(15);statusEl.textContent="Nova versão detectada…";await loadLatest(true)}}catch(_){}});
+setInterval(async()=>{if(!manifest)return;try{const r=await fetch(VERSION_URL+"?t="+Date.now(),{cache:"no-store"});const v=await r.json();if(v.version&&v.version!==currentVersion) location.reload()}catch(_){}},60000);
+loadLatest();
+</script>
+</body>
+</html>
