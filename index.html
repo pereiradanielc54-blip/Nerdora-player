@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" href="./manifest.webmanifest">
+<link rel="manifest" href="./manifest.webmanifest?v=9.1.1">
 <title>Nerdora Chibi Raiders</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -30,8 +30,8 @@ linear-gradient(135deg,#130726,#05030b);overflow:hidden}
 .bar{height:8px;border-radius:99px;background:#ffffff12;border:1px solid #ffffff20;overflow:hidden}
 .bar i{display:block;width:12%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#8459e9,#50cfff,#d9b7ff);box-shadow:0 0 18px #8b6cff;transition:width .35s}
 .version{margin-top:9px;font-size:10px;color:#a89cbd}
-#enter{display:none;margin:20px auto 0;border:1px solid #d8baff88;background:linear-gradient(#744bc5,#3e2679);color:white;border-radius:14px;padding:12px 28px;font-weight:950;box-shadow:0 8px 28px #0008, inset 0 1px #fff5;cursor:pointer}
-#rotate{display:none;position:fixed;inset:0;z-index:40;background:#080511ee;place-items:center;text-align:center;padding:28px}
+#enter,#installApp{display:none;margin:20px auto 0;border:1px solid #d8baff88;background:linear-gradient(#744bc5,#3e2679);color:white;border-radius:14px;padding:12px 28px;font-weight:950;box-shadow:0 8px 28px #0008, inset 0 1px #fff5;cursor:pointer}
+#installApp{margin-left:8px;background:linear-gradient(#2b8fba,#185f86);border:1px solid #86ddff88;color:#fff;border-radius:14px;padding:12px 22px;font-weight:950;box-shadow:0 8px 28px #0008,inset 0 1px #fff5;cursor:pointer}\n#rotate{display:none;position:fixed;inset:0;z-index:40;background:#080511ee;place-items:center;text-align:center;padding:28px}
 #rotate .phone{font-size:58px;animation:turn 1.5s ease-in-out infinite alternate}
 @keyframes turn{to{transform:rotate(90deg)}}
 #rotate b{display:block;font-size:21px;margin:18px 0 7px}
@@ -48,16 +48,46 @@ linear-gradient(135deg,#130726,#05030b);overflow:hidden}
   <div class="status" id="status">Verificando a versão mais recente…</div>
   <div class="bar"><i id="progress"></i></div>
   <div class="version" id="versionLabel">Conectando ao Nerdora Update</div>
-  <button id="enter">ENTRAR NO JOGO</button>
+  <button id="enter">ENTRAR NO JOGO</button><button id="installApp">INSTALAR APP</button>
  </div>
 </div>
 <div id="rotate"><div><div class="phone">📱</div><b>Modo paisagem</b><span>Gire o celular para continuar. O jogo foi projetado para tela horizontal.</span></div></div>
 <script>
 const VERSION_URL="https://raw.githubusercontent.com/pereiradanielc54-blip/Nerdora-player/chibi-raiders-live/version.json";
 const GITHACK_BASE="https://raw.githack.com/pereiradanielc54-blip/Nerdora-player/chibi-raiders-live/";
-const frame=document.getElementById("gameFrame"), splash=document.getElementById("splash"), statusEl=document.getElementById("status"), progress=document.getElementById("progress"), versionLabel=document.getElementById("versionLabel"), enter=document.getElementById("enter");
+const frame=document.getElementById("gameFrame"), splash=document.getElementById("splash"), statusEl=document.getElementById("status"), progress=document.getElementById("progress"), versionLabel=document.getElementById("versionLabel"), enter=document.getElementById("enter"), installApp=document.getElementById("installApp");\nlet deferredInstallPrompt=null;
 let manifest=null, ready=false, currentVersion="";
 function pct(n){progress.style.width=n+"%"}
+function isStandalone(){
+ return matchMedia("(display-mode: standalone)").matches || matchMedia("(display-mode: fullscreen)").matches || navigator.standalone===true;
+}
+window.addEventListener("beforeinstallprompt",e=>{
+ e.preventDefault();
+ deferredInstallPrompt=e;
+ if(!isStandalone()) installApp.style.display="inline-block";
+});
+window.addEventListener("appinstalled",()=>{
+ deferredInstallPrompt=null;
+ installApp.style.display="none";
+ localStorage.setItem("nerdora_chibi_installed","1");
+});
+installApp.addEventListener("click",async()=>{
+ if(isStandalone()){installApp.style.display="none";return;}
+ if(!deferredInstallPrompt){
+   statusEl.textContent="Instalação ainda não liberada pelo navegador. Atualize esta página no Chrome.";
+   return;
+ }
+ deferredInstallPrompt.prompt();
+ const choice=await deferredInstallPrompt.userChoice;
+ if(choice.outcome==="accepted"){
+   installApp.style.display="none";
+   statusEl.textContent="Instalação iniciada.";
+ }
+ deferredInstallPrompt=null;
+});
+if("serviceWorker" in navigator){
+ addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=9.1.1",{scope:"./"}).catch(()=>{}));
+}
 async function requestLandscape(){
  try{if(document.documentElement.requestFullscreen&&!document.fullscreenElement) await document.documentElement.requestFullscreen({navigationUI:"hide"})}catch(_){}
  try{if(screen.orientation&&screen.orientation.lock) await screen.orientation.lock("landscape")}catch(_){}
@@ -76,7 +106,7 @@ async function loadLatest(force=false){
    const old=localStorage.getItem("nerdora_chibi_launcher_version");
    if(old&&old!==currentVersion){statusEl.textContent="Nova versão "+currentVersion+" encontrada. Atualizando…";pct(45)}
    else{statusEl.textContent="Carregando Nerdora City…";pct(45)}
-   versionLabel.textContent="Versão "+currentVersion+" • atualização automática ativa";
+   versionLabel.textContent="Versão "+currentVersion+" • atualização automática ativa"; if(isStandalone()) installApp.style.display="none";
    const src=GITHACK_BASE+manifest.entry;
    frame.onload=()=>{pct(100);statusEl.textContent="Pronto para jogar";ready=true;enter.style.display="inline-block";localStorage.setItem("nerdora_chibi_launcher_version",currentVersion);if(canEnter()) setTimeout(()=>enter.focus(),150)};
    frame.src=src;
