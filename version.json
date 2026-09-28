@@ -1,10 +1,10 @@
 {
-  "version": "9.1.1",
-  "build": "2026-09-28.3",
-  "entry": "builds/v9.1.1.html",
+  "version": "9.1.2",
+  "build": "2026-09-28.4",
+  "entry": "builds/v9.1.2.html",
   "channel": "development",
   "title": "Nerdora Chibi Raiders",
   "phase": 5,
-  "updatedAt": "2026-09-28T19:52:00-03:00",
-  "notes": "Correção definitiva do loop de atualização: build v9.1.1 sincronizado com version.json."
+  "updatedAt": "2026-09-28T20:05:00-03:00",
+  "notes": "Correção do travamento do launcher: arquivos same-origin, timeout, fallback seguro e sem loop interno."
 }
