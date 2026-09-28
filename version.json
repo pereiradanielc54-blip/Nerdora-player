@@ -1,10 +1,10 @@
 {
-  "version": "9.1.1",
-  "build": "2026-09-28.2",
-  "entry": "builds/v9.1.0.html",
+  "version": "9.1.2",
+  "build": "2026-09-28.3",
+  "entry": "builds/v9.1.2.html",
   "channel": "development",
   "title": "Nerdora Chibi Raiders",
   "phase": 5,
-  "updatedAt": "2026-09-28T19:45:00-03:00",
-  "notes": "Correção da instalação PWA: ID exclusivo, manifesto próprio, service worker e prompt real do Android/Chrome."
+  "updatedAt": "2026-09-28T19:52:00-03:00",
+  "notes": "Hotfix do loop de atualização. O launcher agora é a única fonte de atualização do jogo."
 }
