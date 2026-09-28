@@ -1,0 +1,10 @@
+{
+  "name": "Nerdora Chibi Raiders",
+  "short_name": "Chibi Raiders",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#080511",
+  "theme_color": "#16082c"
+}
