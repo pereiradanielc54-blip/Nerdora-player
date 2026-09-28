@@ -7,31 +7,33 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" href="./manifest.webmanifest?v=9.1.1">
+<link rel="manifest" href="./manifest.webmanifest?v=9.1.2">
+<link rel="icon" href="./icon.svg">
 <title>Nerdora Chibi Raiders</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080511;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#fff}
-#gameFrame{position:fixed;inset:0;width:100%;height:100%;border:0;background:#080511;visibility:hidden;opacity:0;transition:opacity .35s}
+#gameFrame{position:fixed;inset:0;width:100%;height:100%;border:0;background:#080511;visibility:hidden;opacity:0;transition:opacity .25s}
 #gameFrame.on{visibility:visible;opacity:1}
-#splash{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:
-radial-gradient(circle at 50% 35%,#542b9b 0,rgba(45,20,82,.8) 20%,rgba(12,6,24,.98) 60%),
-linear-gradient(135deg,#130726,#05030b);overflow:hidden}
-#splash:before,#splash:after{content:"";position:absolute;width:48vw;height:48vw;border:1px solid #a974ff33;border-radius:50%;filter:blur(.2px);animation:spin 18s linear infinite}
+#splash{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:radial-gradient(circle at 50% 35%,#542b9b 0,rgba(45,20,82,.8) 20%,rgba(12,6,24,.98) 60%),linear-gradient(135deg,#130726,#05030b);overflow:hidden}
+#splash:before,#splash:after{content:"";position:absolute;width:48vw;height:48vw;border:1px solid #a974ff33;border-radius:50%;animation:spin 18s linear infinite}
 #splash:after{width:32vw;height:32vw;animation-direction:reverse;animation-duration:12s;border-color:#50c8ff33}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loadbox{position:relative;z-index:2;text-align:center;width:min(460px,84vw)}
+.loadbox{position:relative;z-index:2;text-align:center;width:min(720px,84vw)}
 .crystal{width:72px;height:72px;margin:0 auto 18px;position:relative;filter:drop-shadow(0 0 22px #9b68ff)}
 .crystal:before{content:"";position:absolute;inset:5px 16px;background:linear-gradient(135deg,#d5c4ff,#8155e7 45%,#54c7ff);clip-path:polygon(50% 0,100% 38%,70% 100%,30% 100%,0 38%);animation:float 1.6s ease-in-out infinite alternate}
 @keyframes float{to{transform:translateY(-7px) scale(1.03)}}
-.logo{font-size:clamp(24px,4.5vw,44px);font-weight:1000;letter-spacing:.08em;text-shadow:0 3px 18px #000}
-.logo span{display:block;font-size:.35em;letter-spacing:.32em;color:#d5c6f8;margin-top:5px}
-.status{margin:24px 0 10px;font-weight:800;font-size:13px;color:#d7ceeb}
-.bar{height:8px;border-radius:99px;background:#ffffff12;border:1px solid #ffffff20;overflow:hidden}
-.bar i{display:block;width:12%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#8459e9,#50cfff,#d9b7ff);box-shadow:0 0 18px #8b6cff;transition:width .35s}
-.version{margin-top:9px;font-size:10px;color:#a89cbd}
-#enter,#installApp{display:none;margin:20px auto 0;border:1px solid #d8baff88;background:linear-gradient(#744bc5,#3e2679);color:white;border-radius:14px;padding:12px 28px;font-weight:950;box-shadow:0 8px 28px #0008, inset 0 1px #fff5;cursor:pointer}
-#installApp{margin-left:8px;background:linear-gradient(#2b8fba,#185f86);border:1px solid #86ddff88;color:#fff;border-radius:14px;padding:12px 22px;font-weight:950;box-shadow:0 8px 28px #0008,inset 0 1px #fff5;cursor:pointer}\n#rotate{display:none;position:fixed;inset:0;z-index:40;background:#080511ee;place-items:center;text-align:center;padding:28px}
+.logo{font-size:clamp(28px,5vw,64px);font-weight:1000;letter-spacing:.08em;text-shadow:0 3px 18px #000}
+.logo span{display:block;font-size:.28em;letter-spacing:.32em;color:#d5c6f8;margin-top:6px}
+.status{margin:25px 0 12px;font-weight:850;font-size:clamp(13px,1.8vw,20px);color:#ded6ef}
+.bar{height:9px;border-radius:99px;background:#ffffff12;border:1px solid #ffffff20;overflow:hidden}
+.bar i{display:block;width:8%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#8459e9,#50cfff,#d9b7ff);box-shadow:0 0 18px #8b6cff;transition:width .25s}
+.version{margin-top:11px;font-size:12px;color:#a89cbd}
+.actions{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+#enter,#retry,#installApp{display:none;border:1px solid #d8baff88;background:linear-gradient(#744bc5,#3e2679);color:white;border-radius:14px;padding:12px 24px;font-weight:950;box-shadow:0 8px 28px #0008,inset 0 1px #fff5;cursor:pointer}
+#retry{background:linear-gradient(#67424a,#47252d)}
+#installApp{background:linear-gradient(#2b8fba,#185f86);border-color:#86ddff88}
+#rotate{display:none;position:fixed;inset:0;z-index:40;background:#080511ee;place-items:center;text-align:center;padding:28px}
 #rotate .phone{font-size:58px;animation:turn 1.5s ease-in-out infinite alternate}
 @keyframes turn{to{transform:rotate(90deg)}}
 #rotate b{display:block;font-size:21px;margin:18px 0 7px}
@@ -41,87 +43,76 @@ linear-gradient(135deg,#130726,#05030b);overflow:hidden}
 </head>
 <body>
 <iframe id="gameFrame" allow="fullscreen; autoplay"></iframe>
-<div id="splash">
- <div class="loadbox">
-  <div class="crystal"></div>
-  <div class="logo">NERDORA<span>CHIBI RAIDERS</span></div>
-  <div class="status" id="status">Verificando a versão mais recente…</div>
-  <div class="bar"><i id="progress"></i></div>
-  <div class="version" id="versionLabel">Conectando ao Nerdora Update</div>
-  <button id="enter">ENTRAR NO JOGO</button><button id="installApp">INSTALAR APP</button>
- </div>
-</div>
-<div id="rotate"><div><div class="phone">📱</div><b>Modo paisagem</b><span>Gire o celular para continuar. O jogo foi projetado para tela horizontal.</span></div></div>
+<div id="splash"><div class="loadbox">
+ <div class="crystal"></div>
+ <div class="logo">NERDORA<span>CHIBI RAIDERS</span></div>
+ <div class="status" id="status">Preparando o jogo…</div>
+ <div class="bar"><i id="progress"></i></div>
+ <div class="version" id="versionLabel">Inicializando Nerdora Update</div>
+ <div class="actions"><button id="enter">ENTRAR NO JOGO</button><button id="retry">TENTAR NOVAMENTE</button><button id="installApp">INSTALAR APP</button></div>
+</div></div>
+<div id="rotate"><div><div class="phone">📱</div><b>Modo paisagem</b><span>Gire o celular para continuar.</span></div></div>
 <script>
-const VERSION_URL="https://raw.githubusercontent.com/pereiradanielc54-blip/Nerdora-player/chibi-raiders-live/version.json";
-const GITHACK_BASE="https://raw.githack.com/pereiradanielc54-blip/Nerdora-player/chibi-raiders-live/";
-const frame=document.getElementById("gameFrame"), splash=document.getElementById("splash"), statusEl=document.getElementById("status"), progress=document.getElementById("progress"), versionLabel=document.getElementById("versionLabel"), enter=document.getElementById("enter"), installApp=document.getElementById("installApp");\nlet deferredInstallPrompt=null;
-let manifest=null, ready=false, currentVersion="";
+const FALLBACK_ENTRY="./builds/v9.1.2.html";
+const FALLBACK_VERSION="9.1.2";
+const frame=document.getElementById("gameFrame"),splash=document.getElementById("splash"),statusEl=document.getElementById("status"),progress=document.getElementById("progress"),versionLabel=document.getElementById("versionLabel"),enter=document.getElementById("enter"),retry=document.getElementById("retry"),installApp=document.getElementById("installApp");
+let deferredInstallPrompt=null,ready=false,currentVersion=FALLBACK_VERSION,loading=false;
 function pct(n){progress.style.width=n+"%"}
-function isStandalone(){
- return matchMedia("(display-mode: standalone)").matches || matchMedia("(display-mode: fullscreen)").matches || navigator.standalone===true;
-}
-window.addEventListener("beforeinstallprompt",e=>{
- e.preventDefault();
- deferredInstallPrompt=e;
- if(!isStandalone()) installApp.style.display="inline-block";
-});
-window.addEventListener("appinstalled",()=>{
- deferredInstallPrompt=null;
- installApp.style.display="none";
- localStorage.setItem("nerdora_chibi_installed","1");
-});
-installApp.addEventListener("click",async()=>{
- if(isStandalone()){installApp.style.display="none";return;}
- if(!deferredInstallPrompt){
-   statusEl.textContent="Instalação ainda não liberada pelo navegador. Atualize esta página no Chrome.";
-   return;
- }
- deferredInstallPrompt.prompt();
- const choice=await deferredInstallPrompt.userChoice;
- if(choice.outcome==="accepted"){
-   installApp.style.display="none";
-   statusEl.textContent="Instalação iniciada.";
- }
- deferredInstallPrompt=null;
-});
-if("serviceWorker" in navigator){
- addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=9.1.1",{scope:"./"}).catch(()=>{}));
-}
+function isLandscape(){return innerWidth>innerHeight||matchMedia("(orientation:landscape)").matches}
+function isStandalone(){return matchMedia("(display-mode:standalone)").matches||matchMedia("(display-mode:fullscreen)").matches||navigator.standalone===true}
 async function requestLandscape(){
- try{if(document.documentElement.requestFullscreen&&!document.fullscreenElement) await document.documentElement.requestFullscreen({navigationUI:"hide"})}catch(_){}
- try{if(screen.orientation&&screen.orientation.lock) await screen.orientation.lock("landscape")}catch(_){}
+ try{if(document.documentElement.requestFullscreen&&!document.fullscreenElement)await document.documentElement.requestFullscreen({navigationUI:"hide"})}catch(_){}
+ try{if(screen.orientation?.lock)await screen.orientation.lock("landscape")}catch(_){}
 }
-function canEnter(){return matchMedia("(orientation: landscape)").matches || innerWidth>innerHeight}
-function reveal(){
- if(!ready||!canEnter()) return;
- splash.style.display="none"; frame.classList.add("on");
+function showGame(){if(!ready||!isLandscape())return;splash.style.display="none";frame.classList.add("on")}
+function withTimeout(p,ms){return Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),ms))])}
+async function getManifest(){
+ const r=await withTimeout(fetch("./version.json?t="+Date.now(),{cache:"no-store"}),4000);
+ if(!r.ok)throw new Error("version "+r.status);
+ return r.json();
 }
-async function loadLatest(force=false){
+function loadEntry(entry,version){
+ pct(58);statusEl.textContent="Carregando Nerdora City…";versionLabel.textContent="Versão "+version;
+ let settled=false;
+ const timeout=setTimeout(()=>{
+   if(settled)return;
+   statusEl.textContent="A conexão demorou. Abrindo versão segura…";
+   frame.src=FALLBACK_ENTRY+"?safe=1&t="+Date.now();
+ },8000);
+ frame.onload=()=>{
+   settled=true;clearTimeout(timeout);pct(100);statusEl.textContent="Pronto para jogar";ready=true;enter.style.display="inline-block";retry.style.display="none";
+   localStorage.setItem("nerdora_chibi_launcher_version",version);
+ };
+ frame.onerror=()=>{
+   settled=true;clearTimeout(timeout);statusEl.textContent="Falha ao abrir o jogo.";retry.style.display="inline-block";
+ };
+ frame.src=entry+(entry.includes("?")?"&":"?")+"t="+Date.now();
+}
+async function boot(){
+ if(loading)return;
+ loading=true;ready=false;retry.style.display="none";enter.style.display="none";pct(12);
  try{
-   pct(18); statusEl.textContent="Consultando atualização…";
-   const r=await fetch(VERSION_URL+"?t="+Date.now(),{cache:"no-store"});
-   if(!r.ok) throw new Error("version");
-   manifest=await r.json(); currentVersion=manifest.version||"";
-   const old=localStorage.getItem("nerdora_chibi_launcher_version");
-   if(old&&old!==currentVersion){statusEl.textContent="Nova versão "+currentVersion+" encontrada. Atualizando…";pct(45)}
-   else{statusEl.textContent="Carregando Nerdora City…";pct(45)}
-   versionLabel.textContent="Versão "+currentVersion+" • atualização automática ativa"; if(isStandalone()) installApp.style.display="none";
-   const src=GITHACK_BASE+manifest.entry;
-   frame.onload=()=>{pct(100);statusEl.textContent="Pronto para jogar";ready=true;enter.style.display="inline-block";localStorage.setItem("nerdora_chibi_launcher_version",currentVersion);if(canEnter()) setTimeout(()=>enter.focus(),150)};
-   frame.src=src;
+   statusEl.textContent="Verificando a versão mais recente…";
+   const v=await getManifest();
+   currentVersion=v.version||FALLBACK_VERSION;
+   pct(35);
+   statusEl.textContent="Versão atual encontrada.";
+   loadEntry("./"+(v.entry||"builds/v9.1.2.html").replace(/^\.\//,""),currentVersion);
  }catch(e){
-   pct(100);statusEl.textContent="Não foi possível verificar a atualização.";
-   versionLabel.textContent="Verifique sua conexão e tente novamente.";
-   enter.textContent="TENTAR NOVAMENTE";enter.style.display="inline-block";
- }
+   currentVersion=FALLBACK_VERSION;
+   statusEl.textContent="Atualização indisponível. Abrindo versão segura…";
+   versionLabel.textContent="Modo seguro • v"+FALLBACK_VERSION;
+   loadEntry(FALLBACK_ENTRY,currentVersion);
+ }finally{loading=false}
 }
-enter.addEventListener("click",async()=>{if(!ready){enter.style.display="none";pct(10);await loadLatest(true);return}await requestLandscape();setTimeout(reveal,120)});
-addEventListener("orientationchange",()=>setTimeout(reveal,250));
-addEventListener("resize",reveal);
-document.addEventListener("visibilitychange",async()=>{if(document.hidden||!manifest)return;try{const r=await fetch(VERSION_URL+"?t="+Date.now(),{cache:"no-store"});const v=await r.json();if(v.version&&v.version!==currentVersion){splash.style.display="grid";frame.classList.remove("on");ready=false;enter.style.display="none";pct(15);statusEl.textContent="Nova versão detectada…";await loadLatest(true)}}catch(_){}});
-setInterval(async()=>{if(!manifest)return;try{const r=await fetch(VERSION_URL+"?t="+Date.now(),{cache:"no-store"});const v=await r.json();if(v.version&&v.version!==currentVersion) location.reload()}catch(_){}},60000);
-loadLatest();
+enter.onclick=async()=>{await requestLandscape();showGame()};
+retry.onclick=()=>{loading=false;boot()};
+addEventListener("orientationchange",()=>setTimeout(showGame,250));
+addEventListener("resize",showGame);
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e;if(!isStandalone())installApp.style.display="inline-block"});
+installApp.onclick=async()=>{if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;installApp.style.display="none"};
+window.addEventListener("appinstalled",()=>{installApp.style.display="none";deferredInstallPrompt=null});
+if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=9.1.2",{scope:"./"}).catch(()=>{}));
+boot();
 </script>
-</body>
-</html>
+</body></html>
