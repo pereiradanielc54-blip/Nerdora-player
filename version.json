@@ -1,0 +1,10 @@
+{
+  "version": "9.1.0",
+  "build": "2026-09-28.1",
+  "entry": "builds/v9.1.0.html",
+  "channel": "development",
+  "title": "Nerdora Chibi Raiders",
+  "phase": 5,
+  "updatedAt": "2026-09-28T21:45:00-03:00",
+  "notes": "Nerdora City online, atualização automática e modo paisagem."
+}
