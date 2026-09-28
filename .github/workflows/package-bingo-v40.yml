@@ -1,0 +1,23 @@
+name: Package Bingo Nerdora v40
+on:
+  push:
+    branches:
+      - package-bingo-v40
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact v40 integration branch
+        uses: actions/checkout@v4
+        with:
+          ref: bingo-nerdora-v40-nerdora
+      - name: Build source zip
+        run: |
+          cd bingo-nerdora
+          zip -r ../Bingo-Nerdora-v40-para-Nerdora.zip .
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Bingo-Nerdora-v40-para-Nerdora
+          path: Bingo-Nerdora-v40-para-Nerdora.zip
+          if-no-files-found: error
