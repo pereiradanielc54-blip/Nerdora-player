@@ -1,10 +1,10 @@
 {
-  "version": "9.1.0",
-  "build": "2026-09-28.1",
+  "version": "9.1.1",
+  "build": "2026-09-28.2",
   "entry": "builds/v9.1.0.html",
   "channel": "development",
   "title": "Nerdora Chibi Raiders",
   "phase": 5,
-  "updatedAt": "2026-09-28T21:45:00-03:00",
-  "notes": "Nerdora City online, atualização automática e modo paisagem."
+  "updatedAt": "2026-09-28T19:45:00-03:00",
+  "notes": "Correção da instalação PWA: ID exclusivo, manifesto próprio, service worker e prompt real do Android/Chrome."
 }
