@@ -1,10 +1,10 @@
 {
-  "version": "9.1.2",
-  "build": "2026-09-28.4",
-  "entry": "builds/v9.1.2.html",
+  "version": "9.2.0",
+  "build": "2026-09-28.3",
+  "entry": "builds/v9.2.0.html",
   "channel": "development",
   "title": "Nerdora Chibi Raiders",
-  "phase": 5,
-  "updatedAt": "2026-09-28T20:05:00-03:00",
-  "notes": "Correção do travamento do launcher: arquivos same-origin, timeout, fallback seguro e sem loop interno."
+  "phase": "5.2",
+  "updatedAt": "2026-09-28T20:10:00-03:00",
+  "notes": "FASE 5.2: heróis menores e espaçados na Nerdora City; nova tela Hero Hall com roster lateral, arte central, equipamentos, atributos e progressão."
 }
