@@ -1,10 +1,10 @@
 {
-  "version": "9.2.1",
-  "build": "2026-09-28.4",
-  "entry": "builds/v9.2.1.html",
+  "version": "9.3.0",
+  "build": "2026-09-28.5",
+  "entry": "builds/v9.3.0.html",
   "channel": "development",
   "title": "Nerdora Chibi Raiders",
-  "phase": "5.2",
-  "updatedAt": "2026-09-28T20:28:00-03:00",
-  "notes": "FASE 5.2 corrigida: novo Salão dos Heróis publicado, com roster lateral, herói central, equipamentos, atributos e abas; personagens do lobby menores e espaçados."
+  "phase": "5.2.5",
+  "updatedAt": "2026-09-28T23:07:00-03:00",
+  "notes": "FASE 5.2.5: 40 heróis com kits exclusivos, efeitos de 3★/5★/6★, Despertar I–VI específico, Ultimates evolutivas, funções táticas, 12 sinergias, combate integrado, balanceamento 1.0 e prévia Antes → Depois."
 }
