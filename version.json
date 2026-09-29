@@ -1,10 +1,10 @@
 {
-  "version": "9.6.1",
-  "build": "2026-09-29.3",
-  "entry": "builds/v9.6.1.html",
+  "version": "9.7.2",
+  "build": "2026-09-29.4",
+  "entry": "builds/v9.7.2.html",
   "channel": "development",
   "title": "Nerdora Chibi Raiders",
-  "phase": "5.6.1",
-  "updatedAt": "2026-09-29T10:21:00-03:00",
-  "notes": "FASE 5.6.1 validada: migração do save 5.4.1 para Runas/Emblemas/Forja/Presets preservada; Torre, Arena, Boss e Campanha testados; 48/48 verificações aprovadas; correção para preservar forgeDust=0."
+  "phase": "5.7.2",
+  "updatedAt": "2026-09-29T11:50:00-03:00",
+  "notes": "FASE 5.7.2: Sistema Angelical publicado; Energia Angelical agora carrega uma única vez por rodada concluída, não por ataque. Angels normais +220/rodada, Zephyra +260/rodada; AUTO validado para disparar somente em 1000."
 }
