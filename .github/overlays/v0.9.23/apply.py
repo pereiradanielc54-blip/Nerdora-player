@@ -303,14 +303,14 @@ text = text.replace(
 
 old_device_sig = """private fun DeviceFileRow(
     file: File, mime: String, favorite: Boolean, isTrash: Boolean, onClick: () -> Unit, onFavorite: () -> Unit,
-    onRename: () -> Unit, onCopy: () -> Unit, onMove: () -> Unit, onShare: () -> Unit, onTrash: () -> Unit,
+    onRename: () -> Unit, onCopy: () -> Unit, onMove: () -> Unit, onShare: () -> Unit, onHide: () -> Unit, onTrash: () -> Unit,
     onRestore: () -> Unit, onPermanentDelete: () -> Unit, onDetails: () -> Unit
 ) {
 """
 new_device_sig = """private fun DeviceFileRow(
     file: File, mime: String, favorite: Boolean, isTrash: Boolean, selected: Boolean, onSelect: () -> Unit,
     onClick: () -> Unit, onFavorite: () -> Unit,
-    onRename: () -> Unit, onCopy: () -> Unit, onMove: () -> Unit, onShare: () -> Unit, onTrash: () -> Unit,
+    onRename: () -> Unit, onCopy: () -> Unit, onMove: () -> Unit, onShare: () -> Unit, onHide: () -> Unit, onTrash: () -> Unit,
     onRestore: () -> Unit, onPermanentDelete: () -> Unit, onDetails: () -> Unit
 ) {
 """
@@ -333,13 +333,15 @@ text = text.replace(device_anchor, device_insert, 1)
 
 old_raw_sig = """private fun RawFolderRow(
     file: File, favorite: Boolean, onClick: () -> Unit, onFavorite: () -> Unit, onRename: () -> Unit,
-    onCopy: () -> Unit, onMove: () -> Unit, onShare: () -> Unit, onTrash: () -> Unit, onDetails: () -> Unit
+    onCopy: () -> Unit, onMove: () -> Unit, onShare: () -> Unit, onHide: () -> Unit, onTrash: () -> Unit,
+    onPermanentDelete: () -> Unit, onDetails: () -> Unit
 ) {
 """
 new_raw_sig = """private fun RawFolderRow(
     file: File, favorite: Boolean, selected: Boolean, onSelect: () -> Unit,
     onClick: () -> Unit, onFavorite: () -> Unit, onRename: () -> Unit,
-    onCopy: () -> Unit, onMove: () -> Unit, onShare: () -> Unit, onTrash: () -> Unit, onDetails: () -> Unit
+    onCopy: () -> Unit, onMove: () -> Unit, onShare: () -> Unit, onHide: () -> Unit, onTrash: () -> Unit,
+    onPermanentDelete: () -> Unit, onDetails: () -> Unit
 ) {
 """
 assert old_raw_sig in text, "assinatura RawFolderRow não encontrada"
