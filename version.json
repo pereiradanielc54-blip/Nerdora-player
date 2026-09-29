@@ -1,10 +1,10 @@
 {
-  "version": "9.4.1",
-  "build": "2026-09-29.1",
-  "entry": "builds/v9.4.1.html",
+  "version": "9.5.2",
+  "build": "2026-09-29.2",
+  "entry": "builds/v9.5.2.html",
   "channel": "development",
   "title": "Nerdora Chibi Raiders",
-  "phase": "5.3.1",
-  "updatedAt": "2026-09-29T00:30:00-03:00",
-  "notes": "FASE 5.3.1 validada: fluxo completo testado; heróis da Nerdora City sem fundo branco; arte da ficha enquadrada sem corte; Habilidades e Campanha corrigidas; Formação e batalha validadas."
+  "phase": "5.4.1",
+  "updatedAt": "2026-09-29T08:05:00-03:00",
+  "notes": "FASE 5.4.1 validada e publicada: inventário aprofundado, equipamentos por herói, ordenação, comparação Antes → Depois, drops reais por Campanha/Elite/Boss, conjuntos 2/4/6 no combate e correção do drop do Chefe Épico."
 }
