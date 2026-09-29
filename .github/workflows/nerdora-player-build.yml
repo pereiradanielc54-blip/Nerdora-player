@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.23 Gerenciador Pro Fase 1
+name: Nerdora Player - Build v0.9.24 Gerenciador Pro Fase 1.1
 
 on:
   workflow_dispatch:
@@ -1834,6 +1834,32 @@ jobs:
           grep -q 'FOREGROUND_SERVICE_DATA_SYNC' extracted_project/app/src/main/AndroidManifest.xml
           echo "v0.9.23: Gerenciador Pro Fase 1 aplicado."
 
+      - name: Aplicar Gerenciador Pro Fase 1.1 v0.9.24
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp .github/overlays/v0.9.24/FileOperationEngine.kt extracted_project/app/src/main/java/com/nerdora/player/FileOperationEngine.kt
+          cp .github/overlays/v0.9.24/FileOperationService.kt extracted_project/app/src/main/java/com/nerdora/player/FileOperationService.kt
+          cp .github/overlays/v0.9.24/FileBulkOperations.kt extracted_project/app/src/main/java/com/nerdora/player/FileBulkOperations.kt
+          cp .github/overlays/v0.9.24/BatchRenameEngine.kt extracted_project/app/src/main/java/com/nerdora/player/BatchRenameEngine.kt
+          cp .github/overlays/v0.9.24/FileManagerProUi.kt extracted_project/app/src/main/java/com/nerdora/player/ui/FileManagerProUi.kt
+          python3 .github/overlays/v0.9.24/apply.py
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 84/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.24"/' extracted_project/app/build.gradle.kts
+
+          grep -q 'versionName = "0.9.24"' extracted_project/app/build.gradle.kts
+          grep -q 'speedBytesPerSec' extracted_project/app/src/main/java/com/nerdora/player/FileOperationEngine.kt
+          grep -q 'FileOperationHistoryEntry' extracted_project/app/src/main/java/com/nerdora/player/FileOperationEngine.kt
+          grep -q 'enum class FileConflictPolicy' extracted_project/app/src/main/java/com/nerdora/player/FileOperationEngine.kt
+          grep -q 'object FileBulkOperations' extracted_project/app/src/main/java/com/nerdora/player/FileBulkOperations.kt
+          grep -q 'Intervalo ativo' extracted_project/app/src/main/java/com/nerdora/player/ui/FileManagerProUi.kt
+          grep -q 'FileConflictDialog' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'FileOperationCenterDialog' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'enqueueBulk' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          echo "v0.9.24: Gerenciador Pro Fase 1.1 aplicado."
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
@@ -1907,7 +1933,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.23"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.24"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -1979,7 +2005,15 @@ jobs:
           grep -q 'ChecksumDialog' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           grep -q 'DuplicateHashEngine.findDuplicatePaths' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           grep -q 'android:name=".FileOperationService"' app/src/main/AndroidManifest.xml
-          echo "Nerdora Player v0.9.23 validado."
+          test -f app/src/main/java/com/nerdora/player/FileBulkOperations.kt
+          grep -q 'speedBytesPerSec' app/src/main/java/com/nerdora/player/FileOperationEngine.kt
+          grep -q 'FileOperationHistoryEntry' app/src/main/java/com/nerdora/player/FileOperationEngine.kt
+          grep -q 'FileConflictPolicy.REPLACE' app/src/main/java/com/nerdora/player/FileOperationEngine.kt
+          grep -q 'FileOperationCenterDialog' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'BulkFileActionDialog' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'rangeSelectionMode' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'Conflitos encontrados' app/src/main/java/com/nerdora/player/ui/FileManagerProUi.kt
+          echo "Nerdora Player v0.9.24 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -2028,7 +2062,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.23 assinada
+      - name: Publicar Release pública v0.9.24 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -2037,8 +2071,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Gerenciador Pro Fase 1"
-          NOTES="Nerdora Player v0.9.23: inicia o Gerenciador Pro Fase 1. Copiar e mover passam a usar FileOperationEngine + serviço foreground com fila persistente, progresso e cancelamento por notificação; Arquivos ganha seleção múltipla e Selecionar todos; Batch Rename oferece prefixo, sufixo, localizar/substituir, numeração e prévia; Checksum calcula MD5, SHA-1 e SHA-256; e Duplicados deixa de usar apenas tamanho/extensão para confirmar conteúdo idêntico por SHA-256. Mantém toda a organização, Cofre, Lixeira, SAF, Word/Excel e players das versões anteriores."
+          TITLE="Nerdora Player v${VERSION} — Gerenciador Pro Fase 1.1"
+          NOTES="Nerdora Player v0.9.24: polimento da Fase 1 do Gerenciador Pro. A fila passa a mostrar velocidade, bytes processados e tempo restante; operações concluídas, canceladas e com falha entram em histórico persistente; a seleção múltipla ganha seleção por intervalo; Cofre, Lixeira e exclusão definitiva podem atuar sobre vários itens em segundo plano; copiar/mover detecta conflitos de nome antes de iniciar e permite manter ambos, substituir com cópia temporária segura ou ignorar conflitantes; e o Batch Rename exibe conflitos antes de aplicar. Mantém checksums, duplicados SHA-256, organização, leitores e players existentes."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
