@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.21 Coerência Funcional
+name: Nerdora Player - Build v0.9.22 Organização Base
 
 on:
   workflow_dispatch:
@@ -1784,6 +1784,30 @@ jobs:
           grep -q 'removePrefix' extracted_project/app/src/main/java/com/nerdora/player/UniversalFileIndexCache.kt
           echo "v0.9.21: coerência funcional aplicada."
 
+      - name: Aplicar Organização Base v0.9.22
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp .github/overlays/v0.9.22/HomeScreen.kt extracted_project/app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
+          cp .github/overlays/v0.9.22/LibraryScreen.kt extracted_project/app/src/main/java/com/nerdora/player/ui/LibraryScreen.kt
+          cp .github/overlays/v0.9.22/NerdoraCentralScreen.kt extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraCentralScreen.kt
+          cp .github/overlays/v0.9.22/NerdoraOfficialBottomBar.kt extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
+          cp .github/overlays/v0.9.22/NerdoraPlayerApp.kt extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          python3 .github/overlays/v0.9.22/apply.py
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 82/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.22"/' extracted_project/app/build.gradle.kts
+
+          grep -q 'versionName = "0.9.22"' extracted_project/app/build.gradle.kts
+          grep -q 'OfficialNavItem("SETTINGS", "Ajustes"' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
+          ! grep -q 'OfficialNavItem("PLAYLISTS"' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
+          grep -q 'LibraryMode("PLAYLISTS", "Playlists")' extracted_project/app/src/main/java/com/nerdora/player/ui/LibraryScreen.kt
+          grep -q 'Gerenciar armazenamento' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraCentralScreen.kt
+          grep -q 'Continuar assistindo' extracted_project/app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
+          grep -q 'Locais e organização' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          echo "v0.9.22: organização base aplicada."
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
@@ -1857,7 +1881,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.21"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.22"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -1892,7 +1916,7 @@ jobs:
           test ! -e app/src/main/assets/xlsx_renderer/luckyexcel.umd.js
           test ! -e app/src/main/assets/xlsx_renderer/luckysheet
           test -s app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
-          grep -q 'Sua central de mídia e arquivos' app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
+          grep -q 'Retome sua mídia e acesse o que importa' app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
           ! grep -q 'AppScreen.DOWNLOADS' app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
           grep -q 'nerdoraPress' app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
           grep -q 'nerdoraNavPress' app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
@@ -1913,7 +1937,13 @@ jobs:
           grep -q 'PrivateVaultAudioPlayer' app/src/main/java/com/nerdora/player/ui/MediaViewerScreen.kt
           grep -q 'onOpenFile = ::openPhysicalFile' app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
           grep -q 'Removidos antigos' app/src/main/java/com/nerdora/player/ui/SettingsScreen.kt
-          echo "Nerdora Player v0.9.21 validado."
+          grep -q 'OfficialNavItem("SETTINGS", "Ajustes"' app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
+          ! grep -q 'OfficialNavItem("PLAYLISTS"' app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
+          grep -q 'LibraryMode("PLAYLISTS", "Playlists")' app/src/main/java/com/nerdora/player/ui/LibraryScreen.kt
+          grep -q 'Gerenciar armazenamento' app/src/main/java/com/nerdora/player/ui/NerdoraCentralScreen.kt
+          grep -q 'Acesso rápido' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'Locais e organização' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          echo "Nerdora Player v0.9.22 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -1962,7 +1992,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.21 assinada
+      - name: Publicar Release pública v0.9.22 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -1971,8 +2001,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Coerência Funcional"
-          NOTES="Nerdora Player v0.9.21: elimina incoerências detectadas na auditoria. A seleção múltipla da Biblioteca agora usa Cofre e exclusão físicos; Recentes não mostra mídia falsa; o atalho repetido de Arquivos na Home virou Cofre; a Central Nerdora usa Downloads, Cofre, arquivos grandes e abrir link; a Busca Global abre o arquivo diretamente e oferece Mostrar na pasta; pastas dentro do Cofre podem ser navegadas; áudio do Cofre usa player privado sem mini player global nem histórico/favoritos/playlists; o modo SAF ganha renomear, excluir e Cofre; a lixeira passa a restaurar pastas; e o índice mestre é atualizado após renomear, ocultar, excluir e restaurar."
+          TITLE="Nerdora Player v${VERSION} — Organização Base"
+          NOTES="Nerdora Player v0.9.22: reorganização estrutural antes do Gerenciador Pro. A barra inferior passa a ser Início, Biblioteca, Nerdora, Arquivos e Ajustes; Playlists sai da barra e passa a pertencer à Biblioteca. A Home fica focada em continuar assistindo/ouvindo, recentes, armazenamento e acessos rápidos. O botão N vira uma Central de Ferramentas, sem repetir a Home. Arquivos passa a organizar a entrada em Armazenamento, Acesso rápido, Categorias, Documentos e Locais/organização. Todas as funções da v0.9.21 são preservadas, preparando a base para a Fase 1."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
