@@ -1,10 +1,10 @@
 {
-  "version": "9.5.2",
-  "build": "2026-09-29.2",
-  "entry": "builds/v9.5.2.html",
+  "version": "9.6.1",
+  "build": "2026-09-29.3",
+  "entry": "builds/v9.6.1.html",
   "channel": "development",
   "title": "Nerdora Chibi Raiders",
-  "phase": "5.4.1",
-  "updatedAt": "2026-09-29T08:05:00-03:00",
-  "notes": "FASE 5.4.1 validada e publicada: inventário aprofundado, equipamentos por herói, ordenação, comparação Antes → Depois, drops reais por Campanha/Elite/Boss, conjuntos 2/4/6 no combate e correção do drop do Chefe Épico."
+  "phase": "5.6.1",
+  "updatedAt": "2026-09-29T10:21:00-03:00",
+  "notes": "FASE 5.6.1 validada: migração do save 5.4.1 para Runas/Emblemas/Forja/Presets preservada; Torre, Arena, Boss e Campanha testados; 48/48 verificações aprovadas; correção para preservar forgeDust=0."
 }
