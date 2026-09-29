@@ -8609,7 +8609,7 @@ const NerdoraChibiBridge={
   const cloud=save?.state?save:null;if(!cloud?.state)return false;
   const localScore=p60ProgressScore(state),cloudScore=Number(cloud.score??p60ProgressScore(cloud.state));
   const localSync=Number(state.nerdoraSync?.lastCloudSavedAt||0),cloudTime=Number(cloud.savedAt||0);
-  if(cloudScore<localScore&&localSync<=cloudTime)return false;
+  if(cloudScore<localScore)return false;
   state=mergeState(cloud.state);p57Ensure();p58Ensure();p59Ensure();
   state.nerdoraSync={...(state.nerdoraSync||{}),userId:this.profile?.userId||'',revision:Number(revision||0),lastCloudSavedAt:cloudTime||Date.now(),lastSyncAt:Date.now()};
   localStorage.setItem(SAVE_KEY,JSON.stringify(state));render();return true;
