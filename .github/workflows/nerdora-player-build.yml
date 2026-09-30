@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.27 System Storage Authority
+name: Nerdora Player - Build v0.9.28 Arquivos Responsivos
 
 on:
   workflow_dispatch:
@@ -1847,9 +1847,9 @@ jobs:
           python3 .github/overlays/v0.9.24/apply.py
 
           sed -i -E 's/versionCode = [0-9]+/versionCode = 84/' extracted_project/app/build.gradle.kts
-          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.27"/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.28"/' extracted_project/app/build.gradle.kts
 
-          grep -q 'versionName = "0.9.27"' extracted_project/app/build.gradle.kts
+          grep -q 'versionName = "0.9.28"' extracted_project/app/build.gradle.kts
           grep -q 'speedBytesPerSec' extracted_project/app/src/main/java/com/nerdora/player/FileOperationEngine.kt
           grep -q 'FileOperationHistoryEntry' extracted_project/app/src/main/java/com/nerdora/player/FileOperationEngine.kt
           grep -q 'enum class FileConflictPolicy' extracted_project/app/src/main/java/com/nerdora/player/FileOperationEngine.kt
@@ -1871,9 +1871,9 @@ jobs:
           python3 .github/overlays/v0.9.25/apply.py
 
           sed -i -E 's/versionCode = [0-9]+/versionCode = 85/' extracted_project/app/build.gradle.kts
-          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.27"/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.28"/' extracted_project/app/build.gradle.kts
 
-          grep -q 'versionName = "0.9.27"' extracted_project/app/build.gradle.kts
+          grep -q 'versionName = "0.9.28"' extracted_project/app/build.gradle.kts
           grep -q 'object StorageAnalyzer' extracted_project/app/src/main/java/com/nerdora/player/StorageAnalyzer.kt
           grep -q 'StorageAnalyzerDialog' extracted_project/app/src/main/java/com/nerdora/player/ui/StorageAnalyzerUi.kt
           grep -q 'FileBreadcrumbBar' extracted_project/app/src/main/java/com/nerdora/player/ui/FileNavigationProUi.kt
@@ -1890,9 +1890,9 @@ jobs:
           python3 .github/overlays/v0.9.26/apply.py
 
           sed -i -E 's/versionCode = [0-9]+/versionCode = 86/' extracted_project/app/build.gradle.kts
-          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.27"/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.28"/' extracted_project/app/build.gradle.kts
 
-          grep -q 'versionName = "0.9.27"' extracted_project/app/build.gradle.kts
+          grep -q 'versionName = "0.9.28"' extracted_project/app/build.gradle.kts
           grep -q 'enum class NerdoraIconSize' extracted_project/app/src/main/java/com/nerdora/player/ui/FileNavigationProUi.kt
           grep -q 'FileTabsBar' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           grep -q 'SearchHistoryRow' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
@@ -1910,15 +1910,32 @@ jobs:
           python3 .github/overlays/v0.9.27/apply.py
 
           sed -i -E 's/versionCode = [0-9]+/versionCode = 87/' extracted_project/app/build.gradle.kts
-          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.27"/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.28"/' extracted_project/app/build.gradle.kts
 
-          grep -q 'versionName = "0.9.27"' extracted_project/app/build.gradle.kts
+          grep -q 'versionName = "0.9.28"' extracted_project/app/build.gradle.kts
           grep -q 'object SystemStorageAuthority' extracted_project/app/src/main/java/com/nerdora/player/SystemStorageAuthority.kt
           grep -q 'onPathRenamed' extracted_project/app/src/main/java/com/nerdora/player/RealFileOperations.kt
           grep -q 'onPathMoved' extracted_project/app/src/main/java/com/nerdora/player/FileOperationEngine.kt
           grep -q 'onMovedToTrash' extracted_project/app/src/main/java/com/nerdora/player/FileBulkOperations.kt
           grep -q 'onMovedToVault' extracted_project/app/src/main/java/com/nerdora/player/FileBulkOperations.kt
           echo "v0.9.27: mutações físicas sincronizadas com MediaStore, SAF e índices internos."
+
+      - name: Aplicar correção ANR Arquivos v0.9.28
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 .github/overlays/v0.9.28/apply.py
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 88/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.28"/' extracted_project/app/build.gradle.kts
+
+          grep -q 'versionName = "0.9.28"' extracted_project/app/build.gradle.kts
+          grep -q 'result.sortByDescending' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'firstBatch' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'folderChildren by remember' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'Indexando em segundo plano' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          echo "v0.9.28: tela Arquivos protegida contra ANR durante indexação."
 
       - name: Encontrar projeto Android
         id: android
@@ -1993,7 +2010,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.27"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.28"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -2090,7 +2107,10 @@ jobs:
           grep -q 'DocumentsContract.renameDocument' app/src/main/java/com/nerdora/player/SystemStorageAuthority.kt
           grep -q 'DocumentsContract.deleteDocument' app/src/main/java/com/nerdora/player/SystemStorageAuthority.kt
           grep -q 'DocumentsContract.moveDocument' app/src/main/java/com/nerdora/player/SystemStorageAuthority.kt
-          echo "Nerdora Player v0.9.27 validado."
+          grep -q 'firstBatch' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'withContext(Dispatchers.IO)' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'Indexando em segundo plano' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          echo "Nerdora Player v0.9.28 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -2139,7 +2159,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.27 assinada
+      - name: Publicar Release pública v0.9.28 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -2148,8 +2168,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — System Storage Authority"
-          NOTES="Nerdora Player v0.9.27: consolida o gerenciador como autoridade real do armazenamento. Renomear, mover, copiar e excluir operam sobre o arquivo físico e reconciliam MediaStore e índices internos; Lixeira move fisicamente o item para a área de lixeira; Cofre remove o original do armazenamento público; restauração volta a indexar o arquivo; e a nova camada SAF usa DocumentsContract/DocumentFile para renomear, excluir e mover URIs quando o arquivo vem de provedores de documentos. Mantém o File Explorer Pro da v0.9.26."
+          TITLE="Nerdora Player v${VERSION} — Arquivos Responsivos"
+          NOTES="Nerdora Player v0.9.28: corrige travamento/ANR ao abrir Arquivos. A varredura continua completa, mas ordenação inicial acontece fora da UI; a tela recebe primeiro um lote pequeno e utilizável; a pasta atual é listada e ordenada em Dispatchers.IO; e o índice completo é persistido em background. Mantém a autoridade real de armazenamento da v0.9.27."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
