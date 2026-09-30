@@ -1,10 +1,10 @@
 {
-  "version": "10.1.1",
-  "build": "2026-09-29.5",
-  "entry": "builds/v10.1.1.html",
+  "version": "10.7.0",
+  "build": "2026-09-29.8",
+  "entry": "builds/v10.7.0.html",
   "channel": "development",
   "title": "Nerdora Chibi Raiders",
-  "phase": "6.UI.1.1",
-  "updatedAt": "2026-09-29T14:15:00-03:00",
-  "notes": "FASE 6.UI.1 publicada: novo Design System, interface fixa no viewport, rolagem apenas em painéis necessários e janelas internas. Correção 6.UI.1.1: painel de Heróis restaurado em toda a largura e compactado para telas landscape baixas."
+  "phase": "6.UI.8",
+  "updatedAt": "2026-09-29T22:01:00-03:00",
+  "notes": "FASE 6.UI.8 publicada: combate premium responsivo, HUD de rodada/equipes, cards de HP/Rage, ordem de ação, VFX de impacto/crítico/esquiva/bloqueio, banner de Ultimate e telas de Vitória/Derrota com estatísticas. Inclui as evoluções 6.UI.2 a 6.UI.7 e mantém save/progressão."
 }
