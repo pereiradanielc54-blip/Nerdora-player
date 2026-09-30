@@ -1,4 +1,4 @@
-const CACHE="nerdora-chibi-raiders-pwa-v10.7.0";
+const CACHE="nerdora-chibi-raiders-pwa-v10.7.1";
 self.addEventListener("install",event=>{self.skipWaiting();});
 self.addEventListener("activate",event=>{event.waitUntil((async()=>{for(const key of await caches.keys()){if(key.startsWith("nerdora-chibi-raiders-pwa-"))await caches.delete(key)}await self.clients.claim()})());});
 self.addEventListener("fetch",event=>{
