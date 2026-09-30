@@ -242,7 +242,7 @@ text = text[:r_start] + raw_fn + text[r_end:]
 # --- renderer Grade real nas pastas ---
 def lambda_block(source, token):
     start = source.index(token)
-    brace = source.index("{", start + token.index("{"))
+    brace = source.index("{", start + token.rindex("{"))
     depth = 0
     in_string = False
     escape = False
