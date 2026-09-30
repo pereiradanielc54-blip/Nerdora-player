@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" href="./manifest.webmanifest?v=10.1.1">
+<link rel="manifest" href="./manifest.webmanifest?v=10.7.0">
 <link rel="icon" href="./icon.svg">
 <title>Nerdora Chibi Raiders</title>
 <style>
@@ -53,8 +53,8 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080511;fon
 </div></div>
 <div id="rotate"><div><div class="phone">📱</div><b>Modo paisagem</b><span>Gire o celular para continuar.</span></div></div>
 <script>
-const FALLBACK_ENTRY="./builds/v10.1.1.html";
-const FALLBACK_VERSION="10.1.1";
+const FALLBACK_ENTRY="./builds/v10.7.0.html";
+const FALLBACK_VERSION="10.7.0";
 const frame=document.getElementById("gameFrame"),splash=document.getElementById("splash"),statusEl=document.getElementById("status"),progress=document.getElementById("progress"),versionLabel=document.getElementById("versionLabel"),enter=document.getElementById("enter"),retry=document.getElementById("retry"),installApp=document.getElementById("installApp");
 let deferredInstallPrompt=null,ready=false,currentVersion=FALLBACK_VERSION,loading=false;
 function pct(n){progress.style.width=n+"%"}
@@ -112,7 +112,7 @@ addEventListener("resize",showGame);
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e;if(!isStandalone())installApp.style.display="inline-block"});
 installApp.onclick=async()=>{if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;installApp.style.display="none"};
 window.addEventListener("appinstalled",()=>{installApp.style.display="none";deferredInstallPrompt=null});
-if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=10.1.1",{scope:"./"}).catch(()=>{}));
+if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=10.7.0",{scope:"./"}).catch(()=>{}));
 boot();
 </script>
 </body></html>
