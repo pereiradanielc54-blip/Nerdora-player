@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.25 Storage & Navigation Pro
+name: Nerdora Player - Build v0.9.26 File Explorer Pro
 
 on:
   workflow_dispatch:
@@ -1847,9 +1847,9 @@ jobs:
           python3 .github/overlays/v0.9.24/apply.py
 
           sed -i -E 's/versionCode = [0-9]+/versionCode = 84/' extracted_project/app/build.gradle.kts
-          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.25"/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.26"/' extracted_project/app/build.gradle.kts
 
-          grep -q 'versionName = "0.9.25"' extracted_project/app/build.gradle.kts
+          grep -q 'versionName = "0.9.26"' extracted_project/app/build.gradle.kts
           grep -q 'speedBytesPerSec' extracted_project/app/src/main/java/com/nerdora/player/FileOperationEngine.kt
           grep -q 'FileOperationHistoryEntry' extracted_project/app/src/main/java/com/nerdora/player/FileOperationEngine.kt
           grep -q 'enum class FileConflictPolicy' extracted_project/app/src/main/java/com/nerdora/player/FileOperationEngine.kt
@@ -1871,15 +1871,34 @@ jobs:
           python3 .github/overlays/v0.9.25/apply.py
 
           sed -i -E 's/versionCode = [0-9]+/versionCode = 85/' extracted_project/app/build.gradle.kts
-          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.25"/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.26"/' extracted_project/app/build.gradle.kts
 
-          grep -q 'versionName = "0.9.25"' extracted_project/app/build.gradle.kts
+          grep -q 'versionName = "0.9.26"' extracted_project/app/build.gradle.kts
           grep -q 'object StorageAnalyzer' extracted_project/app/src/main/java/com/nerdora/player/StorageAnalyzer.kt
           grep -q 'StorageAnalyzerDialog' extracted_project/app/src/main/java/com/nerdora/player/ui/StorageAnalyzerUi.kt
           grep -q 'FileBreadcrumbBar' extracted_project/app/src/main/java/com/nerdora/player/ui/FileNavigationProUi.kt
           grep -q 'FileNavigationToolbar' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           grep -q 'showStorageAnalyzer' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           echo "v0.9.25: Storage Analyzer e Navigation Pro aplicados."
+
+      - name: Aplicar File Explorer Pro v0.9.26
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp .github/overlays/v0.9.26/FileNavigationProUi.kt extracted_project/app/src/main/java/com/nerdora/player/ui/FileNavigationProUi.kt
+          python3 .github/overlays/v0.9.26/apply.py
+
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 86/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.26"/' extracted_project/app/build.gradle.kts
+
+          grep -q 'versionName = "0.9.26"' extracted_project/app/build.gradle.kts
+          grep -q 'enum class NerdoraIconSize' extracted_project/app/src/main/java/com/nerdora/player/ui/FileNavigationProUi.kt
+          grep -q 'FileTabsBar' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'SearchHistoryRow' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'onShowInFolder' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'navigationGridColumns' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          echo "v0.9.26: Lista/Grade, tamanho de ícones, abas, Mostrar na pasta e histórico de pesquisa aplicados."
 
       - name: Encontrar projeto Android
         id: android
@@ -1954,7 +1973,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.25"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.26"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -2039,7 +2058,14 @@ jobs:
           test -f app/src/main/java/com/nerdora/player/ui/FileNavigationProUi.kt
           grep -q 'StorageAnalyzerDialog' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           grep -q 'FileBreadcrumbBar' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
-          echo "Nerdora Player v0.9.25 validado."
+          test -f app/src/main/java/com/nerdora/player/ui/FileNavigationProUi.kt
+          grep -q 'NerdoraIconSize' app/src/main/java/com/nerdora/player/ui/FileNavigationProUi.kt
+          grep -q 'FileTabsBar' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'SearchHistoryRow' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'Text("Pasta"' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'shownItems.chunked(gridColumns)' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          grep -q 'selectionCandidates.chunked(gridColumns)' app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
+          echo "Nerdora Player v0.9.26 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -2088,7 +2114,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.25 assinada
+      - name: Publicar Release pública v0.9.26 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -2097,8 +2123,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — Storage & Navigation Pro"
-          NOTES="Nerdora Player v0.9.25: adiciona Storage Analyzer com total/usado/livre, distribuição por categoria, arquivos e pastas grandes, recentes, duplicados confirmados por SHA-256, temporários e downloads duplicados com pré-visualização antes da limpeza e alerta de pouco espaço. A navegação de Arquivos ganha breadcrumb clicável, pastas fixadas, recentes, exibição de ocultos e ordenação por nome, data, tamanho e tipo, preservando a fila profissional da v0.9.24."
+          TITLE="Nerdora Player v${VERSION} — File Explorer Pro"
+          NOTES="Nerdora Player v0.9.26: conclui o bloco de navegação profissional. Lista/Grade passa a renderizar arquivos em múltiplas colunas; o tamanho dos ícones pode ser pequeno, médio ou grande e altera a densidade da grade; abas persistentes mantêm até seis pastas abertas; resultados em lista recebem Mostrar na pasta; e as pesquisas recentes ficam salvas com acesso rápido e opção de limpar histórico. Mantém Storage Analyzer e operações profissionais da v0.9.25."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
