@@ -1,54 +1,5 @@
 from pathlib import Path
 
-p = Path("extracted_project/app/src/main/java/com/nerdora/player/RealFileOperations.kt")
-t = p.read_text(encoding="utf-8")
-
-old = """        LibraryStore.replaceFilePathReferences(context, oldPath, destination.absolutePath)
-        scanChangedPaths(context, listOf(oldPath, destination.absolutePath))
-        return FileOperationResult(true, "Renomeado no armazenamento do celular.", destination)
-"""
-new = """        SystemStorageAuthority.onPathRenamed(context, oldPath, destination)
-        return FileOperationResult(true, "Renomeado no armazenamento do celular e sincronizado com o Android.", destination)
-"""
-assert old in t, "renameReal antigo não encontrado"
-t = t.replace(old, new, 1)
-
-t = t.replace(
-    """        val oldPath = target.absolutePath
-        val success = runCatching {
-""",
-    """        val oldPath = target.absolutePath
-        val wasDirectory = target.isDirectory
-        val success = runCatching {
-""",
-    1
-)
-
-old = """        LibraryStore.removeFilePathReferences(context, oldPath)
-        UniversalFilesStore.forgetTrash(context, oldPath)
-        scanChangedPaths(context, listOf(oldPath))
-        return FileOperationResult(true, "Excluído definitivamente do celular.")
-"""
-new = """        SystemStorageAuthority.onPathDeleted(context, oldPath, wasDirectory)
-        return FileOperationResult(true, "Excluído definitivamente do armazenamento do celular.")
-"""
-assert old in t, "deletePermanently antigo não encontrado"
-t = t.replace(old, new, 1)
-
-old = """    fun scanChangedPaths(context: Context, paths: List<String>) {
-        val clean = paths.filter { it.isNotBlank() }.distinct()
-        if (clean.isEmpty()) return
-        MediaScannerConnection.scanFile(context, clean.toTypedArray(), null, null)
-    }
-"""
-new = """    fun scanChangedPaths(context: Context, paths: List<String>) {
-        SystemStorageAuthority.scanPaths(context, paths)
-    }
-"""
-assert old in t, "scanChangedPaths antigo não encontrado"
-t = t.replace(old, new, 1)
-p.write_text(t, encoding="utf-8")
-
 p = Path("extracted_project/app/src/main/java/com/nerdora/player/FileOperationEngine.kt")
 t = p.read_text(encoding="utf-8")
 old = """    private fun updateAfterMove(context: Context, oldPath: String, destination: File) {
@@ -73,7 +24,7 @@ new = """    private fun updateAfterMove(context: Context, oldPath: String, dest
         SystemStorageAuthority.onPathCopied(context, target)
     }
 """
-assert old in t, "helpers do FileOperationEngine não encontrados"
+assert old in t, "helpers atuais do FileOperationEngine não encontrados"
 t = t.replace(old, new, 1)
 p.write_text(t, encoding="utf-8")
 
@@ -90,7 +41,7 @@ new = """        UniversalFilesStore.rememberTrash(context, destination.absolute
         SystemStorageAuthority.onMovedToTrash(context, original, destination, wasDirectory)
         return FileOperationResult(true, "Movido fisicamente para a Lixeira do Nerdora.", destination)
 """
-assert old in t, "moveToTrash antigo não encontrado"
+assert old in t, "moveToTrash atual não encontrado"
 t = t.replace(old, new, 1)
 
 old = """        if (result.success) {
@@ -102,30 +53,7 @@ new = """        if (result.success) {
             SystemStorageAuthority.onMovedToVault(context, oldPath, wasDirectory)
         }
 """
-assert old in t, "moveToVault antigo não encontrado"
-t = t.replace(old, new, 1)
-p.write_text(t, encoding="utf-8")
-
-p = Path("extracted_project/app/src/main/java/com/nerdora/player/PrivateVaultStore.kt")
-t = p.read_text(encoding="utf-8")
-old = """        LibraryStore.removeFilePathReferences(context, originalPath)
-        RealFileOperations.scanChangedPaths(context, listOf(originalPath))
-        return FileOperationResult(true, "Movido para o Cofre privado. O original não fica mais visível nos gerenciadores comuns.", destination)
-"""
-new = """        return FileOperationResult(true, "Movido para o Cofre privado. O original foi removido do armazenamento público.", destination)
-"""
-assert old in t, "sync antigo do Cofre não encontrado"
-t = t.replace(old, new, 1)
-
-old = """        removeEntry(context, entry.id)
-        RealFileOperations.scanChangedPaths(context, listOf(destination.absolutePath))
-        return FileOperationResult(true, "Restaurado em ${destination.parentFile?.absolutePath ?: "armazenamento"}.", destination)
-"""
-new = """        removeEntry(context, entry.id)
-        SystemStorageAuthority.onPathCopied(context, destination)
-        return FileOperationResult(true, "Restaurado fisicamente em ${destination.parentFile?.absolutePath ?: "armazenamento"}.", destination)
-"""
-assert old in t, "restore antigo do Cofre não encontrado"
+assert old in t, "moveToVault atual não encontrado"
 t = t.replace(old, new, 1)
 p.write_text(t, encoding="utf-8")
 
