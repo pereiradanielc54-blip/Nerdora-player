@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" href="./manifest.webmanifest?v=10.7.0">
+<link rel="manifest" href="./manifest.webmanifest?v=10.7.1">
 <link rel="icon" href="./icon.svg">
 <title>Nerdora Chibi Raiders</title>
 <style>
@@ -54,9 +54,9 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080511;fon
 <div id="rotate"><div><div class="phone">📱</div><b>Modo paisagem</b><span>Gire o celular para continuar.</span></div></div>
 <script>
 const FALLBACK_ENTRY="./builds/v10.7.0.html";
-const FALLBACK_VERSION="10.7.0";
+const FALLBACK_VERSION="10.7.1";
 const frame=document.getElementById("gameFrame"),splash=document.getElementById("splash"),statusEl=document.getElementById("status"),progress=document.getElementById("progress"),versionLabel=document.getElementById("versionLabel"),enter=document.getElementById("enter"),retry=document.getElementById("retry"),installApp=document.getElementById("installApp");
-let deferredInstallPrompt=null,ready=false,currentVersion=FALLBACK_VERSION,loading=false;
+let deferredInstallPrompt=null,ready=false,currentVersion=FALLBACK_VERSION,loading=false;\nconst RUNTIME_PATCHES=["./patches/v10.7.1-scroll-state.js"];\nasync function loadRuntimePatches(){\n const doc=frame.contentDocument;if(!doc)return;\n await Promise.all(RUNTIME_PATCHES.map(src=>new Promise(resolve=>{\n   const absolute=new URL(src,location.href).href;\n   if(doc.querySelector(`script[data-nerdora-patch="${src}"]`))return resolve();\n   const s=doc.createElement("script");s.dataset.nerdoraPatch=src;s.src=absolute+"?v="+encodeURIComponent(currentVersion);s.onload=resolve;s.onerror=resolve;(doc.head||doc.documentElement).appendChild(s);\n })));\n}
 function pct(n){progress.style.width=n+"%"}
 function isLandscape(){return innerWidth>innerHeight||matchMedia("(orientation:landscape)").matches}
 function isStandalone(){return matchMedia("(display-mode:standalone)").matches||matchMedia("(display-mode:fullscreen)").matches||navigator.standalone===true}
@@ -79,10 +79,7 @@ function loadEntry(entry,version){
    statusEl.textContent="A conexão demorou. Abrindo versão segura…";
    frame.src=FALLBACK_ENTRY+"?safe=1&t="+Date.now();
  },8000);
- frame.onload=()=>{
-   settled=true;clearTimeout(timeout);pct(100);statusEl.textContent="Pronto para jogar";ready=true;enter.style.display="inline-block";retry.style.display="none";
-   localStorage.setItem("nerdora_chibi_launcher_version",version);
- };
+ frame.onload=async()=>{\n   settled=true;clearTimeout(timeout);pct(82);statusEl.textContent="Aplicando melhorias…";await loadRuntimePatches();pct(100);statusEl.textContent="Pronto para jogar";ready=true;enter.style.display="inline-block";retry.style.display="none";\n   localStorage.setItem("nerdora_chibi_launcher_version",version);\n };
  frame.onerror=()=>{
    settled=true;clearTimeout(timeout);statusEl.textContent="Falha ao abrir o jogo.";retry.style.display="inline-block";
  };
@@ -112,7 +109,7 @@ addEventListener("resize",showGame);
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e;if(!isStandalone())installApp.style.display="inline-block"});
 installApp.onclick=async()=>{if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;installApp.style.display="none"};
 window.addEventListener("appinstalled",()=>{installApp.style.display="none";deferredInstallPrompt=null});
-if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=10.7.0",{scope:"./"}).catch(()=>{}));
+if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=10.7.1",{scope:"./"}).catch(()=>{}));
 boot();
 </script>
 </body></html>
