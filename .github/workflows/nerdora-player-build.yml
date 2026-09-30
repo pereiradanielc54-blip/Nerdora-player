@@ -1906,6 +1906,7 @@ jobs:
           set -euo pipefail
 
           cp .github/overlays/v0.9.27/SystemStorageAuthority.kt extracted_project/app/src/main/java/com/nerdora/player/SystemStorageAuthority.kt
+          cp .github/overlays/v0.9.27/RealFileOperations.kt extracted_project/app/src/main/java/com/nerdora/player/RealFileOperations.kt
           python3 .github/overlays/v0.9.27/apply.py
 
           sed -i -E 's/versionCode = [0-9]+/versionCode = 87/' extracted_project/app/build.gradle.kts
