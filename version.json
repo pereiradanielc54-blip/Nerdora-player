@@ -1,10 +1,10 @@
 {
-  "version": "10.7.0",
-  "build": "2026-09-29.8",
+  "version": "10.7.1",
+  "build": "2026-09-30.1",
   "entry": "builds/v10.7.0.html",
   "channel": "development",
   "title": "Nerdora Chibi Raiders",
-  "phase": "6.UI.8",
-  "updatedAt": "2026-09-29T22:01:00-03:00",
-  "notes": "FASE 6.UI.8 publicada: combate premium responsivo, HUD de rodada/equipes, cards de HP/Rage, ordem de ação, VFX de impacto/crítico/esquiva/bloqueio, banner de Ultimate e telas de Vitória/Derrota com estatísticas. Inclui as evoluções 6.UI.2 a 6.UI.7 e mantém save/progressão."
+  "phase": "6.UI.8.1",
+  "updatedAt": "2026-09-30T07:38:00-03:00",
+  "notes": "Hotfix 6.UI.8.1: ficha do herói e coleção agora preservam a posição de rolagem após evoluir, equipar, subir estrela, despertar, trocar aba ou selecionar heróis. Mantém a versão 10.7.0 como build-base e aplica patches modulares pelo launcher."
 }
