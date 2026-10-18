@@ -1920,6 +1920,22 @@ jobs:
           grep -q 'onMovedToVault' extracted_project/app/src/main/java/com/nerdora/player/FileBulkOperations.kt
           echo "v0.9.27: mutações físicas sincronizadas com MediaStore, SAF e índices internos."
 
+      - name: Aplicar YouTube integrado v0.9.28
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp .github/overlays/v0.9.28/YouTubeScreen.kt extracted_project/app/src/main/java/com/nerdora/player/ui/YouTubeScreen.kt
+          python3 .github/overlays/v0.9.28/apply.py
+          sed -i -E 's/versionCode = [0-9]+/versionCode = 88/' extracted_project/app/build.gradle.kts
+          sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.28"/' extracted_project/app/build.gradle.kts
+          grep -q 'versionName = "0.9.28"' extracted_project/app/build.gradle.kts
+          grep -q 'AppScreen.YOUTUBE -> YouTubeScreen' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          grep -q 'onOpenYouTube' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraCentralScreen.kt
+          grep -q 'https://m.youtube.com/results?search_query=' extracted_project/app/src/main/java/com/nerdora/player/ui/YouTubeScreen.kt
+          grep -q 'setPackage("com.google.android.youtube")' extracted_project/app/src/main/java/com/nerdora/player/ui/YouTubeScreen.kt
+          grep -q 'android.permission.INTERNET' extracted_project/app/src/main/AndroidManifest.xml
+          echo "v0.9.28: YouTube integrado aplicado."
+
       - name: Encontrar projeto Android
         id: android
         shell: bash
@@ -1993,7 +2009,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.27"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.28"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -2090,7 +2106,10 @@ jobs:
           grep -q 'DocumentsContract.renameDocument' app/src/main/java/com/nerdora/player/SystemStorageAuthority.kt
           grep -q 'DocumentsContract.deleteDocument' app/src/main/java/com/nerdora/player/SystemStorageAuthority.kt
           grep -q 'DocumentsContract.moveDocument' app/src/main/java/com/nerdora/player/SystemStorageAuthority.kt
-          echo "Nerdora Player v0.9.27 validado."
+          test -f app/src/main/java/com/nerdora/player/ui/YouTubeScreen.kt
+          grep -q 'AppScreen.YOUTUBE -> YouTubeScreen' app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
+          grep -q 'setPackage("com.google.android.youtube")' app/src/main/java/com/nerdora/player/ui/YouTubeScreen.kt
+          echo "Nerdora Player v0.9.28 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -2139,7 +2158,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publicar Release pública v0.9.27 assinada
+      - name: Publicar Release pública v0.9.28 assinada
         if: steps.build.outputs.status == '0' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -2148,8 +2167,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — System Storage Authority"
-          NOTES="Nerdora Player v0.9.27: consolida o gerenciador como autoridade real do armazenamento. Renomear, mover, copiar e excluir operam sobre o arquivo físico e reconciliam MediaStore e índices internos; Lixeira move fisicamente o item para a área de lixeira; Cofre remove o original do armazenamento público; restauração volta a indexar o arquivo; e a nova camada SAF usa DocumentsContract/DocumentFile para renomear, excluir e mover URIs quando o arquivo vem de provedores de documentos. Mantém o File Explorer Pro da v0.9.26."
+          TITLE="Nerdora Player v${VERSION} — YouTube integrado"
+          NOTES="Nerdora Player v0.9.28: adiciona uma área YouTube dentro da Central Nerdora. Permite pesquisar vídeos, navegar no YouTube e colar links para assistir pelo WebView oficial, além de abrir o vídeo no aplicativo oficial do YouTube. A reprodução com a tela apagada continua sujeita aos recursos e às regras da conta/app oficial (geralmente YouTube Premium); o player não extrai streams nem contorna restrições de reprodução em segundo plano. Mantém as funções de arquivos, Cofre, Lixeira, leitores de documentos e players locais."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
