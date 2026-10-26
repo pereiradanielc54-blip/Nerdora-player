@@ -33,7 +33,7 @@ new_hidden = """        AppScreen.YOUTUBE,
         AppScreen.DOWNLOADS_MANAGER
     )
 """
-if "AppScreen.DOWNLOADS_MANAGER" not in text:
+if "        AppScreen.DOWNLOADS_MANAGER\n" not in text:
     assert old_hidden in text, "lista de telas sem barra inferior não encontrada"
     text = text.replace(old_hidden, new_hidden, 1)
 
@@ -64,6 +64,11 @@ new = """                ToolGridRow(
                 ToolGridRow(
                     ToolItem("Abrir link", "↗", onOpenLink),
                     ToolItem("Recentes de arquivos", "↺") { onOpenFileCategory("RECENT") }
+                )
+                Spacer(Modifier.height(8.dp))
+                ToolGridRow(
+                    ToolItem("Todos os arquivos", "▣") { onOpenFileCategory("ALL") },
+                    ToolItem("Gerenciar armazenamento", "▤") { onOpenFileCategory("ALL") }
                 )
 """
 assert old in text or "ToolItem(\"Downloads\", \"↓\", onOpenDownloadsManager)" in text, "grade de utilidades não encontrada"
