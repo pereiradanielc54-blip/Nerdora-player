@@ -197,8 +197,7 @@ jobs:
           test -f extracted_project/app/src/main/java/com/nerdora/player/ui/AccountScreen.kt
           echo "v0.8.0: conta, navegação Voltar e índices persistentes aplicados."
 
-      - name: Aplicar Visual Refresh v0.9.0        shell: bash
-        run: |
+      - name: Aplicar Visual Refresh v0.9.0        shell: bash        run: |
           rm -rf /tmp/nerdora-v090
           mkdir -p /tmp/nerdora-v090
           cat \
@@ -397,7 +396,6 @@ jobs:
           old = 'paths.mapNotNull { path -> File(path).takeIf { it.isFile && !isInsideNerdoraTrash(it) }?.let(::deviceItem) }'
           new = 'paths.asSequence().map(::File).filterNot(::isInsideNerdoraTrash).map(::deviceItem).toList()'
           assert old in s or new in s, "Carga do índice em cache não encontrada"          s = s.replace(old, new, 1)
-
           # 2) Abertura padrão barata: nome não consulta lastModified() de todos os arquivos.
           old = 'var sortName by rememberSaveable { mutableStateOf(FileSort.NEWEST.name) }'
           new = 'var sortName by rememberSaveable { mutableStateOf(FileSort.NAME.name) }'
@@ -597,8 +595,7 @@ jobs:
 
           for PACKAGE in luckysheet luckyexcel; do            LIC=$(find "node_modules/$PACKAGE" -maxdepth 2 -type f -iname 'LICENSE*' | head -n 1 || true)
             if [ -n "$LIC" ]; then
-              cp "$LIC" "$GITHUB_WORKSPACE/$ASSETS/licenses/$PACKAGE-LICENSE.txt"
-            fi
+              cp "$LIC" "$GITHUB_WORKSPACE/$ASSETS/licenses/$PACKAGE-LICENSE.txt"            fi
           done
 
           cd "$GITHUB_WORKSPACE"
@@ -797,8 +794,7 @@ jobs:
           grep -q 'normalizeXlsxForLuckyExcel' "$VIEWER"          grep -q 'buildMergeMap' "$VIEWER"
           grep -q 'buildBorderMap' "$VIEWER"
           grep -q 'renderImages' "$VIEWER"
-          ! grep -q 'luckysheet.create' "$VIEWER"
-          ! grep -q 'luckysheet.umd.js' "$VIEWER"
+          ! grep -q 'luckysheet.create' "$VIEWER"          ! grep -q 'luckysheet.umd.js' "$VIEWER"
           ! grep -q 'luckysheet-cols-h-c' "$VIEWER"
           ! grep -q 'luckysheet-rows-h' "$VIEWER"
 
@@ -998,7 +994,6 @@ jobs:
           sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.13"/' extracted_project/app/build.gradle.kts
 
           VIEWER="extracted_project/app/src/main/assets/xlsx_renderer/viewer.html"
-
           grep -q 'versionName = "0.9.13"' extracted_project/app/build.gradle.kts
           grep -q 'body.has-tabs #viewport' "$VIEWER"
           grep -q 'bottom: 60px' "$VIEWER"
@@ -1197,8 +1192,7 @@ jobs:
             throw new Error('Área útil da aba Resumo divergente: ' + JSON.stringify(ext));
           }
 
-          const a1 = getCell(sheets[0], 1, 1);
-          if (!a1) throw new Error('A1 ausente na fixture');
+          const a1 = getCell(sheets[0], 1, 1);          if (!a1) throw new Error('A1 ausente na fixture');
           const title = getCellDisplayText(wb, a1);
           if (!title.includes('NERDORA PLAYER')) throw new Error('Título A1 divergente: ' + title);
 
@@ -1397,8 +1391,7 @@ jobs:
           grep -q 'fortune-sheet.css' "$VIEWER"
           grep -q 'fortune-viewer.js' "$VIEWER"
           grep -q 'width: 100%' "$VIEWER"
-          grep -q 'height: 100%' "$VIEWER"
-          node --check "$ASSETS/fortune-viewer.js"
+          grep -q 'height: 100%' "$VIEWER"          node --check "$ASSETS/fortune-viewer.js"
 
           test ! -e "$ASSETS/officekit-viewer.js"
           test ! -e "$ASSETS/exceljs.min.js"
@@ -1597,8 +1590,7 @@ jobs:
           )
 
           sort_marker = '        val sort = runCatching { FileSort.valueOf(sortName) }.getOrDefault(FileSort.NEWEST)'
-          assert sort_marker in text, "marcador de ordenação de FilesScreen não encontrado"
-          sync_block = '''    LaunchedEffect(initialCategoryName, initialFolderPath, initialQuery) {
+          assert sort_marker in text, "marcador de ordenação de FilesScreen não encontrado"          sync_block = '''    LaunchedEffect(initialCategoryName, initialFolderPath, initialQuery) {
               categoryName = initialCategoryName
               folder = resolveInitialFolder(root, initialFolderPath)
               query = initialQuery
@@ -1798,7 +1790,6 @@ jobs:
           grep -q 'Continuar assistindo' extracted_project/app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
           grep -q 'Locais e organização' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           echo "v0.9.22: organização base aplicada."
-
       - name: Aplicar Gerenciador Pro Fase 1 v0.9.23
         shell: bash
         run: |
@@ -1997,7 +1988,6 @@ jobs:
           printf '%s' "$NERDORA_KEYSTORE_BASE64" | tr -d '\r\n' | base64 --decode > "$KEYSTORE"
           chmod 600 "$KEYSTORE"
           test -s "$KEYSTORE"
-
           keytool -list             -keystore "$KEYSTORE"             -storepass "$NERDORA_KEYSTORE_PASSWORD"             -alias "$NERDORA_KEY_ALIAS" >/dev/null
 
           echo "keystore_path=$KEYSTORE" >> "$GITHUB_OUTPUT"
@@ -2016,7 +2006,7 @@ jobs:
         run: |
           grep -q 'rootProject.name = "NerdoraPlayer"' settings.gradle.kts
           grep -q 'applicationId = "com.nerdora.player"' app/build.gradle.kts
-          grep -q 'versionName = "0.9.28"' app/build.gradle.kts
+          grep -q 'versionName = "0.9.29"' app/build.gradle.kts
           test -f app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           test -f app/src/main/java/com/nerdora/player/DocumentOpenActivity.kt
           grep -q 'android:name=".DocumentOpenActivity"' app/src/main/AndroidManifest.xml
@@ -2116,7 +2106,7 @@ jobs:
           test -f app/src/main/java/com/nerdora/player/ui/YouTubeScreen.kt
           grep -q 'AppScreen.YOUTUBE -> YouTubeScreen' app/src/main/java/com/nerdora/player/ui/NerdoraPlayerApp.kt
           grep -q 'setPackage("com.google.android.youtube")' app/src/main/java/com/nerdora/player/ui/YouTubeScreen.kt
-          echo "Nerdora Player v0.9.28 validado."
+          echo "Nerdora Player v0.9.29 validado."
 
       - name: Compilar APK Release assinado
         id: build
@@ -2174,8 +2164,8 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           TAG="v${VERSION}"
           APK="final-apk/Nerdora-Player-v${VERSION}.apk"
-          TITLE="Nerdora Player v${VERSION} — YouTube integrado"
-          NOTES="Nerdora Player v0.9.28: adiciona uma área YouTube dentro da Central Nerdora. Permite pesquisar vídeos, navegar no YouTube e colar links para assistir pelo WebView oficial, além de abrir o vídeo no aplicativo oficial do YouTube. A reprodução com a tela apagada continua sujeita aos recursos e às regras da conta/app oficial (geralmente YouTube Premium); o player não extrai streams nem contorna restrições de reprodução em segundo plano. Mantém as funções de arquivos, Cofre, Lixeira, leitores de documentos e players locais."
+          TITLE="Nerdora Player v${VERSION} — Downloads autorizados"
+          NOTES="Nerdora Player v${VERSION}: adiciona gerenciador de downloads para links diretos HTTP/HTTPS autorizados, com fila persistente do Android, notificações, progresso e destino na pasta Downloads. Não extrai streams do YouTube, não contorna DRM nem restrições de acesso. Mantém as funções de arquivos, Cofre, Lixeira, leitores de documentos, players locais e a área oficial do YouTube."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
