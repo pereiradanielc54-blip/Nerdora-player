@@ -1,4 +1,4 @@
-name: Nerdora Player - Build v0.9.27 System Storage Authority
+name: Nerdora Player - Build v0.9.29 Authorized Downloads
 
 on:
   workflow_dispatch:
@@ -197,7 +197,9 @@ jobs:
           test -f extracted_project/app/src/main/java/com/nerdora/player/ui/AccountScreen.kt
           echo "v0.8.0: conta, navegação Voltar e índices persistentes aplicados."
 
-      - name: Aplicar Visual Refresh v0.9.0        shell: bash        run: |
+      - name: Aplicar Visual Refresh v0.9.0
+        shell: bash
+        run: |
           rm -rf /tmp/nerdora-v090
           mkdir -p /tmp/nerdora-v090
           cat \
@@ -395,7 +397,9 @@ jobs:
           # 1) Cache deve abrir sem fazer stat() em milhares de caminhos.
           old = 'paths.mapNotNull { path -> File(path).takeIf { it.isFile && !isInsideNerdoraTrash(it) }?.let(::deviceItem) }'
           new = 'paths.asSequence().map(::File).filterNot(::isInsideNerdoraTrash).map(::deviceItem).toList()'
-          assert old in s or new in s, "Carga do índice em cache não encontrada"          s = s.replace(old, new, 1)
+          assert old in s or new in s, "Carga do índice em cache não encontrada"
+          s = s.replace(old, new, 1)
+
           # 2) Abertura padrão barata: nome não consulta lastModified() de todos os arquivos.
           old = 'var sortName by rememberSaveable { mutableStateOf(FileSort.NEWEST.name) }'
           new = 'var sortName by rememberSaveable { mutableStateOf(FileSort.NAME.name) }'
@@ -593,9 +597,11 @@ jobs:
           cp -R node_modules/luckysheet/dist/. "$GITHUB_WORKSPACE/$ASSETS/luckysheet/"
           cp node_modules/luckyexcel/dist/luckyexcel.umd.js "$GITHUB_WORKSPACE/$ASSETS/luckyexcel.umd.js"
 
-          for PACKAGE in luckysheet luckyexcel; do            LIC=$(find "node_modules/$PACKAGE" -maxdepth 2 -type f -iname 'LICENSE*' | head -n 1 || true)
+          for PACKAGE in luckysheet luckyexcel; do
+            LIC=$(find "node_modules/$PACKAGE" -maxdepth 2 -type f -iname 'LICENSE*' | head -n 1 || true)
             if [ -n "$LIC" ]; then
-              cp "$LIC" "$GITHUB_WORKSPACE/$ASSETS/licenses/$PACKAGE-LICENSE.txt"            fi
+              cp "$LIC" "$GITHUB_WORKSPACE/$ASSETS/licenses/$PACKAGE-LICENSE.txt"
+            fi
           done
 
           cd "$GITHUB_WORKSPACE"
@@ -791,10 +797,12 @@ jobs:
           grep -q 'Excel • visualização final' extracted_project/app/src/main/java/com/nerdora/player/ui/DocumentViewerScreen.kt
           grep -q 'startStaticViewer' "$VIEWER"
           grep -q 'sheet-stage' "$VIEWER"
-          grep -q 'normalizeXlsxForLuckyExcel' "$VIEWER"          grep -q 'buildMergeMap' "$VIEWER"
+          grep -q 'normalizeXlsxForLuckyExcel' "$VIEWER"
+          grep -q 'buildMergeMap' "$VIEWER"
           grep -q 'buildBorderMap' "$VIEWER"
           grep -q 'renderImages' "$VIEWER"
-          ! grep -q 'luckysheet.create' "$VIEWER"          ! grep -q 'luckysheet.umd.js' "$VIEWER"
+          ! grep -q 'luckysheet.create' "$VIEWER"
+          ! grep -q 'luckysheet.umd.js' "$VIEWER"
           ! grep -q 'luckysheet-cols-h-c' "$VIEWER"
           ! grep -q 'luckysheet-rows-h' "$VIEWER"
 
@@ -990,10 +998,12 @@ jobs:
 
           cp .github/overlays/v0.9.13/viewer.html \
             extracted_project/app/src/main/assets/xlsx_renderer/viewer.html
+
           sed -i -E 's/versionCode = [0-9]+/versionCode = 73/' extracted_project/app/build.gradle.kts
           sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.13"/' extracted_project/app/build.gradle.kts
 
           VIEWER="extracted_project/app/src/main/assets/xlsx_renderer/viewer.html"
+
           grep -q 'versionName = "0.9.13"' extracted_project/app/build.gradle.kts
           grep -q 'body.has-tabs #viewport' "$VIEWER"
           grep -q 'bottom: 60px' "$VIEWER"
@@ -1187,12 +1197,14 @@ jobs:
 
           if (sheets.length !== 3) throw new Error('Fixture deveria ter 3 abas, recebeu ' + sheets.length);
           if (sheets[0].title !== 'Resumo') throw new Error('Primeira aba divergente: ' + sheets[0].title);
+
           const ext = getCellExtent(sheets[0]);
           if (!ext || ext.minRow !== 1 || ext.minCol !== 1 || ext.maxRow < 20 || ext.maxCol < 8) {
             throw new Error('Área útil da aba Resumo divergente: ' + JSON.stringify(ext));
           }
 
-          const a1 = getCell(sheets[0], 1, 1);          if (!a1) throw new Error('A1 ausente na fixture');
+          const a1 = getCell(sheets[0], 1, 1);
+          if (!a1) throw new Error('A1 ausente na fixture');
           const title = getCellDisplayText(wb, a1);
           if (!title.includes('NERDORA PLAYER')) throw new Error('Título A1 divergente: ' + title);
 
@@ -1385,13 +1397,15 @@ jobs:
           VIEWER="$ASSETS/viewer.html"
 
           grep -q 'versionName = "0.9.16"' extracted_project/app/build.gradle.kts
-          test -s "$ASSETS/fortune-viewer.js"          test -s "$ASSETS/fortune-sheet.css"
+          test -s "$ASSETS/fortune-viewer.js"
+          test -s "$ASSETS/fortune-sheet.css"
           test -s "$ASSETS/licenses/fortune-sheet-react-LICENSE.txt"
           test -s "$ASSETS/licenses/fortune-excel-LICENSE.txt"
           grep -q 'fortune-sheet.css' "$VIEWER"
           grep -q 'fortune-viewer.js' "$VIEWER"
           grep -q 'width: 100%' "$VIEWER"
-          grep -q 'height: 100%' "$VIEWER"          node --check "$ASSETS/fortune-viewer.js"
+          grep -q 'height: 100%' "$VIEWER"
+          node --check "$ASSETS/fortune-viewer.js"
 
           test ! -e "$ASSETS/officekit-viewer.js"
           test ! -e "$ASSETS/exceljs.min.js"
@@ -1583,14 +1597,16 @@ jobs:
               '    var categoryName by rememberSaveable { mutableStateOf(UniversalCategory.ALL.name) }\n    var query by rememberSaveable { mutableStateOf("") }',
               '    var categoryName by rememberSaveable { mutableStateOf(initialCategoryName) }\n    var query by rememberSaveable { mutableStateOf(initialQuery) }',
               1
-          )          text = text.replace(
+          )
+          text = text.replace(
               '    var folder by remember { mutableStateOf<File?>(null) }',
               '    var folder by remember { mutableStateOf(resolveInitialFolder(root, initialFolderPath)) }',
               1
           )
 
           sort_marker = '        val sort = runCatching { FileSort.valueOf(sortName) }.getOrDefault(FileSort.NEWEST)'
-          assert sort_marker in text, "marcador de ordenação de FilesScreen não encontrado"          sync_block = '''    LaunchedEffect(initialCategoryName, initialFolderPath, initialQuery) {
+          assert sort_marker in text, "marcador de ordenação de FilesScreen não encontrado"
+          sync_block = '''    LaunchedEffect(initialCategoryName, initialFolderPath, initialQuery) {
               categoryName = initialCategoryName
               folder = resolveInitialFolder(root, initialFolderPath)
               query = initialQuery
@@ -1782,6 +1798,7 @@ jobs:
 
           sed -i -E 's/versionCode = [0-9]+/versionCode = 82/' extracted_project/app/build.gradle.kts
           sed -i -E 's/versionName = "[^"]+"/versionName = "0.9.22"/' extracted_project/app/build.gradle.kts
+
           grep -q 'versionName = "0.9.22"' extracted_project/app/build.gradle.kts
           grep -q 'OfficialNavItem("SETTINGS", "Ajustes"' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
           ! grep -q 'OfficialNavItem("PLAYLISTS"' extracted_project/app/src/main/java/com/nerdora/player/ui/NerdoraOfficialBottomBar.kt
@@ -1790,6 +1807,7 @@ jobs:
           grep -q 'Continuar assistindo' extracted_project/app/src/main/java/com/nerdora/player/ui/HomeScreen.kt
           grep -q 'Locais e organização' extracted_project/app/src/main/java/com/nerdora/player/ui/FilesScreen.kt
           echo "v0.9.22: organização base aplicada."
+
       - name: Aplicar Gerenciador Pro Fase 1 v0.9.23
         shell: bash
         run: |
@@ -1988,6 +2006,7 @@ jobs:
           printf '%s' "$NERDORA_KEYSTORE_BASE64" | tr -d '\r\n' | base64 --decode > "$KEYSTORE"
           chmod 600 "$KEYSTORE"
           test -s "$KEYSTORE"
+
           keytool -list             -keystore "$KEYSTORE"             -storepass "$NERDORA_KEYSTORE_PASSWORD"             -alias "$NERDORA_KEY_ALIAS" >/dev/null
 
           echo "keystore_path=$KEYSTORE" >> "$GITHUB_OUTPUT"
@@ -1995,7 +2014,8 @@ jobs:
 
       - name: Preparar Android SDK
         shell: bash
-        run: |          SDKMANAGER=$(find "$ANDROID_HOME" -type f -name sdkmanager | head -n 1)
+        run: |
+          SDKMANAGER=$(find "$ANDROID_HOME" -type f -name sdkmanager | head -n 1)
           test -n "$SDKMANAGER"
           yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
           "$SDKMANAGER" 'platforms;android-35' 'build-tools;35.0.0' 'platform-tools'
