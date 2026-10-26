@@ -65,11 +65,6 @@ new = """                ToolGridRow(
                     ToolItem("Abrir link", "↗", onOpenLink),
                     ToolItem("Recentes de arquivos", "↺") { onOpenFileCategory("RECENT") }
                 )
-                Spacer(Modifier.height(8.dp))
-                ToolGridRow(
-                    ToolItem("Todos os arquivos", "▣") { onOpenFileCategory("ALL") },
-                    ToolItem("Gerenciar armazenamento", "▤") { onOpenFileCategory("ALL") }
-                )
 """
 assert old in text or "ToolItem(\"Downloads\", \"↓\", onOpenDownloadsManager)" in text, "grade de utilidades não encontrada"
 if "ToolItem(\"Downloads\", \"↓\", onOpenDownloadsManager)" not in text:
