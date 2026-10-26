@@ -65,6 +65,7 @@ fun DownloadsManagerScreen(onBack: () -> Unit) {
     var url by remember { mutableStateOf("") }
     var downloads by remember { mutableStateOf<List<ManagedDownload>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
+    var refreshTrigger by remember { mutableStateOf(0) }
 
     suspend fun refresh() {
         loading = true
@@ -98,7 +99,7 @@ fun DownloadsManagerScreen(onBack: () -> Unit) {
         loading = false
     }
 
-    LaunchedEffect(manager) {
+    LaunchedEffect(manager, refreshTrigger) {
         while (true) {
             refresh()
             delay(1500)
@@ -150,7 +151,7 @@ fun DownloadsManagerScreen(onBack: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextButton(onClick = onBack) { Text("Voltar") }
                 Text("Gerenciador de downloads", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                IconButton(onClick = { /* refresh loop also updates */ }) { Icon(Icons.Rounded.Refresh, contentDescription = "Atualização automática") }
+                IconButton(onClick = { refreshTrigger++ }) { Icon(Icons.Rounded.Refresh, contentDescription = "Atualização automática") }
             }
             Text("Baixe arquivos por links diretos autorizados. O Android mantém a fila e as notificações; arquivos concluídos ficam na pasta Downloads.", style = MaterialTheme.typography.bodySmall)
             OutlinedTextField(
